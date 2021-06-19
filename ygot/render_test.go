@@ -919,7 +919,7 @@ func (*pathElemExample) IsYANGGoStruct() {}
 
 // pathElemExampleChild is an example struct that is used as a list child struct.
 type pathElemExampleChild struct {
-	Val        *string `path:"val|config/val"`
+	Val        *string `path:"val|config/val" shadow-path:"val|state/val"`
 	OtherField *uint8  `path:"other-field"`
 }
 
@@ -1671,8 +1671,8 @@ type mapKey struct {
 }
 
 type structMultiKeyChild struct {
-	F1 *string `path:"config/fOne|fOne"`
-	F2 *string `path:"config/fTwo|fTwo"`
+	F1 *string `path:"config/fOne|fOne" shadow-path:"state/fOne|fOne"`
+	F2 *string `path:"config/fTwo|fTwo" shadow-path:"state/fTwo|fTwo"`
 }
 
 func (*structMultiKeyChild) IsYANGGoStruct() {}
@@ -1801,14 +1801,16 @@ func (t *unmarshalableJSON) UnmarshalJSON(d []byte) error {
 
 func TestConstructJSON(t *testing.T) {
 	tests := []struct {
-		name         string
-		in           GoStruct
-		inAppendMod  bool
-		wantIETF     map[string]interface{}
-		wantInternal map[string]interface{}
-		wantSame     bool
-		wantErr      bool
-		wantJSONErr  bool
+		name                     string
+		in                       GoStruct
+		inAppendMod              bool
+		inRewriteModuleNameRules map[string]string
+		inPreferShadowPath       bool
+		wantIETF                 map[string]interface{}
+		wantInternal             map[string]interface{}
+		wantSame                 bool
+		wantErr                  bool
+		wantJSONErr              bool
 	}{{
 		name: "invalidGoStruct",
 		in: &invalidGoStructChild{
@@ -1881,6 +1883,67 @@ func TestConstructJSON(t *testing.T) {
 			},
 		},
 	}, {
+		name: "rewrite module name for an element with children",
+		in: &diffModAtRoot{
+			Child: &diffModAtRootChild{
+				ValueOne:   String("one"),
+				ValueTwo:   String("two"),
+				ValueThree: String("three"),
+			},
+			Elem: &diffModAtRootElem{
+				C: &diffModAtRootElemTwo{
+					Name: String("baz"),
+				},
+			},
+		},
+		inAppendMod: true,
+		inRewriteModuleNameRules: map[string]string{
+			// rewrite m1 to m2
+			"m1": "m2",
+		},
+		wantIETF: map[string]interface{}{
+			"m2:foo": map[string]interface{}{
+				"value-one":    "one",
+				"m3:value-two": "two",
+				"value-three":  "three",
+			},
+			"m2:baz": map[string]interface{}{
+				"c": map[string]interface{}{
+					"name": "baz",
+				},
+			},
+		},
+	}, {
+		name: "rewrite leaf node module",
+		in: &diffModAtRoot{
+			Child: &diffModAtRootChild{
+				ValueOne:   String("one"),
+				ValueTwo:   String("two"),
+				ValueThree: String("three"),
+			},
+			Elem: &diffModAtRootElem{
+				C: &diffModAtRootElemTwo{
+					Name: String("baz"),
+				},
+			},
+		},
+		inAppendMod: true,
+		inRewriteModuleNameRules: map[string]string{
+			"m3": "fish",
+		},
+		wantIETF: map[string]interface{}{
+			"m1:foo": map[string]interface{}{
+				"m2:value-one":   "one",
+				"fish:value-two": "two",
+				"value-three":    "three",
+			},
+			"m1:baz": map[string]interface{}{
+				"c": map[string]interface{}{
+					"name": "baz",
+				},
+			},
+		},
+	}, {
 		name: "simple render",
 		in: &renderExample{
 			Str: String("hello"),
@@ -1924,6 +1987,40 @@ func TestConstructJSON(t *testing.T) {
 				"one two": map[string]interface{}{
 					"fOne": "one",
 					"fTwo": "two",
+					"config": map[string]interface{}{
+						"fOne": "one",
+						"fTwo": "two",
+					},
+				},
+			},
+		},
+	}, {
+		name: "multi-keyed list with PreferShadowPath=true",
+		in: &structWithMultiKey{
+			Map: map[mapKey]*structMultiKeyChild{
+				{F1: "one", F2: "two"}: {F1: String("one"), F2: String("two")},
+			},
+		},
+		inPreferShadowPath: true,
+		wantIETF: map[string]interface{}{
+			"foo": []interface{}{
+				map[string]interface{}{
+					"fOne": "one",
+					"fTwo": "two",
+					"state": map[string]interface{}{
+						"fOne": "one",
+						"fTwo": "two",
+					},
+				},
+			},
+		},
+		wantInternal: map[string]interface{}{
+			"foo": map[string]interface{}{
+				"one two": map[string]interface{}{
+					"fOne": "one",
+					"fTwo": "two",
+					// NOTE: internal JSON generation doesn't have the
+					// preferShadowPath option, so its results are unchanged.
 					"config": map[string]interface{}{
 						"fOne": "one",
 						"fTwo": "two",
@@ -2574,7 +2671,9 @@ func TestConstructJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name+" ConstructIETFJSON", func(t *testing.T) {
 			gotietf, err := ConstructIETFJSON(tt.in, &RFC7951JSONConfig{
-				AppendModuleName: tt.inAppendMod,
+				AppendModuleName:   tt.inAppendMod,
+				RewriteModuleNames: tt.inRewriteModuleNameRules,
+				PreferShadowPath:   tt.inPreferShadowPath,
 			})
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("ConstructIETFJSON(%v): got unexpected error: %v, want error %v", tt.in, err, tt.wantErr)
@@ -2596,31 +2695,33 @@ func TestConstructJSON(t *testing.T) {
 			}
 		})
 
-		t.Run(tt.name+" ConstructInternalJSON", func(t *testing.T) {
-			gotjson, err := ConstructInternalJSON(tt.in)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("ConstructJSON(%v): got unexpected error: %v", tt.in, err)
-			}
-			if err != nil {
-				return
-			}
+		if tt.wantSame || tt.wantInternal != nil {
+			t.Run(tt.name+" ConstructInternalJSON", func(t *testing.T) {
+				gotjson, err := ConstructInternalJSON(tt.in)
+				if (err != nil) != tt.wantErr {
+					t.Fatalf("ConstructJSON(%v): got unexpected error: %v", tt.in, err)
+				}
+				if err != nil {
+					return
+				}
 
-			_, err = json.Marshal(gotjson)
-			if (err != nil) != tt.wantJSONErr {
-				t.Fatalf("json.Marshal(%v): got unexpected error: %v, want error: %v", gotjson, err, tt.wantJSONErr)
-			}
-			if err != nil {
-				return
-			}
+				_, err = json.Marshal(gotjson)
+				if (err != nil) != tt.wantJSONErr {
+					t.Fatalf("json.Marshal(%v): got unexpected error: %v, want error: %v", gotjson, err, tt.wantJSONErr)
+				}
+				if err != nil {
+					return
+				}
 
-			wantInternal := tt.wantInternal
-			if tt.wantSame == true {
-				wantInternal = tt.wantIETF
-			}
-			if diff := pretty.Compare(gotjson, wantInternal); diff != "" {
-				t.Errorf("ConstructJSON(%v): did not get expected output, diff(-got,+want):\n%v", tt.in, diff)
-			}
-		})
+				wantInternal := tt.wantInternal
+				if tt.wantSame == true {
+					wantInternal = tt.wantIETF
+				}
+				if diff := pretty.Compare(gotjson, wantInternal); diff != "" {
+					t.Errorf("ConstructJSON(%v): did not get expected output, diff(-got,+want):\n%v", tt.in, diff)
+				}
+			})
+		}
 	}
 }
 
