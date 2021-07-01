@@ -1603,6 +1603,8 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 			}
 		}
 
+		tagBuf.WriteString(fmt.Sprintf(` json:"%s"`, fName))
+
 		fieldDef.Tags = tagBuf.String()
 
 		// Append the generated field definition to the set of fields of the struct.
