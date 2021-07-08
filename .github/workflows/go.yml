@@ -2,7 +2,7 @@ name: Go
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, swagger ]
   pull_request:
   schedule:
     - cron: "0 0 * * *"
