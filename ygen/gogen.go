@@ -1603,7 +1603,9 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 			}
 		}
 
-		tagBuf.WriteString(fmt.Sprintf(` json:"%s"`, fName))
+		if goOpts.GenerateSwaggerTags {
+			tagBuf.WriteString(generateSwaggerTags(fName, field))
+		}
 
 		fieldDef.Tags = tagBuf.String()
 
@@ -1737,6 +1739,25 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 		Interfaces:  interfaceBuf.String(),
 		enumTypeMap: enumTypeMap,
 	}, errs
+}
+
+func generateSwaggerTags(fieldName string, field *yang.Entry) string {
+	var buf bytes.Buffer
+	if field.Type != nil && field.Type.Kind == yang.Yenum {
+		enumNamesCsv := strings.Join(field.Type.Enum.Names(), ",")
+		buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+	} else if field.Type != nil && field.Type.Kind == yang.Yidentityref {
+		enumNames := make([]string, len(field.Type.IdentityBase.Values))
+		for i, val := range field.Type.IdentityBase.Values {
+			enumNames[i] = val.Name
+		}
+		enumNamesCsv := strings.Join(enumNames, ",")
+		buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+	} else if util.IsKeyedList(field) {
+		buf.WriteString(` swaggertype:"array"`)
+	}
+	buf.WriteString(fmt.Sprintf(` json:"%s"`, fieldName))
+	return buf.String()
 }
 
 // generateValidator generates a validation function string for structDef and

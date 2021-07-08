@@ -229,6 +229,7 @@ type GoOpts struct {
 	// only applies when useDefiningModuleForTypedefEnumNames is also set
 	// to true.
 	AppendEnumSuffixForSimpleUnionEnums bool
+	GenerateSwaggerTags                 bool
 }
 
 // ProtoOpts stores Protobuf specific options for the code generation library.

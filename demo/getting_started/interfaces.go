@@ -35,27 +35,9 @@ func main() {
 	// supplied by the fakeroot_name argument.
 	d := &oc.Device{}
 
-	// To render the device (which is currently empty) to JSON in RFC7951 format, then we
-	// simply call the ygot.EmitJSON method with the relevant arguments.
-	j, err := ygot.EmitJSON(d, &ygot.EmitJSONConfig{
-		Format: ygot.RFC7951,
-		Indent: "  ",
-		RFC7951Config: &ygot.RFC7951JSONConfig{
-			AppendModuleName: true,
-		},
-	})
-
-	// If an error was returned (which occurs if the struct's contents could not be validated
-	// or an error occurred with rendering to JSON), then this should be handled by the
-	// calling code.
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Empty JSON: %v\n", j)
-
 	// Since compress_paths is set to true, then the /interfaces/interface list is compressed to
 	// be Interface at the root of the tree, such that the root has a NewInterface method.
-	i, err := d.NewInterface("eth0")
+	i, _ := d.NewInterface("eth0")
 
 	// We can now work directly with the returned interface to specify some values.
 	i.AdminStatus = oc.Interface_AdminStatus_UP
@@ -73,77 +55,112 @@ func main() {
 		Description: ygot.String("Another Interface"),
 		Enabled:     ygot.Bool(false),
 		Type:        oc.IETFInterfaces_InterfaceType_ethernetCsmacd,
+		AdminStatus: oc.Interface_AdminStatus_DOWN,
 	}
 
-	s, err := d.Interface["eth1"].NewSubinterface(0)
-	if err != nil {
-		panic(fmt.Sprintf("Duplicate subinterface: %v", err))
-	}
-
-	// BuildEmptyTree initialises all subcontainers of a particular
-	// point in the tree.
-	ygot.BuildEmptyTree(s)
-
-	// Loop through and add addresses on a particular interface.
-	addresses := []struct {
-		address string
-		mask    uint8
-	}{{
-		address: "192.0.2.1",
-		mask:    24,
-	}, {
-		address: "10.0.42.1",
-		mask:    8,
-	}}
-
-	for _, addr := range addresses {
-		a, err := s.Ipv4.NewAddress(addr.address)
-		if err != nil {
-			panic(err)
-		}
-		a.PrefixLength = ygot.Uint8(addr.mask)
-	}
-
-	// When we have invalid data (e.g., a non-matching IPv4 address) then .Validate()
-	// returns an error.
-	invalidIf := &oc.Interface{
-		Name: ygot.String("eth42"),
-	}
-	subif, err := invalidIf.NewSubinterface(0)
+	j, err := ygot.Marshal7951(d)
 	if err != nil {
 		panic(err)
 	}
-	ygot.BuildEmptyTree(subif)
-	_, err = subif.Ipv4.NewAddress("Not a valid address")
-	if err := invalidIf.Validate(); err == nil {
-		panic(fmt.Sprintf("Did not find invalid address, got nil err: %v", err))
-	} else {
-		fmt.Printf("Got expected error: %v\n", err)
-	}
+	fmt.Printf("Marshal7951: %s\n", j)
 
-	// We can also validate the device overall.
-	if err := d.Validate(); err != nil {
-		panic(fmt.Sprintf("Device validation failed: %v", err))
-	}
-
-	// EmitJSON from the ygot library directly does .Validate() and outputs JSON in
-	// the specified format.
-	json, err := ygot.EmitJSON(d, &ygot.EmitJSONConfig{
+	// To render the device (which is currently empty) to JSON in RFC7951 format, then we
+	// simply call the ygot.EmitJSON method with the relevant arguments.
+	j1, e := ygot.EmitJSON(d, &ygot.EmitJSONConfig{
 		Format: ygot.RFC7951,
 		Indent: "  ",
 		RFC7951Config: &ygot.RFC7951JSONConfig{
 			AppendModuleName: true,
 		},
 	})
-	if err != nil {
-		panic(fmt.Sprintf("JSON demo error: %v", err))
+	if e != nil {
+		panic(e)
 	}
-	fmt.Println(json)
+	fmt.Println("Emit RFC7951 JSON ", j1)
 
-	// The generated code includes an Unmarshal function, which can be used to load
-	// a data tree such as the one that we just created.
+	j2, e1 := ygot.EmitJSON(d, nil)
+	if e1 != nil {
+		panic(e1)
+	}
+	fmt.Println("Emit Internal JSON ", j2)
+
 	loadd := &oc.Device{}
-	if err := oc.Unmarshal([]byte(json), loadd); err != nil {
+	if err := oc.Unmarshal([]byte(j1), loadd); err != nil {
 		panic(fmt.Sprintf("Can't unmarshal JSON: %v", err))
 	}
+	fmt.Printf("After unmashal: %+v\n", *loadd.Interface["eth1"])
+
+	/*
+		s, err := d.Interface["eth1"].NewSubinterface(0)
+		if err != nil {
+			panic(fmt.Sprintf("Duplicate subinterface: %v", err))
+		}
+
+		// BuildEmptyTree initialises all subcontainers of a particular
+		// point in the tree.
+		ygot.BuildEmptyTree(s)
+
+		// Loop through and add addresses on a particular interface.
+		addresses := []struct {
+			address string
+			mask    uint8
+		}{{
+			address: "192.0.2.1",
+			mask:    24,
+		}, {
+			address: "10.0.42.1",
+			mask:    8,
+		}}
+
+		for _, addr := range addresses {
+			a, err := s.Ipv4.NewAddress(addr.address)
+			if err != nil {
+				panic(err)
+			}
+			a.PrefixLength = ygot.Uint8(addr.mask)
+		}
+
+		// When we have invalid data (e.g., a non-matching IPv4 address) then .Validate()
+		// returns an error.
+		invalidIf := &oc.Interface{
+			Name: ygot.String("eth42"),
+		}
+		subif, err := invalidIf.NewSubinterface(0)
+		if err != nil {
+			panic(err)
+		}
+		ygot.BuildEmptyTree(subif)
+		_, err = subif.Ipv4.NewAddress("Not a valid address")
+		if err := invalidIf.Validate(); err == nil {
+			panic(fmt.Sprintf("Did not find invalid address, got nil err: %v", err))
+		} else {
+			fmt.Printf("Got expected error: %v\n", err)
+		}
+
+		// We can also validate the device overall.
+		if err := d.Validate(); err != nil {
+			panic(fmt.Sprintf("Device validation failed: %v", err))
+		}
+
+		// EmitJSON from the ygot library directly does .Validate() and outputs JSON in
+		// the specified format.
+		json, err := ygot.EmitJSON(d, &ygot.EmitJSONConfig{
+			Format: ygot.RFC7951,
+			Indent: "  ",
+			RFC7951Config: &ygot.RFC7951JSONConfig{
+				AppendModuleName: true,
+			},
+		})
+		if err != nil {
+			panic(fmt.Sprintf("JSON demo error: %v", err))
+		}
+		fmt.Println(json)
+
+		// The generated code includes an Unmarshal function, which can be used to load
+		// a data tree such as the one that we just created.
+		loadd := &oc.Device{}
+		if err := oc.Unmarshal([]byte(json), loadd); err != nil {
+			panic(fmt.Sprintf("Can't unmarshal JSON: %v", err))
+		}
+	*/
 }
