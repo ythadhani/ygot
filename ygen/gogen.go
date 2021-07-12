@@ -1603,7 +1603,7 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 			}
 		}
 
-		if goOpts.GenerateSwaggerTags && field.Type != nil {
+		if goOpts.GenerateSwaggerTags {
 			tagBuf.WriteString(generateSwaggerTags(fName, field.Type))
 		}
 
@@ -1743,6 +1743,11 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 
 func generateSwaggerTags(fieldName string, fieldType *yang.YangType) string {
 	var buf bytes.Buffer
+	buf.WriteString(fmt.Sprintf(` json:"%s"`, fieldName))
+	if fieldType == nil {
+		return buf.String()
+	}
+
 	switch fieldType.Kind {
 	case yang.Yenum:
 		enumNamesCsv := strings.Join(fieldType.Enum.Names(), ",")
@@ -1752,10 +1757,10 @@ func generateSwaggerTags(fieldName string, fieldType *yang.YangType) string {
 		for i, val := range fieldType.IdentityBase.Values {
 			enumNames[i] = val.Name
 		}
+		sort.Strings(enumNames)
 		enumNamesCsv := strings.Join(enumNames, ",")
 		buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
 	}
-	buf.WriteString(fmt.Sprintf(` json:"%s"`, fieldName))
 	return buf.String()
 }
 
