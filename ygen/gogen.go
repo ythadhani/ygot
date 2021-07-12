@@ -1603,6 +1603,10 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 			}
 		}
 
+		if goOpts.GenerateSwaggerTags && field.Type != nil {
+			tagBuf.WriteString(generateSwaggerTags(fName, field.Type))
+		}
+
 		fieldDef.Tags = tagBuf.String()
 
 		// Append the generated field definition to the set of fields of the struct.
@@ -1735,6 +1739,24 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 		Interfaces:  interfaceBuf.String(),
 		enumTypeMap: enumTypeMap,
 	}, errs
+}
+
+func generateSwaggerTags(fieldName string, fieldType *yang.YangType) string {
+	var buf bytes.Buffer
+	switch fieldType.Kind {
+	case yang.Yenum:
+		enumNamesCsv := strings.Join(fieldType.Enum.Names(), ",")
+		buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+	case yang.Yidentityref:
+		enumNames := make([]string, len(fieldType.IdentityBase.Values))
+		for i, val := range fieldType.IdentityBase.Values {
+			enumNames[i] = val.Name
+		}
+		enumNamesCsv := strings.Join(enumNames, ",")
+		buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+	}
+	buf.WriteString(fmt.Sprintf(` json:"%s"`, fieldName))
+	return buf.String()
 }
 
 // generateValidator generates a validation function string for structDef and
@@ -2015,6 +2037,13 @@ func yangListFieldToGoType(listField *yang.Entry, listFieldName string, parent *
 		// generatedGoMultiKeyListStruct struct, which is then expanded by a template to the struct
 		// definition.
 		listKeyStructName = fmt.Sprintf("%s_%s_Key", parent.Name, listFieldName)
+		if gogen.definedGlobals[listKeyStructName] {
+			listKeyStructName = fmt.Sprintf("%s_%s_YANGListKey", parent.Name, listFieldName)
+			if gogen.definedGlobals[listKeyStructName] {
+				return "", nil, nil, fmt.Errorf("unexpected generated list key name conflict for %s", listField.Path())
+			}
+			gogen.definedGlobals[listKeyStructName] = true
+		}
 		multiListKey = &generatedGoMultiKeyListStruct{
 			KeyStructName: listKeyStructName,
 			ParentPath:    util.SlicePathToString(parent.Path),

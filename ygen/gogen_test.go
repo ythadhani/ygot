@@ -2540,3 +2540,39 @@ func TestGoLeafDefault(t *testing.T) {
 		})
 	}
 }
+
+func TestGenerateSwaggerTags(t *testing.T) {
+
+	testEnum := yang.NewEnumType()
+	testEnum.Set("UP", 0)
+	testEnum.Set("DOWN", 1)
+	testEnum.Set("TESTING", 2)
+
+	identityVals := []*yang.Identity{{Name: "tunnel"}, {Name: "dcn"}}
+
+	tests := []struct {
+		name      string
+		fieldName string
+		fieldType *yang.YangType
+		want      string
+	}{{
+		name:      "Tag generation for enum",
+		fieldName: "admin-status",
+		fieldType: &yang.YangType{Kind: yang.Yenum, Enum: testEnum},
+		want:      fmt.Sprintf(` swaggertype:"string" enums:"%s" json:"%s"`, "DOWN,TESTING,UP", "admin-status"),
+	}, {
+		name:      "Tag generation for identityref",
+		fieldName: "type",
+		fieldType: &yang.YangType{Kind: yang.Yidentityref, IdentityBase: &yang.Identity{Values: identityVals}},
+		want:      fmt.Sprintf(` swaggertype:"string" enums:"%s" json:"%s"`, "tunnel,dcn", "type"),
+	}}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := generateSwaggerTags(tt.fieldName, tt.fieldType)
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Fatalf("did not get expected swagger tags, (-want, +got):\n%s", diff)
+			}
+		})
+	}
+}
