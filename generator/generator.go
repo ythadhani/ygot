@@ -99,6 +99,9 @@ var (
 	simplifyWildcardPaths   = flag.Bool("simplify_wildcard_paths", false, "Whether to omit the keys in the generated paths if all keys for a list node are wildcards.")
 	listBuilderKeyThreshold = flag.Uint("list_builder_key_threshold", 0, "The threshold equal or over which the path structs' builder API is used for key population. 0 means infinity. This flag is only meaningful when wildcard paths are generated.")
 	pathStructSuffix        = flag.String("path_struct_suffix", "Path", "The suffix string appended to each generated path struct in order to differentiate their names from their corresponding schema struct names.")
+
+	// Nokia-defined flags
+	generateSwaggerTags = flag.Bool("generate_swagger_tags", false, "Whether to generate tag keys: json, swaggertype, enums. These are useful for Swagger doc generation.")
 )
 
 // writeGoCodeSingleFile takes a ygen.GeneratedGoCode struct and writes the Go code
@@ -348,6 +351,7 @@ func main() {
 				GenerateSimpleUnions:                *generateSimpleUnions,
 				IncludeModelData:                    *includeModelData,
 				AppendEnumSuffixForSimpleUnionEnums: *appendEnumSuffixForSimpleUnionEnums,
+				GenerateSwaggerTags:                 *generateSwaggerTags,
 			},
 		})
 

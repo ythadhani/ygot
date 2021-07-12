@@ -1603,6 +1603,10 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 			}
 		}
 
+		if goOpts.GenerateSwaggerTags && field.Type != nil {
+			tagBuf.WriteString(generateSwaggerTags(fName, field.Type))
+		}
+
 		fieldDef.Tags = tagBuf.String()
 
 		// Append the generated field definition to the set of fields of the struct.
@@ -1735,6 +1739,24 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 		Interfaces:  interfaceBuf.String(),
 		enumTypeMap: enumTypeMap,
 	}, errs
+}
+
+func generateSwaggerTags(fieldName string, fieldType *yang.YangType) string {
+	var buf bytes.Buffer
+	switch fieldType.Kind {
+	case yang.Yenum:
+		enumNamesCsv := strings.Join(fieldType.Enum.Names(), ",")
+		buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+	case yang.Yidentityref:
+		enumNames := make([]string, len(fieldType.IdentityBase.Values))
+		for i, val := range fieldType.IdentityBase.Values {
+			enumNames[i] = val.Name
+		}
+		enumNamesCsv := strings.Join(enumNames, ",")
+		buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+	}
+	buf.WriteString(fmt.Sprintf(` json:"%s"`, fieldName))
+	return buf.String()
 }
 
 // generateValidator generates a validation function string for structDef and

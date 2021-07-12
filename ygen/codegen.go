@@ -229,6 +229,13 @@ type GoOpts struct {
 	// only applies when useDefiningModuleForTypedefEnumNames is also set
 	// to true.
 	AppendEnumSuffixForSimpleUnionEnums bool
+	// GenerateSwaggerTags adds the following tags to generated struct attributes:
+	// 1. "json" key with value same as yang field name to ensure swagger docs are
+	// in sync with yang names (hyphens, casing retained)
+	// 2. "swaggertype" key with value "string" for enumerated types (enums and identityref)
+	// 3. "enums" key with value a comma-separated list of all possible enum values for
+	// enumerated types (enums and identityref)
+	GenerateSwaggerTags bool
 }
 
 // ProtoOpts stores Protobuf specific options for the code generation library.
