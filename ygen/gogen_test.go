@@ -2559,12 +2559,12 @@ func TestGenerateSwaggerTags(t *testing.T) {
 		name:      "Tag generation for enum",
 		fieldName: "admin-status",
 		fieldType: &yang.YangType{Kind: yang.Yenum, Enum: testEnum},
-		want:      fmt.Sprintf(` swaggertype:"string" enums:"%s" json:"%s"`, "DOWN,TESTING,UP", "admin-status"),
+		want:      fmt.Sprintf(` json:"%s" swaggertype:"string" enums:"%s"`, "admin-status", "DOWN,TESTING,UP"),
 	}, {
 		name:      "Tag generation for identityref",
 		fieldName: "type",
 		fieldType: &yang.YangType{Kind: yang.Yidentityref, IdentityBase: &yang.Identity{Values: identityVals}},
-		want:      fmt.Sprintf(` swaggertype:"string" enums:"%s" json:"%s"`, "tunnel,dcn", "type"),
+		want:      fmt.Sprintf(` json:"%s" swaggertype:"string" enums:"%s"`, "type", "dcn,tunnel"),
 	}}
 
 	for _, tt := range tests {
