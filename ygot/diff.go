@@ -262,9 +262,12 @@ func findSetLeaves(s GoStruct, opts ...DiffOpt) (map[*pathSpec]interface{}, erro
 		processedPaths[key] = true
 
 		ni.Annotation = []interface{}{vp}
+		_, isPresenceContainer := ni.StructField.Tag.Lookup("presence")
 
 		// Ignore non-data, or default data values.
-		if util.IsNilOrInvalidValue(ni.FieldValue) || util.IsValueNilOrDefault(ni.FieldValue.Interface()) || util.IsValueStructPtr(ni.FieldValue) || util.IsValueMap(ni.FieldValue) {
+		if util.IsNilOrInvalidValue(ni.FieldValue) || util.IsValueNilOrDefault(ni.FieldValue.Interface()) ||
+			(util.IsValueStructPtr(ni.FieldValue) && !(isPresenceContainer && ni.FieldValue.Elem().IsZero())) ||
+			util.IsValueMap(ni.FieldValue) {
 			return
 		}
 
@@ -332,7 +335,16 @@ func leastSpecificPath(paths [][]string) []string {
 // appendUpdate adds an update to the supplied gNMI Notification message corresponding
 // to the path and value supplied.
 func appendUpdate(n *gnmipb.Notification, path *pathSpec, val interface{}) error {
-	v, err := EncodeTypedValue(val, gnmipb.Encoding_PROTO)
+	var (
+		v   *gnmipb.TypedValue
+		err error
+	)
+	switch val.(type) {
+	case GoStruct:
+		v, err = EncodeTypedValue(val, gnmipb.Encoding_JSON_IETF)
+	default:
+		v, err = EncodeTypedValue(val, gnmipb.Encoding_PROTO)
+	}
 	if err != nil {
 		return fmt.Errorf("cannot represent field value %v as TypedValue for path %v: %v", val, path, err)
 	}

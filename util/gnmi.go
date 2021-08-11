@@ -15,6 +15,7 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -219,4 +220,23 @@ func JoinPaths(prefix, suffix *gpb.Path) (*gpb.Path, error) {
 		joined.Target = sufTarget
 	}
 	return joined, nil
+}
+
+func IsEmptyIetfJson(val interface{}) (bool, error) {
+	var (
+		isEmpty     bool
+		jsonIetfVal map[string]interface{}
+	)
+	tv, ok := val.(*gpb.TypedValue)
+	if !ok {
+		return isEmpty, fmt.Errorf("unable to convert %+v to TypedValue", val)
+	}
+	jiv, ok := tv.Value.(*gpb.TypedValue_JsonIetfVal)
+	if !ok {
+		return isEmpty, fmt.Errorf("unable to convert %+v to %s format", jiv, gpb.Encoding_JSON_IETF.String())
+	}
+	if err := json.Unmarshal(jiv.JsonIetfVal, &jsonIetfVal); err != nil {
+		return isEmpty, err
+	}
+	return len(jsonIetfVal) == 0, nil
 }
