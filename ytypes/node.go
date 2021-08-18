@@ -70,6 +70,7 @@ func retrieveNode(schema *yang.Entry, root interface{}, path, traversedPath *gpb
 		// When args.val is non-nil and the schema isn't nil, further check whether
 		// the node has a non-leaf schema. Setting a non-leaf schema isn't allowed.
 		if !util.IsValueNil(args.val) && schema != nil {
+			// TODO(ythadhani) Need another check for presence statement.
 			// An empty presence container is treated as a leaf
 			if schema.IsContainer() {
 				isEmptyIetfJson, err := util.IsEmptyIetfJson(args.val)

@@ -2293,6 +2293,15 @@ func TestSetNode(t *testing.T) {
 			inVal:            &gpb.TypedValue{Value: &gpb.TypedValue_StringVal{StringVal: "hello"}},
 			wantErrSubstring: "no match found in *ytypes.InnerContainerType1",
 		},
+		{
+			inDesc:     "success setting empty struct field",
+			inSchema:   simpleSchema(),
+			inParent:   &ListElemStruct1{},
+			inPath:     mustPath("/key1"),
+			inVal:      &gpb.TypedValue{Value: &gpb.TypedValue_StringVal{StringVal: "hello"}},
+			wantLeaf:   ygot.String("hello"),
+			wantParent: &ListElemStruct1{Key1: ygot.String("hello")},
+		},
 	}
 
 	for _, tt := range tests {

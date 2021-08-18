@@ -148,10 +148,11 @@ func TestJoingNMIPaths(t *testing.T) {
 }
 
 type basicStruct struct {
-	StringValue *string                     `path:"string-value"`
-	StructValue *basicStructTwo             `path:"struct-value"`
-	MapValue    map[string]*basicListMember `path:"map-list"`
-	EmptyValue  YANGEmpty                   `path:"empty-value"`
+	StringValue        *string                     `path:"string-value"`
+	StructValue        *basicStructTwo             `path:"struct-value"`
+	MapValue           map[string]*basicListMember `path:"map-list"`
+	EmptyValue         YANGEmpty                   `path:"empty-value"`
+	PresenceContStruct *basicStructThree           `path:"presence-cont-value" presence:"true"`
 }
 
 func (*basicStruct) IsYANGGoStruct() {}
@@ -191,6 +192,8 @@ func (b *badListKeyType) ΛListKeyMap() (map[string]interface{}, error) {
 		"error-list-key": *b.Value,
 	}, nil
 }
+
+func (*basicStructThree) IsYANGGoStruct() {}
 
 type basicStructThree struct {
 	StringValue *string `path:"third-string-value|config/third-string-value"`
@@ -623,6 +626,18 @@ func TestFindSetLeaves(t *testing.T) {
 					},
 				}},
 			}: String("baz"),
+		},
+	}, {
+		desc: "empty presence container",
+		inStruct: &basicStruct{
+			PresenceContStruct: &basicStructThree{},
+		},
+		want: map[*pathSpec]interface{}{
+			{
+				gNMIPaths: []*gnmipb.Path{{
+					Elem: []*gnmipb.PathElem{{Name: "presence-cont-value"}},
+				}},
+			}: &basicStructThree{},
 		},
 	}}
 
@@ -1524,6 +1539,20 @@ func TestDiff(t *testing.T) {
 						},
 					},
 				},
+			}},
+		},
+	}, {
+		desc:   "Empty presence container as a leaf",
+		inOrig: &basicStruct{},
+		inMod:  &basicStruct{PresenceContStruct: &basicStructThree{}},
+		want: &gnmipb.Notification{
+			Update: []*gnmipb.Update{{
+				Path: &gnmipb.Path{
+					Elem: []*gnmipb.PathElem{{
+						Name: "presence-cont-value",
+					}},
+				},
+				Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_JsonIetfVal{JsonIetfVal: []byte(`{}`)}},
 			}},
 		},
 	}}
