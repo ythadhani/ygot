@@ -1606,7 +1606,7 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 		}
 
 		if goOpts.GenerateSwaggerTags {
-			tagBuf.WriteString(generateSwaggerTags(fName, field.Type))
+			tagBuf.WriteString(generateSwaggerTags(field))
 		}
 
 		fieldDef.Tags = tagBuf.String()
@@ -1743,7 +1743,9 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 	}, errs
 }
 
-func generateSwaggerTags(fieldName string, fieldType *yang.YangType) string {
+func generateSwaggerTags(field *yang.Entry) string {
+	fieldType := field.Type
+	fieldName := field.Name
 	var buf bytes.Buffer
 	buf.WriteString(fmt.Sprintf(` json:"%s"`, fieldName))
 	if fieldType == nil {
@@ -1753,7 +1755,12 @@ func generateSwaggerTags(fieldName string, fieldType *yang.YangType) string {
 	switch fieldType.Kind {
 	case yang.Yenum:
 		enumNamesCsv := strings.Join(fieldType.Enum.Names(), ",")
-		buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+		if field.IsLeafList() {
+			buf.WriteString(fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, enumNamesCsv))
+		} else {
+			fmt.Println(field.IsLeaf())
+			buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+		}
 	case yang.Yidentityref:
 		enumNames := make([]string, len(fieldType.IdentityBase.Values))
 		for i, val := range fieldType.IdentityBase.Values {
@@ -1761,7 +1768,11 @@ func generateSwaggerTags(fieldName string, fieldType *yang.YangType) string {
 		}
 		sort.Strings(enumNames)
 		enumNamesCsv := strings.Join(enumNames, ",")
-		buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+		if field.IsLeafList() {
+			buf.WriteString(fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, enumNamesCsv))
+		} else {
+			buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+		}
 	}
 	return buf.String()
 }
