@@ -1978,10 +1978,22 @@ func (t *Container) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumTyp
 							Name: "root-module",
 							Node: &yang.Module{
 								Name: "exmod",
+								Namespace: &yang.Value{
+									Name: "u:exmod",
+								},
+								Modules: modules,
 							},
 						},
 					},
-					Node: &yang.Leaf{Parent: &yang.Module{Name: "exmod"}},
+					Node: &yang.Leaf{
+						Parent: &yang.Module{
+							Name: "exmod",
+							Namespace: &yang.Value{
+								Name: "u:exmod",
+							},
+							Modules: modules,
+						},
+					},
 					Extra: map[string][]interface{}{
 						"presence": {&yang.Value{Name: "presence c1"}},
 					},
@@ -1994,7 +2006,7 @@ func (t *Container) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumTyp
 			structs: `
 // InputStruct represents the /root-module/input-struct YANG schema element.
 type InputStruct struct {
-	C1	*InputStruct_C1	` + "`" + `path:"c1"` + ` presence:"true"` + "`" + `
+	C1	*InputStruct_C1	` + "`" + `path:"c1" module:"exmod"` + ` presence:"true"` + "`" + `
 }
 
 // IsYANGGoStruct ensures that InputStruct implements the yang.GoStruct
@@ -2020,7 +2032,7 @@ func (t *InputStruct) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumT
 			structs: `
 // InputStruct represents the /root-module/input-struct YANG schema element.
 type InputStruct struct {
-	C1	*InputStruct_C1	` + "`" + `path:"c1"` + ` presence:"true"` + "`" + `
+	C1	*InputStruct_C1	` + "`" + `path:"c1" module:"exmod"` + ` presence:"true"` + "`" + `
 }
 
 // IsYANGGoStruct ensures that InputStruct implements the yang.GoStruct
@@ -2452,28 +2464,51 @@ func TestGenerateSwaggerTags(t *testing.T) {
 	testEnum.Set("DOWN", 1)
 	testEnum.Set("TESTING", 2)
 
+	testEnum2 := yang.NewEnumType()
+	testEnum2.Set("fc0", 0)
+	testEnum2.Set("fc1", 1)
+
 	identityVals := []*yang.Identity{{Name: "tunnel"}, {Name: "dcn"}}
 
 	tests := []struct {
-		name      string
-		fieldName string
-		fieldType *yang.YangType
-		want      string
+		name  string
+		field *yang.Entry
+		want  string
 	}{{
-		name:      "Tag generation for enum",
-		fieldName: "admin-status",
-		fieldType: &yang.YangType{Kind: yang.Yenum, Enum: testEnum},
-		want:      fmt.Sprintf(` json:"%s" swaggertype:"string" enums:"%s"`, "admin-status", "DOWN,TESTING,UP"),
+		name: "Tag generation for leaf enum",
+		field: &yang.Entry{
+			Name: "admin-status",
+			Kind: yang.LeafEntry,
+			Type: &yang.YangType{Kind: yang.Yenum, Enum: testEnum}},
+		want: fmt.Sprintf(` json:"%s" swaggertype:"string" enums:"%s"`, "admin-status", "DOWN,TESTING,UP"),
 	}, {
-		name:      "Tag generation for identityref",
-		fieldName: "type",
-		fieldType: &yang.YangType{Kind: yang.Yidentityref, IdentityBase: &yang.Identity{Values: identityVals}},
-		want:      fmt.Sprintf(` json:"%s" swaggertype:"string" enums:"%s"`, "type", "dcn,tunnel"),
+		name: "Tag generation for leaflist enum",
+		field: &yang.Entry{
+			Name:     "forwarding-class",
+			Kind:     yang.LeafEntry,
+			ListAttr: &yang.ListAttr{},
+			Type:     &yang.YangType{Kind: yang.Yenum, Enum: testEnum2}},
+		want: fmt.Sprintf(` json:"%s" swaggertype:"array,string" enums:"%s"`, "forwarding-class", "fc0,fc1"),
+	}, {
+		name: "Tag generation for leaf identityref",
+		field: &yang.Entry{
+			Name: "type",
+			Kind: yang.LeafEntry,
+			Type: &yang.YangType{Kind: yang.Yidentityref, IdentityBase: &yang.Identity{Values: identityVals}}},
+		want: fmt.Sprintf(` json:"%s" swaggertype:"string" enums:"%s"`, "type", "dcn,tunnel"),
+	}, {
+		name: "Tag generation for leaflist identityref",
+		field: &yang.Entry{
+			Name:     "type",
+			Kind:     yang.LeafEntry,
+			ListAttr: &yang.ListAttr{},
+			Type:     &yang.YangType{Kind: yang.Yidentityref, IdentityBase: &yang.Identity{Values: identityVals}}},
+		want: fmt.Sprintf(` json:"%s" swaggertype:"array,string" enums:"%s"`, "type", "dcn,tunnel"),
 	}}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := generateSwaggerTags(tt.fieldName, tt.fieldType)
+			got := generateSwaggerTags(tt.field)
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Fatalf("did not get expected swagger tags, (-want, +got):\n%s", diff)
 			}

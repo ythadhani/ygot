@@ -1761,8 +1761,7 @@ func generateSwaggerTags(field *yang.Entry) string {
 		enumNamesCsv := strings.Join(fieldType.Enum.Names(), ",")
 		if field.IsLeafList() {
 			buf.WriteString(fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, enumNamesCsv))
-		} else {
-			fmt.Println(field.IsLeaf())
+		} else if field.IsLeaf() {
 			buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
 		}
 	case yang.Yidentityref:
@@ -1774,7 +1773,7 @@ func generateSwaggerTags(field *yang.Entry) string {
 		enumNamesCsv := strings.Join(enumNames, ",")
 		if field.IsLeafList() {
 			buf.WriteString(fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, enumNamesCsv))
-		} else {
+		} else if field.IsLeaf() {
 			buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
 		}
 	}
