@@ -101,7 +101,8 @@ var (
 	pathStructSuffix        = flag.String("path_struct_suffix", "Path", "The suffix string appended to each generated path struct in order to differentiate their names from their corresponding schema struct names.")
 
 	// Nokia-defined flags
-	generateSwaggerTags = flag.Bool("generate_swagger_tags", false, "Whether to generate tag keys: json, swaggertype, enums. These are useful for Swagger doc generation.")
+	generateSwaggerCompliantCode = flag.Bool("generate_swagger_compliant_code", false, "Whether to generate tag keys: swaggertype, enums. Also, keyed lists would be modeled as slices.")
+	generateJsonTags             = flag.Bool("generate_json_tags", false, "Whether to generate tag key: json")
 )
 
 // writeGoCodeSingleFile takes a ygen.GeneratedGoCode struct and writes the Go code
@@ -351,7 +352,8 @@ func main() {
 				GenerateSimpleUnions:                *generateSimpleUnions,
 				IncludeModelData:                    *includeModelData,
 				AppendEnumSuffixForSimpleUnionEnums: *appendEnumSuffixForSimpleUnionEnums,
-				GenerateSwaggerTags:                 *generateSwaggerTags,
+				GenerateSwaggerCompliantCode:        *generateSwaggerCompliantCode,
+				GenerateJsonTags:                    *generateJsonTags,
 			},
 		})
 

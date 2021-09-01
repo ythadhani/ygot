@@ -1351,7 +1351,7 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 			// If the field within the struct is a list, then generate code for this list. This
 			// includes extracting any new types that are required to represent the key of a
 			// list that has multiple keys.
-			fieldType, multiKeyListKey, listMethods, listErr := yangListFieldToGoType(field, fieldName, targetStruct, goStructElements, gogen)
+			fieldType, multiKeyListKey, listMethods, listErr := yangListFieldToGoType(field, fieldName, targetStruct, goStructElements, gogen, goOpts.GenerateSwaggerCompliantCode)
 			if listErr != nil {
 				errs = append(errs, listErr)
 			}
@@ -1609,7 +1609,11 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 			}
 		}
 
-		if goOpts.GenerateSwaggerTags {
+		if goOpts.GenerateJsonTags {
+			tagBuf.WriteString(fmt.Sprintf(` json:"%s"`, fName))
+		}
+
+		if goOpts.GenerateSwaggerCompliantCode {
 			tagBuf.WriteString(generateSwaggerTags(field))
 		}
 
@@ -1749,9 +1753,7 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 
 func generateSwaggerTags(field *yang.Entry) string {
 	fieldType := field.Type
-	fieldName := field.Name
 	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf(` json:"%s"`, fieldName))
 	if fieldType == nil {
 		return buf.String()
 	}
@@ -2000,7 +2002,7 @@ func generateGetListKey(buf *bytes.Buffer, s *Directory, nameMap map[string]*yan
 //	  type.
 // In the case that the list has multiple keys, the type generated as the key of the list is returned.
 // If errors are encountered during the type generation for the list, the error is returned.
-func yangListFieldToGoType(listField *yang.Entry, listFieldName string, parent *Directory, goStructElements map[string]*Directory, gogen *goGenState) (string, *generatedGoMultiKeyListStruct, *generatedGoListMethod, error) {
+func yangListFieldToGoType(listField *yang.Entry, listFieldName string, parent *Directory, goStructElements map[string]*Directory, gogen *goGenState, swaggerCompliance bool) (string, *generatedGoMultiKeyListStruct, *generatedGoListMethod, error) {
 	// The list itself, since it is a container, has a struct associated with it. Retrieve
 	// this from the set of Directory structs for which code (a Go struct) will be
 	//  generated such that additional details can be used in the code generation.
@@ -2046,6 +2048,8 @@ func yangListFieldToGoType(listField *yang.Entry, listFieldName string, parent *
 	}
 
 	switch {
+	case swaggerCompliance:
+		return fmt.Sprintf("[]*%s", listName), nil, nil, nil
 	case len(listElem.ListAttr.Keys) == 1:
 		// This is a single keyed list, so we can represent it as a map with
 		// a simple Go type as the key. Note that a leaf-list can never be
