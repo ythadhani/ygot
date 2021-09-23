@@ -152,7 +152,7 @@ type basicStruct struct {
 	StructValue        *basicStructTwo             `path:"struct-value"`
 	MapValue           map[string]*basicListMember `path:"map-list"`
 	EmptyValue         YANGEmpty                   `path:"empty-value"`
-	PresenceContStruct *basicStructThree           `path:"presence-cont-value" presence:"true"`
+	PresenceContStruct *basicStructFour            `path:"presence-cont-value" presence:"true"`
 }
 
 func (*basicStruct) IsYANGGoStruct() {}
@@ -197,6 +197,12 @@ func (*basicStructThree) IsYANGGoStruct() {}
 
 type basicStructThree struct {
 	StringValue *string `path:"third-string-value|config/third-string-value"`
+}
+
+func (*basicStructFour) IsYANGGoStruct() {}
+
+type basicStructFour struct {
+	StringValue *string `path:"fourth-string-value"`
 }
 
 func TestNodeValuePath(t *testing.T) {
@@ -630,14 +636,31 @@ func TestFindSetLeaves(t *testing.T) {
 	}, {
 		desc: "empty presence container",
 		inStruct: &basicStruct{
-			PresenceContStruct: &basicStructThree{},
+			PresenceContStruct: &basicStructFour{},
 		},
 		want: map[*pathSpec]interface{}{
 			{
 				gNMIPaths: []*gnmipb.Path{{
 					Elem: []*gnmipb.PathElem{{Name: "presence-cont-value"}},
 				}},
-			}: &basicStructThree{},
+			}: &basicStructFour{},
+		},
+	}, {
+		desc: "presence container with leaf value set",
+		inStruct: &basicStruct{
+			PresenceContStruct: &basicStructFour{StringValue: String("foo")},
+		},
+		want: map[*pathSpec]interface{}{
+			{
+				gNMIPaths: []*gnmipb.Path{{
+					Elem: []*gnmipb.PathElem{{Name: "presence-cont-value"}},
+				}},
+			}: &basicStructFour{},
+			{
+				gNMIPaths: []*gnmipb.Path{{
+					Elem: []*gnmipb.PathElem{{Name: "presence-cont-value"}, {Name: "fourth-string-value"}},
+				}},
+			}: String("foo"),
 		},
 	}}
 
@@ -1544,7 +1567,7 @@ func TestDiff(t *testing.T) {
 	}, {
 		desc:   "Empty presence container as a leaf",
 		inOrig: &basicStruct{},
-		inMod:  &basicStruct{PresenceContStruct: &basicStructThree{}},
+		inMod:  &basicStruct{PresenceContStruct: &basicStructFour{}},
 		want: &gnmipb.Notification{
 			Update: []*gnmipb.Update{{
 				Path: &gnmipb.Path{
