@@ -266,12 +266,17 @@ func findSetLeaves(s GoStruct, opts ...DiffOpt) (map[*pathSpec]interface{}, erro
 
 		// Ignore non-data, or default data values.
 		if util.IsNilOrInvalidValue(ni.FieldValue) || util.IsValueNilOrDefault(ni.FieldValue.Interface()) ||
-			(util.IsValueStructPtr(ni.FieldValue) && !(isPresenceContainer && ni.FieldValue.Elem().IsZero())) ||
+			(util.IsValueStructPtr(ni.FieldValue) && !isPresenceContainer) ||
 			util.IsValueMap(ni.FieldValue) {
 			return
 		}
 
-		ival := ni.FieldValue.Interface()
+		var ival interface{}
+		if isPresenceContainer {
+			ival = reflect.New(ni.FieldValue.Elem().Type()).Interface()
+		} else {
+			ival = ni.FieldValue.Interface()
+		}
 
 		// If this is an enumerated value in the output structs, then check whether
 		// it is set. Only include values that are set to a non-zero value.
