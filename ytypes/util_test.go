@@ -773,3 +773,35 @@ func TestDirectDescendantSchema(t *testing.T) {
 		})
 	}
 }
+
+func TestYangFloatIntToGoType(t *testing.T) {
+	tests := []struct {
+		desc             string
+		tk               yang.TypeKind
+		val              float64
+		wantErrSubstring string
+		want             interface{}
+	}{
+		{
+			desc:             "float value passed for int8",
+			tk:               yang.Yint8,
+			val:              12.3,
+			wantErrSubstring: fmt.Sprintf("unpermitted value %f for YANG type %v", 12.3, yang.Yint8),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			goType, err := yangFloatIntToGoType(tt.tk, tt.val)
+			if diff := errdiff.Substring(err, tt.wantErrSubstring); diff != "" {
+				t.Fatalf("got %v, want error %v", err, tt.wantErrSubstring)
+			}
+			if err != nil {
+				return
+			}
+			if diff := cmp.Diff(goType, tt.want); diff != "" {
+				t.Errorf("(-got, +want):\n%s", diff)
+			}
+		})
+	}
+}
