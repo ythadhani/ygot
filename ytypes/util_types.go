@@ -414,6 +414,10 @@ func yangFloatIntToGoType(t yang.TypeKind, v float64) (interface{}, error) {
 		return nil, err
 	}
 
+	if v != float64(int(v)) {
+		return nil, fmt.Errorf("unpermitted value %f for YANG type %v", v, t)
+	}
+
 	switch t {
 	case yang.Yint8:
 		return int8(v), nil
