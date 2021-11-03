@@ -346,7 +346,7 @@ func unmarshalList(schema *yang.Entry, parent interface{}, jsonList interface{},
 				return err
 			}
 			if present {
-				return fmt.Errorf("duplicate key encountered: %v", newKey.Interface())
+				return fmt.Errorf("duplicate value: %v encountered for key(s): %s of list: %s", newKey.Interface(), schema.Key, schema.Name)
 			}
 			err = util.InsertIntoMap(parent, newKey.Interface(), newVal.Interface())
 		case util.IsTypeSlicePtr(t):
