@@ -120,7 +120,6 @@ func checkBasicKeyValue(structElems reflect.Value, keyFieldSchemaName string, ke
 	var elementKeyValue interface{}
 	if structElems.FieldByName(keyFieldName).Kind() == reflect.Ptr && !structElems.FieldByName(keyFieldName).IsNil() {
 		elementKeyValue = structElems.FieldByName(keyFieldName).Elem().Interface()
-
 	} else {
 		elementKeyValue = structElems.FieldByName(keyFieldName).Interface()
 	}
@@ -334,10 +333,20 @@ func unmarshalList(schema *yang.Entry, parent interface{}, jsonList interface{},
 
 		switch {
 		case util.IsTypeMap(t):
-			var newKey reflect.Value
+			var (
+				newKey  reflect.Value
+				present bool
+			)
 			newKey, err = makeKeyForInsert(schema, parent, newVal)
 			if err != nil {
 				return err
+			}
+			present, err = util.MapContainsKey(parent, newKey.Interface())
+			if err != nil {
+				return err
+			}
+			if present {
+				return fmt.Errorf("duplicate value: %v encountered for key(s): %s of list: %s", newKey.Interface(), schema.Key, schema.Name)
 			}
 			err = util.InsertIntoMap(parent, newKey.Interface(), newVal.Interface())
 		case util.IsTypeSlicePtr(t):
@@ -539,7 +548,6 @@ func insertAndGetKey(schema *yang.Entry, root interface{}, keys map[string]strin
 // that in the latter case the target is a struct ptr. The supplied opts control
 // the behaviour of the unmarshal function.
 func unmarshalContainerWithListSchema(schema *yang.Entry, parent interface{}, value interface{}, opts ...UnmarshalOpt) error {
-
 	if !util.IsTypeStructPtr(reflect.TypeOf(parent)) {
 		return fmt.Errorf("unmarshalContainerWithListSchema value %v, type %T, into parent type %T, schema name %s: parent must be a struct ptr",
 			value, value, parent, schema.Name)

@@ -275,8 +275,10 @@ func TestIsTypeFuncs(t *testing.T) {
 	var testNilSlice []bool
 	var testNilMap map[bool]bool
 
-	allTypes := []interface{}{nil, testInt, &testInt, testStruct, &testStruct, testNilSlice,
-		testSlice, &testSlice, testSliceOfInterface, testNilMap, testMap, &testMap}
+	allTypes := []interface{}{
+		nil, testInt, &testInt, testStruct, &testStruct, testNilSlice,
+		testSlice, &testSlice, testSliceOfInterface, testNilMap, testMap, &testMap,
+	}
 
 	tests := []struct {
 		desc     string
@@ -317,7 +319,6 @@ func TestIsTypeFuncs(t *testing.T) {
 			}
 		}
 	}
-
 }
 
 type interfaceContainer struct {
@@ -697,7 +698,8 @@ func TestInsertIntoSliceStructField(t *testing.T) {
 			fieldName:    "InterfaceSliceField",
 			fieldValue:   testImpl{testField: 1},
 			wantVal: &BasicStruct{
-				InterfaceSliceField: []testInterface{testImpl{}, testImpl{testField: 1}}},
+				InterfaceSliceField: []testInterface{testImpl{}, testImpl{testField: 1}},
+			},
 		},
 		{
 			desc:         "slice of testInterface, nil value",
@@ -881,6 +883,40 @@ func TestInsertIntoSlice(t *testing.T) {
 	}
 }
 
+func TestMapContainsKey(t *testing.T) {
+	var (
+		found bool
+		err   error
+	)
+	parentMap := map[int]string{42: "forty two", 43: "forty three"}
+
+	// Key absent
+	key := 44
+	if found, err = MapContainsKey(parentMap, key); err != nil {
+		t.Fatalf("got error: %s, want error: nil", err)
+	}
+	if diff := cmp.Diff(false, found); diff != "" {
+		t.Errorf("(-want, +got):\n%s", diff)
+	}
+
+	// Key present
+	key = 42
+	if found, err = MapContainsKey(parentMap, key); err != nil {
+		t.Fatalf("got error: %s, want error: nil", err)
+	}
+	if diff := cmp.Diff(true, found); diff != "" {
+		t.Errorf("(-want, +got):\n%s", diff)
+	}
+
+	// Bad parent
+	badParent := struct{}{}
+	wantErr := `MapContainsKey parent type is *struct {}, must be map`
+	_, err = MapContainsKey(&badParent, key)
+	if got, want := errToString(err), wantErr; got != want {
+		t.Fatalf("got error: %s, want error: %s", got, want)
+	}
+}
+
 func TestInsertIntoMap(t *testing.T) {
 	parentMap := map[int]string{42: "forty two", 43: "forty three"}
 	key := 44
@@ -959,41 +995,39 @@ func TestInitializeStructFieldForSameField(t *testing.T) {
 	}
 }
 
-var (
-	// forEachContainerSchema is a schema shared in tests below.
-	forEachContainerSchema = &yang.Entry{
-		Name: "container",
-		Kind: yang.DirectoryEntry,
-		Dir: map[string]*yang.Entry{
-			"basic-struct": {
-				Name: "basic-struct",
-				Kind: yang.DirectoryEntry,
-				Dir: map[string]*yang.Entry{
-					"int32": {
-						Kind: yang.LeafEntry,
-						Name: "int32",
-						Type: &yang.YangType{Kind: yang.Yint32},
-					},
-					"string": {
-						Kind: yang.LeafEntry,
-						Name: "string",
-						Type: &yang.YangType{Kind: yang.Ystring},
-					},
-					"int32ptr": {
-						Kind: yang.LeafEntry,
-						Name: "int32ptr",
-						Type: &yang.YangType{Kind: yang.Yint32},
-					},
-					"stringptr": {
-						Kind: yang.LeafEntry,
-						Name: "stringptr",
-						Type: &yang.YangType{Kind: yang.Ystring},
-					},
+// forEachContainerSchema is a schema shared in tests below.
+var forEachContainerSchema = &yang.Entry{
+	Name: "container",
+	Kind: yang.DirectoryEntry,
+	Dir: map[string]*yang.Entry{
+		"basic-struct": {
+			Name: "basic-struct",
+			Kind: yang.DirectoryEntry,
+			Dir: map[string]*yang.Entry{
+				"int32": {
+					Kind: yang.LeafEntry,
+					Name: "int32",
+					Type: &yang.YangType{Kind: yang.Yint32},
+				},
+				"string": {
+					Kind: yang.LeafEntry,
+					Name: "string",
+					Type: &yang.YangType{Kind: yang.Ystring},
+				},
+				"int32ptr": {
+					Kind: yang.LeafEntry,
+					Name: "int32ptr",
+					Type: &yang.YangType{Kind: yang.Yint32},
+				},
+				"stringptr": {
+					Kind: yang.LeafEntry,
+					Name: "stringptr",
+					Type: &yang.YangType{Kind: yang.Ystring},
 				},
 			},
 		},
-	}
-)
+	},
+}
 
 type PathErrorStruct struct {
 	Field *string

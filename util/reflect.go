@@ -208,6 +208,19 @@ func InsertIntoMap(parentMap interface{}, key interface{}, value interface{}) er
 	return nil
 }
 
+// MapContainsKey checks whether parent which must be a map, contains the given key.
+func MapContainsKey(parentMap interface{}, key interface{}) (bool, error) {
+	v := reflect.ValueOf(parentMap)
+	t := reflect.TypeOf(parentMap)
+	kv := reflect.ValueOf(key)
+
+	if t.Kind() != reflect.Map {
+		return false, fmt.Errorf("MapContainsKey parent type is %s, must be map", t)
+	}
+	val := v.MapIndex(kv)
+	return val != reflect.Value{}, nil
+}
+
 // UpdateField updates a field called fieldName (which must exist, but may be
 // nil) in parentStruct, with value fieldValue. If the field is a slice,
 // fieldValue is appended.
