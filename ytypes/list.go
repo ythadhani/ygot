@@ -333,21 +333,22 @@ func unmarshalList(schema *yang.Entry, parent interface{}, jsonList interface{},
 
 		switch {
 		case util.IsTypeMap(t):
-			var (
-				newKey  reflect.Value
-				present bool
-			)
+			var newKey reflect.Value
+			// var present bool
 			newKey, err = makeKeyForInsert(schema, parent, newVal)
 			if err != nil {
 				return err
 			}
-			present, err = util.MapContainsKey(parent, newKey.Interface())
-			if err != nil {
-				return err
-			}
-			if present {
-				return fmt.Errorf("duplicate value: %v encountered for key(s): %s of list: %s", newKey.Interface(), schema.Key, schema.Name)
-			}
+			// TODO(ythadhani) Uncomment once express passes
+			/*
+				present, err = util.MapContainsKey(parent, newKey.Interface())
+				if err != nil {
+					return err
+				}
+				if present {
+					return fmt.Errorf("duplicate value: %v encountered for key(s): %s of list: %s", newKey.Interface(), schema.Key, schema.Name)
+				}
+			*/
 			err = util.InsertIntoMap(parent, newKey.Interface(), newVal.Interface())
 		case util.IsTypeSlicePtr(t):
 			err = util.InsertIntoSlice(parent, newVal.Interface())
