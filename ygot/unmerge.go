@@ -106,7 +106,10 @@ func unmergeStructs(baseVal, unmergeVal reflect.Value, schema *yang.Entry) error
 				return err
 			}
 		default:
-			return fmt.Errorf("field: %s has unsupported type: %s", ft.Name, unmergeField.Type().Name())
+			if diff := cmp.Diff(baseField.Interface(), unmergeField.Interface()); diff != "" {
+				return fmt.Errorf("field: '%s' in base and unmerge structs was not equal, (-base, +unmerge):\n%s", cschema.Name, diff)
+			}
+			baseField.Set(reflect.Zero(baseField.Type()))
 		}
 	}
 	if util.IsKeyedList(schema) {
