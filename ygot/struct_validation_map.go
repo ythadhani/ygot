@@ -680,7 +680,6 @@ func copyStruct(dstVal, srcVal reflect.Value, opts ...MergeOpt) error {
 // populated then an error is returned unless the value of the field is
 // equal in both structs.
 func copyPtrField(dstField, srcField reflect.Value, opts ...MergeOpt) error {
-
 	if util.IsNilOrInvalidValue(srcField) {
 		return nil
 	}
@@ -797,7 +796,7 @@ func copyMapField(dstField, srcField reflect.Value, opts ...MergeOpt) error {
 		return nil
 	}
 
-	m, err := validateMap(srcField, dstField)
+	m, err := validateMap(srcField, dstField, "src", "dst")
 	if err != nil {
 		return err
 	}
@@ -835,27 +834,29 @@ type mapType struct {
 // to ensure that they are valid maps of struct pointers, and that their keys
 // types are the same. It returns a specification of the map type if the maps
 // match.
-func validateMap(srcField, dstField reflect.Value) (*mapType, error) {
-	if s := srcField.Kind(); s != reflect.Map {
-		return nil, fmt.Errorf("invalid src field, was not a map, was: %v", s)
+// Merge workflow: (firstFieldType,secondFieldType) = ("src","dst")
+// Unmerge workflow: (firstFieldType,secondFieldType) = ("base","unmerge")
+func validateMap(firstField, secondField reflect.Value, firstFieldType, secondFieldType string) (*mapType, error) {
+	if s := firstField.Kind(); s != reflect.Map {
+		return nil, fmt.Errorf("invalid %s field, was not a map, was: %v", firstFieldType, s)
 	}
 
-	if d := dstField.Kind(); d != reflect.Map {
-		return nil, fmt.Errorf("invalid dst field, was not a map, was: %v", d)
+	if d := secondField.Kind(); d != reflect.Map {
+		return nil, fmt.Errorf("invalid %s field, was not a map, was: %v", secondFieldType, d)
 	}
 
-	st, dt := srcField.Type(), dstField.Type()
+	st, dt := firstField.Type(), secondField.Type()
 	se, de := st.Elem(), dt.Elem()
 	if se != de {
-		return nil, fmt.Errorf("invalid maps, src and dst value types are different, %v != %v", se, de)
+		return nil, fmt.Errorf("invalid maps, %s and %s value types are different, %v != %v", firstFieldType, secondFieldType, se, de)
 	}
 
 	if !util.IsTypeStructPtr(se) || !util.IsTypeStructPtr(de) {
-		return nil, fmt.Errorf("invalid maps, src or dst does not have a struct ptr element, src: %v, dst: %v", se.Kind(), de.Kind())
+		return nil, fmt.Errorf("invalid maps, %s or %s does not have a struct ptr element, src: %v, dst: %v", firstFieldType, secondFieldType, se.Kind(), de.Kind())
 	}
 
 	if sk, dk := st.Key(), dt.Key(); sk != dk {
-		return nil, fmt.Errorf("invalid maps, src and dst key types are different, %v != %v", sk, dk)
+		return nil, fmt.Errorf("invalid maps, %s and %s key types are different, %v != %v", firstFieldType, secondFieldType, sk, dk)
 	}
 
 	return &mapType{key: st.Key(), value: st.Elem()}, nil
