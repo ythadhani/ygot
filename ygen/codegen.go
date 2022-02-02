@@ -238,6 +238,12 @@ type GoOpts struct {
 	// GenerateJsonTags adds a tag with the key "json" with value same as yang field name.
 	// Also, ensures swagger docs are in sync with yang names (hyphens, casing retained).
 	GenerateJsonTags bool
+	// GenerateExtensionTags adds a tag with the key "extensions" for all fields in the generated
+	// structs that have extension statements under the corresponding yang node definitions.
+	// The value is a semi-colon separated list of extension keyword,argument pairs.
+	// The extension keyword and argument are comma-separated.
+	// Refer: https://datatracker.ietf.org/doc/html/rfc7950#section-7.19
+	GenerateExtensionTags bool
 }
 
 // ProtoOpts stores Protobuf specific options for the code generation library.
@@ -447,14 +453,12 @@ func (cg *YANGCodeGenerator) GenerateGoCode(yangFiles, includePaths []string) (*
 	// Code generation begins
 	var codegenErr util.Errors
 	commonHeader, oneoffHeader, err := writeGoHeader(yangFiles, includePaths, cg.Config, rootName, mdef.modelData)
-
 	if err != nil {
 		return nil, util.AppendErr(codegenErr, err)
 	}
 
 	// Alphabetically order directories to produce deterministic output.
 	orderedDirNames, dirNameMap, err := GetOrderedDirectories(directoryMap)
-
 	if err != nil {
 		return nil, util.AppendErr(codegenErr, err)
 	}
