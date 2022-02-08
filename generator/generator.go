@@ -103,6 +103,7 @@ var (
 	// Nokia-defined flags
 	generateSwaggerCompliantCode = flag.Bool("generate_swagger_compliant_code", false, "Whether to generate tag keys: swaggertype, enums. Also, keyed lists would be modeled as slices.")
 	generateJsonTags             = flag.Bool("generate_json_tags", false, "Whether to generate tag key: json")
+	generateExtensionTags        = flag.Bool("generate_extension_tags", false, "Whether to generate tag key: extensions")
 )
 
 // writeGoCodeSingleFile takes a ygen.GeneratedGoCode struct and writes the Go code
@@ -354,6 +355,7 @@ func main() {
 				AppendEnumSuffixForSimpleUnionEnums: *appendEnumSuffixForSimpleUnionEnums,
 				GenerateSwaggerCompliantCode:        *generateSwaggerCompliantCode,
 				GenerateJsonTags:                    *generateJsonTags,
+				GenerateExtensionTags:               *generateExtensionTags,
 			},
 		})
 

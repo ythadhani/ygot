@@ -301,6 +301,10 @@ type generatedLeafGetter struct {
 	Receiver string
 }
 
+type uniqueExtParams struct {
+	keyword, argument string
+}
+
 var (
 	// goCommonHeaderTemplate is populated and output at the top of the generated code package
 	goCommonHeaderTemplate = mustMakeTemplate("commonHeader", `
@@ -1603,6 +1607,10 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 
 		metadataTagBuf.WriteString(` ygotAnnotation:"true"`)
 
+		if goOpts.GenerateExtensionTags {
+			tagBuf.WriteString(generateExtensionTags(field))
+		}
+
 		if fieldDef.IsYANGContainer {
 			if len(field.Extra["presence"]) != 0 && !reflect.ValueOf(field.Extra["presence"][0]).IsNil() {
 				tagBuf.WriteString(` presence:"true"`)
@@ -1749,6 +1757,45 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 		Interfaces:  interfaceBuf.String(),
 		enumTypeMap: enumTypeMap,
 	}, errs
+}
+
+func generateExtensionTags(field *yang.Entry) string {
+	var (
+		extensions []*yang.Statement = []*yang.Statement{}
+		buf        bytes.Buffer
+	)
+	if len(field.Exts) != 0 {
+		extensions = append(extensions, field.Exts...)
+	}
+	// TODO(ythadhani) For now we only react to Type extensions on Leaf.
+	// Revisit once goyang is updated.
+	if field.IsLeaf() {
+		leafNode := field.Node.(*yang.Leaf)
+		if len(leafNode.Type.Extensions) != 0 {
+			extensions = append(extensions, leafNode.Type.Extensions...)
+		}
+	}
+
+	uniqueExtKeywordArgs := map[uniqueExtParams]struct{}{}
+	if len(extensions) != 0 {
+		buf.WriteString(` extensions:"`)
+		for iter, extension := range extensions {
+			e := uniqueExtParams{keyword: extension.Keyword, argument: extension.Argument}
+			if _, present := uniqueExtKeywordArgs[e]; present {
+				continue
+			}
+			uniqueExtKeywordArgs[e] = struct{}{}
+			buf.WriteString(extension.Keyword)
+			if extension.HasArgument {
+				buf.WriteString(fmt.Sprintf(",%s", extension.Argument))
+			}
+			if iter != len(extensions)-1 {
+				buf.WriteString(";")
+			}
+		}
+		buf.WriteString(`"`)
+	}
+	return buf.String()
 }
 
 func generateSwaggerTags(field *yang.Entry) string {

@@ -25,6 +25,7 @@ import (
 	"github.com/openconfig/gnmi/errlist"
 	"github.com/openconfig/gnmi/value"
 	"github.com/openconfig/ygot/util"
+	"github.com/openconfig/ygot/yext"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 
@@ -327,7 +328,6 @@ type GNMINotificationsConfig struct {
 // abstraction. It can also be refactored to simply use the findSetleaves function
 // which has a cleaner implementation using the reworked iterfunction util.
 func TogNMINotifications(s GoStruct, ts int64, cfg GNMINotificationsConfig) ([]*gnmipb.Notification, error) {
-
 	var pfx *gnmiPath
 	if cfg.UsePathElem {
 		pfx = newPathElemGNMIPath(cfg.PathElemPrefix)
@@ -940,6 +940,18 @@ type RFC7951JSONConfig struct {
 // Marshal7951.
 func (*RFC7951JSONConfig) IsMarshal7951Arg() {}
 
+func (*RFC7951JSONConfig) Process(extensions []yext.ExtensionParams, inputData ...interface{}) (interface{}, error) {
+	return nil, nil
+}
+
+func (*RFC7951JSONConfig) IsExtensionHandler() bool {
+	return false
+}
+
+func (*RFC7951JSONConfig) IsExtensionSupported(ext yext.ExtensionParams) bool {
+	return false
+}
+
 // ConstructIETFJSON marshals a supplied GoStruct to a map, suitable for
 // handing to json.Marshal. It complies with the convention for marshalling
 // to JSON described by RFC7951. The supplied args control options corresponding
@@ -965,6 +977,8 @@ func ConstructInternalJSON(s GoStruct) (map[string]interface{}, error) {
 type Marshal7951Arg interface {
 	// IsMarshal7951Arg is a market method.
 	IsMarshal7951Arg()
+	// yext.ExtensionHandler to process extensions.
+	yext.ExtensionHandler
 }
 
 // JSONIndent is a string that specifies the indentation that should be used
@@ -973,6 +987,18 @@ type JSONIndent string
 
 // IsMarshal7951Arg marks JSONIndent as a valid Marshal7951 argument.
 func (JSONIndent) IsMarshal7951Arg() {}
+
+func (JSONIndent) Process(extensions []yext.ExtensionParams, inputData ...interface{}) (interface{}, error) {
+	return nil, nil
+}
+
+func (JSONIndent) IsExtensionHandler() bool {
+	return false
+}
+
+func (JSONIndent) IsExtensionSupported(ext yext.ExtensionParams) bool {
+	return false
+}
 
 // Marshal7951 renders the supplied interface to RFC7951-compatible JSON. The argument
 // supplied must be a valid type within a generated ygot GoStruct - but can be a member
@@ -983,8 +1009,9 @@ func (JSONIndent) IsMarshal7951Arg() {}
 // The rendered JSON is returned as a byte slice - in common with json.Marshal.
 func Marshal7951(d interface{}, args ...Marshal7951Arg) ([]byte, error) {
 	var (
-		rfcCfg *RFC7951JSONConfig
-		indent string
+		rfcCfg     *RFC7951JSONConfig
+		indent     string
+		extHandler yext.ExtensionHandler
 	)
 	for _, a := range args {
 		switch v := a.(type) {
@@ -992,20 +1019,22 @@ func Marshal7951(d interface{}, args ...Marshal7951Arg) ([]byte, error) {
 			rfcCfg = v
 		case JSONIndent:
 			indent = string(v)
+		default:
+			if isExt := a.IsExtensionHandler(); isExt {
+				extHandler = a
+			}
 		}
 	}
 	j, err := jsonValue(reflect.ValueOf(d), "", jsonOutputConfig{
 		jType:         RFC7951,
 		rfc7951Config: rfcCfg,
+		extHandler:    extHandler,
 	})
-
 	if err != nil {
 		return nil, err
 	}
 
-	var (
-		js []byte
-	)
+	var js []byte
 	switch indent {
 	case "":
 		js, err = json.Marshal(j)
@@ -1027,6 +1056,8 @@ type jsonOutputConfig struct {
 	// rfc7951Config stores the configuration to be used when outputting RFC7951
 	// JSON.
 	rfc7951Config *RFC7951JSONConfig
+	// extHandler can be used to process extensions defined as struct tags.
+	extHandler yext.ExtensionHandler
 }
 
 // rewriteModName rewrites the module mod according to the specified rewrite rules.
@@ -1143,6 +1174,14 @@ func structJSON(s GoStruct, parentMod string, args jsonOutputConfig) (map[string
 			continue
 		}
 
+		if extensions, hasExtensions := fType.Tag.Lookup("extensions"); hasExtensions && args.extHandler != nil {
+			value, err = processExtensions(value, extensions, args.extHandler)
+			if err != nil {
+				errs.Add(err)
+				continue
+			}
+		}
+
 		if mp, ok := value.(map[string]interface{}); ok && len(mp) == 0 {
 			if _, isPresenceContainer := fType.Tag.Lookup("presence"); !isPresenceContainer {
 				continue
@@ -1206,6 +1245,27 @@ func structJSON(s GoStruct, parentMod string, args jsonOutputConfig) (map[string
 	}
 
 	return jsonout, nil
+}
+
+func processExtensions(value interface{}, extensions string, extHandler yext.ExtensionHandler) (interface{}, error) {
+	extSlice := strings.Split(extensions, ";")
+	var extensionList []yext.ExtensionParams = []yext.ExtensionParams{}
+	for _, ext := range extSlice {
+		nameAndArg := strings.Split(ext, ",")
+		keyword := nameAndArg[0]
+		argument := ""
+		if len(nameAndArg) == 2 {
+			argument = nameAndArg[1]
+		}
+		extension := yext.ExtensionParams{Keyword: keyword, Argument: argument}
+		if extHandler.IsExtensionSupported(extension) {
+			extensionList = append(extensionList, extension)
+		}
+	}
+	if len(extensionList) > 0 {
+		return extHandler.Process(extensionList, value)
+	}
+	return value, nil
 }
 
 // writeIETFScalarJSON takes an input scalar value, and returns it in the format
