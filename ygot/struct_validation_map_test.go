@@ -1434,392 +1434,427 @@ func TestCopyStruct(t *testing.T) {
 		inOpts  []MergeOpt
 		wantDst GoStruct
 		wantErr bool
-	}{{
-		name:    "simple string pointer",
-		inSrc:   &copyTest{StringField: String("anchor-steam")},
-		inDst:   &copyTest{},
-		wantDst: &copyTest{StringField: String("anchor-steam")},
-	}, {
-		name:    "error simple string pointer different value",
-		inSrc:   &copyTest{StringField: String("anchor-steam")},
-		inDst:   &copyTest{StringField: String("bira")},
-		wantErr: true,
-	}, {
-		name:  "overwrite simple string pointer different value",
-		inSrc: &copyTest{StringField: String("bira")},
-		inDst: &copyTest{StringField: String("anchor-steam")},
-		inOpts: []MergeOpt{
-			&MergeOverwriteExistingFields{},
+	}{
+		{
+			name:    "simple string pointer",
+			inSrc:   &copyTest{StringField: String("anchor-steam")},
+			inDst:   &copyTest{},
+			wantDst: &copyTest{StringField: String("anchor-steam")},
 		},
-		wantDst: &copyTest{StringField: String("bira")},
-	}, {
-		name: "uint and string pointer",
-		inSrc: &copyTest{
-			StringField: String("fourpure-juicebox"),
-			Uint32Field: Uint32(42),
+		{
+			name:    "error simple string pointer different value",
+			inSrc:   &copyTest{StringField: String("anchor-steam")},
+			inDst:   &copyTest{StringField: String("bira")},
+			wantErr: true,
 		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			StringField: String("fourpure-juicebox"),
-			Uint32Field: Uint32(42),
+		{
+			name:  "overwrite simple string pointer different value",
+			inSrc: &copyTest{StringField: String("bira")},
+			inDst: &copyTest{StringField: String("anchor-steam")},
+			inOpts: []MergeOpt{
+				&MergeOverwriteExistingFields{},
+			},
+			wantDst: &copyTest{StringField: String("bira")},
 		},
-	}, {
-		name: "struct pointer with single field",
-		inSrc: &copyTest{
-			StringField: String("lagunitas-aunt-sally"),
-			StructPointer: &copyTest{
-				StringField: String("deschutes-pinedrops"),
+		{
+			name: "uint and string pointer",
+			inSrc: &copyTest{
+				StringField: String("fourpure-juicebox"),
+				Uint32Field: Uint32(42),
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				StringField: String("fourpure-juicebox"),
+				Uint32Field: Uint32(42),
 			},
 		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			StringField: String("lagunitas-aunt-sally"),
-			StructPointer: &copyTest{
-				StringField: String("deschutes-pinedrops"),
+		{
+			name: "struct pointer with single field",
+			inSrc: &copyTest{
+				StringField: String("lagunitas-aunt-sally"),
+				StructPointer: &copyTest{
+					StringField: String("deschutes-pinedrops"),
+				},
 			},
-		},
-	}, {
-		name: "struct pointer with multiple fields",
-		inSrc: &copyTest{
-			StringField: String("allagash-brett"),
-			Uint32Field: Uint32(84),
-			StructPointer: &copyTest{
-				StringField: String("brooklyn-summer-ale"),
-				Uint32Field: Uint32(128),
-			},
-		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			StringField: String("allagash-brett"),
-			Uint32Field: Uint32(84),
-			StructPointer: &copyTest{
-				StringField: String("brooklyn-summer-ale"),
-				Uint32Field: Uint32(128),
-			},
-		},
-	}, {
-		name: "enum value",
-		inSrc: &copyTest{
-			EnumValue: EnumTypeValue,
-		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			EnumValue: EnumTypeValue,
-		},
-	}, {
-		name: "union field (wrapper union)",
-		inSrc: &copyTest{
-			UnionField: &copyUnionS{"new-belgium-fat-tire"},
-		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			UnionField: &copyUnionS{"new-belgium-fat-tire"},
-		},
-	}, {
-		name: "union field: string",
-		inSrc: &copyTest{
-			UnionField: testutil.UnionString("new-belgium-fat-tire"),
-		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			UnionField: testutil.UnionString("new-belgium-fat-tire"),
-		},
-	}, {
-		name: "union field: int64",
-		inSrc: &copyTest{
-			UnionField: testutil.UnionInt64(42),
-		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			UnionField: testutil.UnionInt64(42),
-		},
-	}, {
-		name:    "union field: empty",
-		inSrc:   &copyTest{},
-		inDst:   &copyTest{},
-		wantDst: &copyTest{},
-	}, {
-		name: "union field: enum",
-		inSrc: &copyTest{
-			UnionField: EnumTypeValue,
-		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			UnionField: EnumTypeValue,
-		},
-	}, {
-		name: "union field: binary",
-		inSrc: &copyTest{
-			UnionField: testBinary1,
-		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			UnionField: testBinary1,
-		},
-	}, {
-		name: "string slice",
-		inSrc: &copyTest{
-			StringSlice: []string{"sierra-nevada-pale-ale", "stone-ipa"},
-		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			StringSlice: []string{"sierra-nevada-pale-ale", "stone-ipa"},
-		},
-	}, {
-		name: "unimplemented string slice with existing members",
-		inSrc: &copyTest{
-			StringSlice: []string{"stone-and-wood-pacific", "pirate-life-brewing-iipa"},
-		},
-		inDst: &copyTest{
-			StringSlice: []string{"feral-brewing-co-hop-hog", "balter-brewing-xpa"},
-		},
-		wantDst: &copyTest{
-			StringSlice: []string{"feral-brewing-co-hop-hog", "balter-brewing-xpa", "stone-and-wood-pacific", "pirate-life-brewing-iipa"},
-		},
-	}, {
-		name: "string map",
-		inSrc: &copyTest{
-			StringMap: map[string]*copyTest{
-				"ballast-point": {StringField: String("sculpin")},
-				"upslope":       {StringSlice: []string{"amber-ale", "brown"}},
-			},
-		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			StringMap: map[string]*copyTest{
-				"ballast-point": {StringField: String("sculpin")},
-				"upslope":       {StringSlice: []string{"amber-ale", "brown"}},
-			},
-		},
-	}, {
-		name: "string map with existing members",
-		inSrc: &copyTest{
-			StringMap: map[string]*copyTest{
-				"bentspoke-brewing": {StringField: String("crankshaft")},
-			},
-		},
-		inDst: &copyTest{
-			StringMap: map[string]*copyTest{
-				"modus-operandi-brewing-co": {StringField: String("former-tenant")},
-			},
-		},
-		wantDst: &copyTest{
-			StringMap: map[string]*copyTest{
-				"bentspoke-brewing":         {StringField: String("crankshaft")},
-				"modus-operandi-brewing-co": {StringField: String("former-tenant")},
-			},
-		},
-	}, {
-		name: "overwrite, string map with overlapping members",
-		inSrc: &copyTest{
-			StringMap: map[string]*copyTest{
-				"wild-beer-co": {StringField: String("wild-goose-chase")},
-			},
-		},
-		inDst: &copyTest{
-			StringMap: map[string]*copyTest{
-				"wild-beer-co": {StringField: String("wildebeest")},
-			},
-		},
-		inOpts: []MergeOpt{
-			&MergeOverwriteExistingFields{},
-		},
-		wantDst: &copyTest{
-			StringMap: map[string]*copyTest{
-				"wild-beer-co": {StringField: String("wild-goose-chase")},
-			},
-		},
-	}, {
-		name: "error, string map with overlapping members",
-		inSrc: &copyTest{
-			StringMap: map[string]*copyTest{
-				"wild-beer-co": {StringField: String("wild-goose-chase")},
-			},
-		},
-		inDst: &copyTest{
-			StringMap: map[string]*copyTest{
-				"wild-beer-co": {StringField: String("wildebeest")},
-			},
-		},
-		wantErr: true,
-	}, {
-		name: "struct map",
-		inSrc: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"saint-arnold"}: {StringField: String("fancy-lawnmower")},
-				{"green-flash"}:  {StringField: String("hop-head-red")},
-			},
-		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"saint-arnold"}: {StringField: String("fancy-lawnmower")},
-				{"green-flash"}:  {StringField: String("hop-head-red")},
-			},
-		},
-	}, {
-		name: "struct map with non-overlapping contents",
-		inSrc: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"brewdog"}: {StringField: String("kingpin")},
-			},
-		},
-		inDst: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"cheshire-brewhouse"}: {StringField: String("dane'ish")},
-			},
-		},
-		wantDst: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"brewdog"}:            {StringField: String("kingpin")},
-				{"cheshire-brewhouse"}: {StringField: String("dane'ish")},
-			},
-		},
-	}, {
-		name: "struct map with overlapping contents",
-		inSrc: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"fourpure"}: {StringField: String("session-ipa")},
-			},
-		},
-		inDst: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"fourpure"}: {
-					Uint32Field:  Uint32(42),
-					Uint16Field:  Uint16(16),
-					Float64Field: Float64(42.42),
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				StringField: String("lagunitas-aunt-sally"),
+				StructPointer: &copyTest{
+					StringField: String("deschutes-pinedrops"),
 				},
 			},
 		},
-		wantDst: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"fourpure"}: {
-					StringField:  String("session-ipa"),
-					Uint32Field:  Uint32(42),
-					Uint16Field:  Uint16(16),
-					Float64Field: Float64(42.42),
+		{
+			name: "struct pointer with multiple fields",
+			inSrc: &copyTest{
+				StringField: String("allagash-brett"),
+				Uint32Field: Uint32(84),
+				StructPointer: &copyTest{
+					StringField: String("brooklyn-summer-ale"),
+					Uint32Field: Uint32(128),
+				},
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				StringField: String("allagash-brett"),
+				Uint32Field: Uint32(84),
+				StructPointer: &copyTest{
+					StringField: String("brooklyn-summer-ale"),
+					Uint32Field: Uint32(128),
 				},
 			},
 		},
-	}, {
-		name: "struct map with overlapping fields within the same key",
-		inSrc: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"new-belgium"}: {StringField: String("mysterious-ranger")},
+		{
+			name: "enum value",
+			inSrc: &copyTest{
+				EnumValue: EnumTypeValue,
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				EnumValue: EnumTypeValue,
 			},
 		},
-		inDst: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"new-belgium"}: {StringField: String("fat-tire")},
+		{
+			name: "union field (wrapper union)",
+			inSrc: &copyTest{
+				UnionField: &copyUnionS{"new-belgium-fat-tire"},
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				UnionField: &copyUnionS{"new-belgium-fat-tire"},
 			},
 		},
-		wantErr: true,
-	}, {
-		name: "struct map with overlapping fields within the same key",
-		inSrc: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"new-belgium"}: {StringField: String("mysterious-ranger")},
+		{
+			name: "union field: string",
+			inSrc: &copyTest{
+				UnionField: testutil.UnionString("new-belgium-fat-tire"),
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				UnionField: testutil.UnionString("new-belgium-fat-tire"),
 			},
 		},
-		inDst: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"new-belgium"}: {StringField: String("fat-tire")},
+		{
+			name: "union field: int64",
+			inSrc: &copyTest{
+				UnionField: testutil.UnionInt64(42),
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				UnionField: testutil.UnionInt64(42),
 			},
 		},
-		inOpts: []MergeOpt{
-			&MergeOverwriteExistingFields{},
+		{
+			name:    "union field: empty",
+			inSrc:   &copyTest{},
+			inDst:   &copyTest{},
+			wantDst: &copyTest{},
 		},
-		wantDst: &copyTest{
-			StructMap: map[copyMapKey]*copyTest{
-				{"new-belgium"}: {StringField: String("mysterious-ranger")},
+		{
+			name: "union field: enum",
+			inSrc: &copyTest{
+				UnionField: EnumTypeValue,
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				UnionField: EnumTypeValue,
 			},
 		},
-	}, {
-		name: "struct slice",
-		inSrc: &copyTest{
-			StructSlice: []*copyTest{{
-				StringField: String("russian-river-pliny-the-elder"),
-			}, {
-				StringField: String("lagunitas-brown-shugga"),
-			}},
+		{
+			name: "union field: binary",
+			inSrc: &copyTest{
+				UnionField: testBinary1,
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				UnionField: testBinary1,
+			},
 		},
-		inDst: &copyTest{},
-		wantDst: &copyTest{
-			StructSlice: []*copyTest{{
-				StringField: String("russian-river-pliny-the-elder"),
-			}, {
-				StringField: String("lagunitas-brown-shugga"),
-			}},
+		{
+			name: "string slice",
+			inSrc: &copyTest{
+				StringSlice: []string{"sierra-nevada-pale-ale", "stone-ipa"},
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				StringSlice: []string{"sierra-nevada-pale-ale", "stone-ipa"},
+			},
 		},
-	}, {
-		name: "struct slice with overlapping contents",
-		inSrc: &copyTest{
-			StructSlice: []*copyTest{{
-				StringField: String("pirate-life-brewing-ipa"),
-			}},
+		{
+			name: "unimplemented string slice with existing members",
+			inSrc: &copyTest{
+				StringSlice: []string{"stone-and-wood-pacific", "pirate-life-brewing-iipa"},
+			},
+			inDst: &copyTest{
+				StringSlice: []string{"feral-brewing-co-hop-hog", "balter-brewing-xpa"},
+			},
+			wantDst: &copyTest{
+				StringSlice: []string{"feral-brewing-co-hop-hog", "balter-brewing-xpa", "stone-and-wood-pacific", "pirate-life-brewing-iipa"},
+			},
 		},
-		inDst: &copyTest{
-			StructSlice: []*copyTest{{
-				StringField: String("gage-roads-little-dove"),
-			}},
+		{
+			name: "string map",
+			inSrc: &copyTest{
+				StringMap: map[string]*copyTest{
+					"ballast-point": {StringField: String("sculpin")},
+					"upslope":       {StringSlice: []string{"amber-ale", "brown"}},
+				},
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				StringMap: map[string]*copyTest{
+					"ballast-point": {StringField: String("sculpin")},
+					"upslope":       {StringSlice: []string{"amber-ale", "brown"}},
+				},
+			},
 		},
-		wantDst: &copyTest{
-			StructSlice: []*copyTest{{
-				StringField: String("gage-roads-little-dove"),
-			}, {
-				StringField: String("pirate-life-brewing-ipa"),
-			}},
+		{
+			name: "string map with existing members",
+			inSrc: &copyTest{
+				StringMap: map[string]*copyTest{
+					"bentspoke-brewing": {StringField: String("crankshaft")},
+				},
+			},
+			inDst: &copyTest{
+				StringMap: map[string]*copyTest{
+					"modus-operandi-brewing-co": {StringField: String("former-tenant")},
+				},
+			},
+			wantDst: &copyTest{
+				StringMap: map[string]*copyTest{
+					"bentspoke-brewing":         {StringField: String("crankshaft")},
+					"modus-operandi-brewing-co": {StringField: String("former-tenant")},
+				},
+			},
 		},
-	}, {
-		name:    "error, integer in interface",
-		inSrc:   &errorCopyTest{I: 42},
-		inDst:   &errorCopyTest{},
-		wantErr: true,
-	}, {
-		name:    "error, integer pointer in interface",
-		inSrc:   &errorCopyTest{I: Uint32(42)},
-		inDst:   &errorCopyTest{},
-		wantErr: true,
-	}, {
-		name:    "error, invalid interface in struct within interface",
-		inSrc:   &errorCopyTest{I: &errorCopyTest{I: "founders-kbs"}},
-		inDst:   &errorCopyTest{},
-		wantErr: true,
-	}, {
-		name: "error, invalid struct in map",
-		inSrc: &errorCopyTest{M: map[string]errorCopyTest{
-			"beaver-town-gamma-ray": {S: String("beaver-town-black-betty-ipa")},
-		}},
-		inDst:   &errorCopyTest{},
-		wantErr: true,
-	}, {
-		name: "error, invalid field in struct in map",
-		inSrc: &errorCopyTest{N: map[string]*errorCopyTest{
-			"brewdog-punk-ipa": {I: "harbour-amber-ale"},
-		}},
-		inDst:   &errorCopyTest{},
-		wantErr: true,
-	}, {
-		name:    "error, invalid field in struct in struct ptr",
-		inSrc:   &errorCopyTest{E: &errorCopyTest{I: "meantime-wheat"}},
-		inDst:   &errorCopyTest{},
-		wantErr: true,
-	}, {
-		name:    "error, invalid struct in struct ptr slice",
-		inSrc:   &errorCopyTest{L: []*errorCopyTest{{I: "wild-beer-co-somerset-wild"}}},
-		inDst:   &errorCopyTest{},
-		wantErr: true,
-	}, {
-		name:    "error, mismatched types",
-		inSrc:   &copyTest{StringField: String("camden-hells")},
-		inDst:   &errorCopyTest{S: String("kernel-table-beer")},
-		wantErr: true,
-	}, {
-		name:    "error, slice fields not unique",
-		inSrc:   &copyTest{StringSlice: []string{"mikkeler-draft-bear"}},
-		inDst:   &copyTest{StringSlice: []string{"mikkeler-draft-bear"}},
-		wantDst: &copyTest{StringSlice: []string{"mikkeler-draft-bear"}},
-	},
+		{
+			name: "overwrite, string map with overlapping members",
+			inSrc: &copyTest{
+				StringMap: map[string]*copyTest{
+					"wild-beer-co": {StringField: String("wild-goose-chase")},
+				},
+			},
+			inDst: &copyTest{
+				StringMap: map[string]*copyTest{
+					"wild-beer-co": {StringField: String("wildebeest")},
+				},
+			},
+			inOpts: []MergeOpt{
+				&MergeOverwriteExistingFields{},
+			},
+			wantDst: &copyTest{
+				StringMap: map[string]*copyTest{
+					"wild-beer-co": {StringField: String("wild-goose-chase")},
+				},
+			},
+		},
+		{
+			name: "error, string map with overlapping members",
+			inSrc: &copyTest{
+				StringMap: map[string]*copyTest{
+					"wild-beer-co": {StringField: String("wild-goose-chase")},
+				},
+			},
+			inDst: &copyTest{
+				StringMap: map[string]*copyTest{
+					"wild-beer-co": {StringField: String("wildebeest")},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "struct map",
+			inSrc: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"saint-arnold"}: {StringField: String("fancy-lawnmower")},
+					{"green-flash"}:  {StringField: String("hop-head-red")},
+				},
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"saint-arnold"}: {StringField: String("fancy-lawnmower")},
+					{"green-flash"}:  {StringField: String("hop-head-red")},
+				},
+			},
+		},
+		{
+			name: "struct map with non-overlapping contents",
+			inSrc: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"brewdog"}: {StringField: String("kingpin")},
+				},
+			},
+			inDst: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"cheshire-brewhouse"}: {StringField: String("dane'ish")},
+				},
+			},
+			wantDst: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"brewdog"}:            {StringField: String("kingpin")},
+					{"cheshire-brewhouse"}: {StringField: String("dane'ish")},
+				},
+			},
+		},
+		{
+			name: "struct map with overlapping contents",
+			inSrc: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"fourpure"}: {StringField: String("session-ipa")},
+				},
+			},
+			inDst: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"fourpure"}: {
+						Uint32Field:  Uint32(42),
+						Uint16Field:  Uint16(16),
+						Float64Field: Float64(42.42),
+					},
+				},
+			},
+			wantDst: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"fourpure"}: {
+						StringField:  String("session-ipa"),
+						Uint32Field:  Uint32(42),
+						Uint16Field:  Uint16(16),
+						Float64Field: Float64(42.42),
+					},
+				},
+			},
+		},
+		{
+			name: "struct map with overlapping fields within the same key",
+			inSrc: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"new-belgium"}: {StringField: String("mysterious-ranger")},
+				},
+			},
+			inDst: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"new-belgium"}: {StringField: String("fat-tire")},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "struct map with overlapping fields within the same key",
+			inSrc: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"new-belgium"}: {StringField: String("mysterious-ranger")},
+				},
+			},
+			inDst: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"new-belgium"}: {StringField: String("fat-tire")},
+				},
+			},
+			inOpts: []MergeOpt{
+				&MergeOverwriteExistingFields{},
+			},
+			wantDst: &copyTest{
+				StructMap: map[copyMapKey]*copyTest{
+					{"new-belgium"}: {StringField: String("mysterious-ranger")},
+				},
+			},
+		},
+		{
+			name: "struct slice",
+			inSrc: &copyTest{
+				StructSlice: []*copyTest{{
+					StringField: String("russian-river-pliny-the-elder"),
+				}, {
+					StringField: String("lagunitas-brown-shugga"),
+				}},
+			},
+			inDst: &copyTest{},
+			wantDst: &copyTest{
+				StructSlice: []*copyTest{{
+					StringField: String("russian-river-pliny-the-elder"),
+				}, {
+					StringField: String("lagunitas-brown-shugga"),
+				}},
+			},
+		},
+		{
+			name: "struct slice with overlapping contents",
+			inSrc: &copyTest{
+				StructSlice: []*copyTest{{
+					StringField: String("pirate-life-brewing-ipa"),
+				}},
+			},
+			inDst: &copyTest{
+				StructSlice: []*copyTest{{
+					StringField: String("gage-roads-little-dove"),
+				}},
+			},
+			wantDst: &copyTest{
+				StructSlice: []*copyTest{{
+					StringField: String("gage-roads-little-dove"),
+				}, {
+					StringField: String("pirate-life-brewing-ipa"),
+				}},
+			},
+		},
+		{
+			name:    "error, integer in interface",
+			inSrc:   &errorCopyTest{I: 42},
+			inDst:   &errorCopyTest{},
+			wantErr: true,
+		},
+		{
+			name:    "error, integer pointer in interface",
+			inSrc:   &errorCopyTest{I: Uint32(42)},
+			inDst:   &errorCopyTest{},
+			wantErr: true,
+		},
+		{
+			name:    "error, invalid interface in struct within interface",
+			inSrc:   &errorCopyTest{I: &errorCopyTest{I: "founders-kbs"}},
+			inDst:   &errorCopyTest{},
+			wantErr: true,
+		},
+		{
+			name: "error, invalid struct in map",
+			inSrc: &errorCopyTest{M: map[string]errorCopyTest{
+				"beaver-town-gamma-ray": {S: String("beaver-town-black-betty-ipa")},
+			}},
+			inDst:   &errorCopyTest{},
+			wantErr: true,
+		},
+		{
+			name: "error, invalid field in struct in map",
+			inSrc: &errorCopyTest{N: map[string]*errorCopyTest{
+				"brewdog-punk-ipa": {I: "harbour-amber-ale"},
+			}},
+			inDst:   &errorCopyTest{},
+			wantErr: true,
+		},
+		{
+			name:    "error, invalid field in struct in struct ptr",
+			inSrc:   &errorCopyTest{E: &errorCopyTest{I: "meantime-wheat"}},
+			inDst:   &errorCopyTest{},
+			wantErr: true,
+		},
+		{
+			name:    "error, invalid struct in struct ptr slice",
+			inSrc:   &errorCopyTest{L: []*errorCopyTest{{I: "wild-beer-co-somerset-wild"}}},
+			inDst:   &errorCopyTest{},
+			wantErr: true,
+		},
+		{
+			name:    "error, mismatched types",
+			inSrc:   &copyTest{StringField: String("camden-hells")},
+			inDst:   &errorCopyTest{S: String("kernel-table-beer")},
+			wantErr: true,
+		},
+		{
+			name:    "error, slice fields not unique",
+			inSrc:   &copyTest{StringSlice: []string{"mikkeler-draft-bear"}},
+			inDst:   &copyTest{StringSlice: []string{"mikkeler-draft-bear"}},
+			wantDst: &copyTest{StringSlice: []string{"mikkeler-draft-bear"}},
+		},
 		{
 			name:  "overwrite, slice fields not unique",
 			inSrc: &copyTest{StringSlice: []string{"mikkeler-draft-bear"}},
@@ -2403,7 +2438,7 @@ func TestValidateMap(t *testing.T) {
 	}}
 
 	for _, tt := range tests {
-		got, err := validateMap(tt.inSrc, tt.inDst)
+		got, err := validateMap(tt.inSrc, tt.inDst, "src", "dst")
 		if err != nil {
 			if err.Error() != tt.wantErr {
 				t.Errorf("%s: validateMap(%v, %v): did not get expected error status, got: %v, wantErr: %v", tt.name, tt.inSrc, tt.inDst, err, tt.wantErr)
@@ -2480,7 +2515,6 @@ func TestDeepCopy(t *testing.T) {
 
 	for _, tt := range tests {
 		got, err := DeepCopy(tt.in)
-
 		if err != nil {
 			if diff := errdiff.Substring(err, tt.wantErrSubstring); diff != "" {
 				t.Errorf("%s: DeepCopy(%#v): did not get expected error, %s", tt.name, tt.in, diff)

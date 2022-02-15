@@ -245,7 +245,7 @@ func findSetLeaves(s GoStruct, opts ...DiffOpt) (map[*pathSpec]interface{}, erro
 			return util.NewErrs(err)
 		}
 
-		//prevent duplicate key
+		// prevent duplicate key
 		keys := make([]string, len(vp.gNMIPaths))
 		for i, paths := range vp.gNMIPaths {
 			s, err := PathToString(paths)
@@ -265,7 +265,7 @@ func findSetLeaves(s GoStruct, opts ...DiffOpt) (map[*pathSpec]interface{}, erro
 		_, isPresenceContainer := ni.StructField.Tag.Lookup("presence")
 
 		// Ignore non-data, or default data values.
-		if util.IsNilOrInvalidValue(ni.FieldValue) || util.IsValueNilOrDefault(ni.FieldValue.Interface()) ||
+		if util.IsNilOrInvalidValue(ni.FieldValue) || util.IsNilOrDefaultValue(ni.FieldValue) ||
 			(util.IsValueStructPtr(ni.FieldValue) && !isPresenceContainer) ||
 			util.IsValueMap(ni.FieldValue) {
 			return
@@ -428,7 +428,6 @@ func (*DiffPathOpt) IsDiffOpt() {}
 // to the fields specified if a GoStruct that does not represent the root of
 // a YANG schema tree is not supplied as original and modified.
 func Diff(original, modified GoStruct, opts ...DiffOpt) (*gnmipb.Notification, error) {
-
 	if reflect.TypeOf(original) != reflect.TypeOf(modified) {
 		return nil, fmt.Errorf("cannot diff structs of different types, original: %T, modified: %T", original, modified)
 	}

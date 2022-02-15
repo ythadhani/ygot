@@ -83,6 +83,26 @@ func IsNilOrInvalidValue(v reflect.Value) bool {
 	return !v.IsValid() || (v.Kind() == reflect.Ptr && v.IsNil()) || IsValueNil(v.Interface())
 }
 
+// IsNilOrDefaultValue returns true if either IsValueNil(value) or the default
+// value for the type.
+// TODO(ythadhani) This is a temporary method. Refer: https://github.com/openconfig/ygot/issues/613
+// Essentially IsValueNilOrDefault with the additional check on value being interface.
+func IsNilOrDefaultValue(v reflect.Value) bool {
+	intfVal := v.Interface()
+	if IsValueNil(intfVal) {
+		return true
+	}
+	if !IsValueScalar(reflect.ValueOf(intfVal)) {
+		// Default value is nil for non-scalar types.
+		return false
+	}
+	if IsValueInterface(v) {
+		// We allow setting a leaf of type union to the default values of its member types
+		return false
+	}
+	return intfVal == reflect.New(reflect.TypeOf(intfVal)).Elem().Interface()
+}
+
 // IsValueNil returns true if either value is nil, or has dynamic type {ptr,
 // map, slice} with value nil.
 func IsValueNil(value interface{}) bool {
