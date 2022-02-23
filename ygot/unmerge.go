@@ -1,6 +1,7 @@
 package ygot
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -24,7 +25,15 @@ func UnmergeStructs(baseStruct, unmergeStruct ValidatedGoStruct, schema *yang.En
 	// `baseStruct`, which was passed in as a ValidatedGoStruct.
 	base := tn.(ValidatedGoStruct)
 
-	if err := UnmergeStructFrom(base, unmergeStruct, schema); err != nil {
+	u, err := DeepCopy(unmergeStruct)
+	if err != nil {
+		return nil, err
+	}
+	// This conversion is safe as DeepCopy will use the same underlying type as
+	// `unmergeStruct`, which was passed in as a ValidatedGoStruct.
+	unmerge := u.(ValidatedGoStruct)
+
+	if err := UnmergeStructFrom(base, unmerge, schema); err != nil {
 		return nil, fmt.Errorf("error unmerging unmergeStruct from baseStruct: %v", err)
 	}
 	return base, nil
@@ -178,7 +187,7 @@ func unmergeInterfaceField(baseVal, unmergeVal reflect.Value, fieldName string) 
 		return nil
 	}
 	if util.IsNilOrInvalidValue(baseVal) {
-		return fmt.Errorf("base struct field: %s was not set", fieldName)
+		return fmt.Errorf("base struct interface field: %s was not set", fieldName)
 	}
 
 	_, isGoEnum := unmergeVal.Elem().Interface().(GoEnum)
@@ -250,7 +259,11 @@ func unmergePtrField(baseVal, unmergeVal reflect.Value, schema *yang.Entry) (boo
 		return false, fmt.Errorf("received non-ptr type: %v for unmerge struct field: '%s'", unmergeVal.Kind(), schema.Name)
 	}
 	if util.IsNilOrInvalidValue(baseVal) {
-		return false, fmt.Errorf("base struct field: %s was not set", schema.Name)
+		unmergeValJs, err := json.Marshal(unmergeVal.Interface())
+		if err != nil {
+			return false, nil
+		}
+		return false, fmt.Errorf("base struct field: %s was not set but unmerge struct field was set to: %s", schema.Name, string(unmergeValJs))
 	}
 
 	// Check for struct ptr, or ptr to avoid panic.
