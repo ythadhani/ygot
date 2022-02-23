@@ -1000,6 +1000,22 @@ func (JSONIndent) IsExtensionSupported(ext yext.ExtensionParams) bool {
 	return false
 }
 
+type AllowEmptyContainers bool
+
+func (AllowEmptyContainers) IsMarshal7951Arg() {}
+
+func (AllowEmptyContainers) Process(extensions []yext.ExtensionParams, inputData ...interface{}) (interface{}, error) {
+	return nil, nil
+}
+
+func (AllowEmptyContainers) IsExtensionHandler() bool {
+	return false
+}
+
+func (AllowEmptyContainers) IsExtensionSupported(ext yext.ExtensionParams) bool {
+	return false
+}
+
 // Marshal7951 renders the supplied interface to RFC7951-compatible JSON. The argument
 // supplied must be a valid type within a generated ygot GoStruct - but can be a member
 // field of a generated struct rather than the entire struct - allowing specific fields
@@ -1009,9 +1025,10 @@ func (JSONIndent) IsExtensionSupported(ext yext.ExtensionParams) bool {
 // The rendered JSON is returned as a byte slice - in common with json.Marshal.
 func Marshal7951(d interface{}, args ...Marshal7951Arg) ([]byte, error) {
 	var (
-		rfcCfg     *RFC7951JSONConfig
-		indent     string
-		extHandler yext.ExtensionHandler
+		rfcCfg               *RFC7951JSONConfig
+		indent               string
+		extHandler           yext.ExtensionHandler
+		allowEmptyContainers bool
 	)
 	for _, a := range args {
 		switch v := a.(type) {
@@ -1019,6 +1036,8 @@ func Marshal7951(d interface{}, args ...Marshal7951Arg) ([]byte, error) {
 			rfcCfg = v
 		case JSONIndent:
 			indent = string(v)
+		case AllowEmptyContainers:
+			allowEmptyContainers = bool(v)
 		default:
 			if isExt := a.IsExtensionHandler(); isExt {
 				extHandler = a
@@ -1026,9 +1045,10 @@ func Marshal7951(d interface{}, args ...Marshal7951Arg) ([]byte, error) {
 		}
 	}
 	j, err := jsonValue(reflect.ValueOf(d), "", jsonOutputConfig{
-		jType:         RFC7951,
-		rfc7951Config: rfcCfg,
-		extHandler:    extHandler,
+		jType:                RFC7951,
+		rfc7951Config:        rfcCfg,
+		extHandler:           extHandler,
+		allowEmptyContainers: allowEmptyContainers,
 	})
 	if err != nil {
 		return nil, err
@@ -1058,6 +1078,8 @@ type jsonOutputConfig struct {
 	rfc7951Config *RFC7951JSONConfig
 	// extHandler can be used to process extensions defined as struct tags.
 	extHandler yext.ExtensionHandler
+
+	allowEmptyContainers bool
 }
 
 // rewriteModName rewrites the module mod according to the specified rewrite rules.
@@ -1182,9 +1204,11 @@ func structJSON(s GoStruct, parentMod string, args jsonOutputConfig) (map[string
 			}
 		}
 
-		if mp, ok := value.(map[string]interface{}); ok && len(mp) == 0 {
-			if _, isPresenceContainer := fType.Tag.Lookup("presence"); !isPresenceContainer {
-				continue
+		if !args.allowEmptyContainers {
+			if mp, ok := value.(map[string]interface{}); ok && len(mp) == 0 {
+				if _, isPresenceContainer := fType.Tag.Lookup("presence"); !isPresenceContainer {
+					continue
+				}
 			}
 		}
 
