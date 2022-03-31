@@ -252,7 +252,7 @@ func unmergePtrField(baseVal, unmergeVal reflect.Value, schema *yang.Entry) (boo
 	if util.IsNilOrInvalidValue(baseVal) {
 		// TODO(ythadhani): Get rid of the following if-block once SetNodeFromNotif method
 		// in fsp-shared-datastore cleans up empty non-presence containers.
-		if util.IsValueStructPtr(unmergeVal) && unmergeVal.Elem().IsZero() {
+		if util.IsZeroIgnoreDefaultStruct(unmergeVal) {
 			return false, nil
 		}
 		return false, fmt.Errorf("base struct field: %s was not set", schema.Name)

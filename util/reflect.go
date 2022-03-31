@@ -1161,3 +1161,22 @@ func getKeyValue(structVal reflect.Value, key string) (interface{}, error) {
 
 	return nil, fmt.Errorf("could not find key field %s in struct type %s", key, structVal.Type())
 }
+
+// IsZeroIgnoreDefaultStruct reports whether v is the zero value for its type.
+// A ptr with its underlying struct set to its zero value is treated the same as
+// being set to its zero value that is nil.
+// It panics if the argument is invalid.
+func IsZeroIgnoreDefaultStruct(v reflect.Value) bool {
+	if IsValueStructPtr(v) {
+		structVal := v.Elem()
+		for i := 0; i < structVal.NumField(); i++ {
+			if !IsZeroIgnoreDefaultStruct(structVal.Field(i)) {
+				return false
+			}
+		}
+		return true
+	} else if v.IsZero() {
+		return true
+	}
+	return false
+}
