@@ -339,7 +339,7 @@ func leastSpecificPath(paths [][]string) []string {
 
 // appendUpdate adds an update to the supplied gNMI Notification message corresponding
 // to the path and value supplied.
-func appendUpdate(n *gnmipb.Notification, path *pathSpec, val interface{}) error {
+func appendUpdate(updates []*gnmipb.Update, path *pathSpec, val interface{}) ([]*gnmipb.Update, error) {
 	var (
 		v   *gnmipb.TypedValue
 		err error
@@ -351,15 +351,15 @@ func appendUpdate(n *gnmipb.Notification, path *pathSpec, val interface{}) error
 		v, err = EncodeTypedValue(val, gnmipb.Encoding_PROTO)
 	}
 	if err != nil {
-		return fmt.Errorf("cannot represent field value %v as TypedValue for path %v: %v", val, path, err)
+		return nil, fmt.Errorf("cannot represent field value %v as TypedValue for path %v: %v", val, path, err)
 	}
 	for _, p := range path.gNMIPaths {
-		n.Update = append(n.Update, &gnmipb.Update{
+		updates = append(updates, &gnmipb.Update{
 			Path: p,
 			Val:  v,
 		})
 	}
-	return nil
+	return updates, nil
 }
 
 // DiffOpt is an interface that is implemented by the options to the Diff
@@ -428,6 +428,22 @@ func (*DiffPathOpt) IsDiffOpt() {}
 // to the fields specified if a GoStruct that does not represent the root of
 // a YANG schema tree is not supplied as original and modified.
 func Diff(original, modified GoStruct, opts ...DiffOpt) (*gnmipb.Notification, error) {
+	notifWithAddPaths, err := computeDiff(original, modified, false, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return notifWithAddPaths.Notification, nil
+}
+
+func DiffWithAdds(original, modified GoStruct, opts ...DiffOpt) (*NotificationWithAdds, error) {
+	notifWithAddPaths, err := computeDiff(original, modified, true, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return notifWithAddPaths, nil
+}
+
+func computeDiff(original, modified GoStruct, includeAddPaths bool, opts ...DiffOpt) (*NotificationWithAdds, error) {
 	if reflect.TypeOf(original) != reflect.TypeOf(modified) {
 		return nil, fmt.Errorf("cannot diff structs of different types, original: %T, modified: %T", original, modified)
 	}
@@ -443,7 +459,7 @@ func Diff(original, modified GoStruct, opts ...DiffOpt) (*gnmipb.Notification, e
 	}
 
 	matched := map[*pathSpec]bool{}
-	n := &gnmipb.Notification{}
+	n := &NotificationWithAdds{&gnmipb.Notification{}, []*gnmipb.Update{}}
 	for origPath, origVal := range origLeaves {
 		var origMatched bool
 		for modPath, modVal := range modLeaves {
@@ -455,7 +471,7 @@ func Diff(original, modified GoStruct, opts ...DiffOpt) (*gnmipb.Notification, e
 				if !cmp.Equal(origVal, modVal) {
 					// The contents of the value should indicate that value a has changed
 					// to value b.
-					if err := appendUpdate(n, origPath, modVal); err != nil {
+					if n.Update, err = appendUpdate(n.GetUpdate(), origPath, modVal); err != nil {
 						return nil, err
 					}
 				}
@@ -474,8 +490,14 @@ func Diff(original, modified GoStruct, opts ...DiffOpt) (*gnmipb.Notification, e
 	// not they are updates.
 	for modPath, modVal := range modLeaves {
 		if !matched[modPath] {
-			if err := appendUpdate(n, modPath, modVal); err != nil {
-				return nil, err
+			if includeAddPaths {
+				if n.Addition, err = appendUpdate(n.GetAddition(), modPath, modVal); err != nil {
+					return nil, err
+				}
+			} else {
+				if n.Update, err = appendUpdate(n.GetUpdate(), modPath, modVal); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
