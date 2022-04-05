@@ -10,6 +10,7 @@ generate:
 	cd ${ROOT_DIR}/demo/getting_started && SRCDIR=${ROOT_DIR} go generate
 	cd ${ROOT_DIR}/proto/ywrapper && SRCDIR=${ROOT_DIR} go generate
 	cd $(ROOT_DIR)/proto/yext && SRCDIR=${ROOT_DIR} go generate
+	cd $(ROOT_DIR)/proto/notification && SRCDIR=${ROOT_DIR} go generate
 	cd $(ROOT_DIR)/demo/uncompressed && SRCDIR=${ROOT_DIR} go generate
 	cd $(ROOT_DIR)/demo/protobuf_getting_started && SRCDIR=${ROOT_DIR} ./update.sh
 	cd $(ROOT_DIR)/integration_tests/uncompressed && SRCDIR=${ROOT_DIR} go generate
