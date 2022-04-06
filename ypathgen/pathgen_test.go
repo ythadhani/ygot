@@ -87,6 +87,7 @@ func TestGeneratePathCode(t *testing.T) {
 				LocalGoTypeName:       "*Device",
 				SubsumingGoStructName: "Device",
 				YANGPath:              "/",
+				GoPathPackageName:     "ocstructs",
 			},
 			"ParentPath": {
 				GoTypeName:            "*Parent",
@@ -97,6 +98,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGPath:              "/openconfig-simple/parent",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_ChildPath": {
 				GoTypeName:            "*Parent_Child",
@@ -107,6 +109,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGPath:              "/openconfig-simple/parent/child",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_FourPath": {
 				GoTypeName:            "Binary",
@@ -118,6 +121,7 @@ func TestGeneratePathCode(t *testing.T) {
 				HasDefault:            false,
 				YANGTypeName:          "binary",
 				YANGPath:              "/openconfig-simple/parent/child/state/four",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_OnePath": {
 				GoTypeName:            "string",
@@ -129,6 +133,7 @@ func TestGeneratePathCode(t *testing.T) {
 				HasDefault:            false,
 				YANGTypeName:          "string",
 				YANGPath:              "/openconfig-simple/parent/child/state/one",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_ThreePath": {
 				GoTypeName:            "E_Child_Three",
@@ -140,6 +145,7 @@ func TestGeneratePathCode(t *testing.T) {
 				HasDefault:            false,
 				YANGTypeName:          "enumeration",
 				YANGPath:              "/openconfig-simple/parent/child/state/three",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_TwoPath": {
 				GoTypeName:            "string",
@@ -151,6 +157,7 @@ func TestGeneratePathCode(t *testing.T) {
 				HasDefault:            false,
 				YANGTypeName:          "string",
 				YANGPath:              "/openconfig-simple/parent/child/state/two",
+				GoPathPackageName:     "ocstructs",
 			},
 			"RemoteContainerPath": {
 				GoTypeName:            "*RemoteContainer",
@@ -161,6 +168,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGPath:              "/openconfig-simple/remote-container",
+				GoPathPackageName:     "ocstructs",
 			},
 			"RemoteContainer_ALeafPath": {
 				GoTypeName:            "string",
@@ -172,6 +180,7 @@ func TestGeneratePathCode(t *testing.T) {
 				HasDefault:            false,
 				YANGTypeName:          "string",
 				YANGPath:              "/openconfig-simple/remote-container/state/a-leaf",
+				GoPathPackageName:     "ocstructs",
 			}},
 	}, {
 		name:                                   "simple openconfig test with preferOperationalState=false",
@@ -179,7 +188,7 @@ func TestGeneratePathCode(t *testing.T) {
 		inShortenEnumLeafNames:                 true,
 		inGenerateWildcardPaths:                true,
 		inUseDefiningModuleForTypedefEnumNames: true,
-		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-simple-intendedconfig.path-txt"),
+		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-simple.intendedconfig.path-txt"),
 		inSchemaStructPkgPath:                  "",
 		inPathStructSuffix:                     "Path",
 		wantNodeDataMap: NodeDataMap{
@@ -188,6 +197,7 @@ func TestGeneratePathCode(t *testing.T) {
 				LocalGoTypeName:       "*Device",
 				SubsumingGoStructName: "Device",
 				YANGPath:              "/",
+				GoPathPackageName:     "ocstructs",
 			},
 			"ParentPath": {
 				GoTypeName:            "*Parent",
@@ -197,6 +207,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_ChildPath": {
 				GoTypeName:            "*Parent_Child",
@@ -206,6 +217,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_FourPath": {
 				GoTypeName:            "Binary",
@@ -216,6 +228,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "binary",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_OnePath": {
 				GoTypeName:            "string",
@@ -226,6 +239,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         true,
 				HasDefault:            false,
 				YANGTypeName:          "string",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_ThreePath": {
 				GoTypeName:            "E_Child_Three",
@@ -236,6 +250,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "enumeration",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_TwoPath": {
 				GoTypeName:            "string",
@@ -246,6 +261,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         true,
 				HasDefault:            false,
 				YANGTypeName:          "string",
+				GoPathPackageName:     "ocstructs",
 			},
 			"RemoteContainerPath": {
 				GoTypeName:            "*RemoteContainer",
@@ -255,6 +271,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"RemoteContainer_ALeafPath": {
 				GoTypeName:            "string",
@@ -265,6 +282,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         true,
 				HasDefault:            false,
 				YANGTypeName:          "string",
+				GoPathPackageName:     "ocstructs",
 			}},
 	}, {
 		name:                                   "simple openconfig test with excludeState=true",
@@ -273,7 +291,7 @@ func TestGeneratePathCode(t *testing.T) {
 		inShortenEnumLeafNames:                 true,
 		inUseDefiningModuleForTypedefEnumNames: true,
 		inGenerateWildcardPaths:                true,
-		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-simple-excludestate.path-txt"),
+		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-simple.excludestate.path-txt"),
 		inSchemaStructPkgPath:                  "",
 		inPathStructSuffix:                     "Path",
 		wantNodeDataMap: NodeDataMap{
@@ -282,6 +300,7 @@ func TestGeneratePathCode(t *testing.T) {
 				LocalGoTypeName:       "*Device",
 				SubsumingGoStructName: "Device",
 				YANGPath:              "/",
+				GoPathPackageName:     "ocstructs",
 			},
 			"ParentPath": {
 				GoTypeName:            "*Parent",
@@ -291,6 +310,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_ChildPath": {
 				GoTypeName:            "*Parent_Child",
@@ -300,6 +320,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_FourPath": {
 				GoTypeName:            "Binary",
@@ -310,6 +331,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "binary",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_OnePath": {
 				GoTypeName:            "string",
@@ -320,6 +342,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         true,
 				HasDefault:            false,
 				YANGTypeName:          "string",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_ThreePath": {
 				GoTypeName:            "E_Child_Three",
@@ -330,6 +353,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "enumeration",
+				GoPathPackageName:     "ocstructs",
 			},
 			"RemoteContainerPath": {
 				GoTypeName:            "*RemoteContainer",
@@ -339,6 +363,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"RemoteContainer_ALeafPath": {
 				GoTypeName:            "string",
@@ -349,6 +374,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         true,
 				HasDefault:            false,
 				YANGTypeName:          "string",
+				GoPathPackageName:     "ocstructs",
 			}},
 	}, {
 		name:                                   "simple openconfig test with list",
@@ -370,7 +396,7 @@ func TestGeneratePathCode(t *testing.T) {
 		inSchemaStructPkgPath:                  "",
 		inPathStructSuffix:                     "Path",
 		inSimplifyWildcardPaths:                true,
-		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-withlist-simplifyallwc.path-txt"),
+		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-withlist.simplifyallwc.path-txt"),
 	}, {
 		name:                                   "simple openconfig test with list without wildcard paths",
 		inFiles:                                []string{filepath.Join(datapath, "openconfig-withlist.yang")},
@@ -380,7 +406,7 @@ func TestGeneratePathCode(t *testing.T) {
 		inGenerateWildcardPaths:                false,
 		inSchemaStructPkgPath:                  "",
 		inPathStructSuffix:                     "Path",
-		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-withlist-nowildcard.path-txt"),
+		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-withlist.nowildcard.path-txt"),
 	}, {
 		name:                                   "simple openconfig test with list in separate package",
 		inFiles:                                []string{filepath.Join(datapath, "openconfig-withlist.yang")},
@@ -401,7 +427,7 @@ func TestGeneratePathCode(t *testing.T) {
 		inGenerateWildcardPaths:                true,
 		inSchemaStructPkgPath:                  "",
 		inPathStructSuffix:                     "Path",
-		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-withlist-builder.path-txt"),
+		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-withlist.builder.path-txt"),
 	}, {
 		name:                                   "simple openconfig test with union & typedef & identity & enum",
 		inFiles:                                []string{filepath.Join(datapath, "openconfig-unione.yang")},
@@ -418,6 +444,7 @@ func TestGeneratePathCode(t *testing.T) {
 				LocalGoTypeName:       "*Device",
 				SubsumingGoStructName: "Device",
 				YANGPath:              "/",
+				GoPathPackageName:     "ocstructs",
 			},
 			"DupEnumPath": {
 				GoTypeName:            "*DupEnum",
@@ -427,6 +454,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"DupEnum_APath": {
 				GoTypeName:            "E_DupEnum_A",
@@ -437,6 +465,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "enumeration",
+				GoPathPackageName:     "ocstructs",
 			},
 			"DupEnum_BPath": {
 				GoTypeName:            "E_DupEnum_B",
@@ -447,6 +476,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "enumeration",
+				GoPathPackageName:     "ocstructs",
 			},
 			"PlatformPath": {
 				GoTypeName:            "*Platform",
@@ -456,6 +486,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_ComponentPath": {
 				GoTypeName:            "*Platform_Component",
@@ -465,6 +496,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_Component_E1Path": {
 				GoTypeName:            "Platform_Component_E1_Union",
@@ -475,6 +507,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "enumtypedef",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_Component_EnumeratedPath": {
 				GoTypeName:            "Platform_Component_Enumerated_Union",
@@ -485,6 +518,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "enumerated-union-type",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_Component_PowerPath": {
 				GoTypeName:            "Platform_Component_Power_Union",
@@ -495,6 +529,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "union",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_Component_R1Path": {
 				GoTypeName:            "Platform_Component_E1_Union",
@@ -505,6 +540,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "leafref",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_Component_TypePath": {
 				GoTypeName:            "Platform_Component_Type_Union",
@@ -515,6 +551,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "union",
+				GoPathPackageName:     "ocstructs",
 			}},
 	}, {
 		name:                     "simple openconfig test with union & typedef & identity & enum, with enum names not shortened",
@@ -530,6 +567,7 @@ func TestGeneratePathCode(t *testing.T) {
 				LocalGoTypeName:       "*Device",
 				SubsumingGoStructName: "Device",
 				YANGPath:              "/",
+				GoPathPackageName:     "ocstructs",
 			},
 			"DupEnumPath": {
 				GoTypeName:            "*DupEnum",
@@ -539,6 +577,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"DupEnum_APath": {
 				GoTypeName:            "E_OpenconfigUnione_DupEnum_A",
@@ -549,6 +588,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "enumeration",
+				GoPathPackageName:     "ocstructs",
 			},
 			"DupEnum_BPath": {
 				GoTypeName:            "E_OpenconfigUnione_DupEnum_B",
@@ -559,6 +599,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "enumeration",
+				GoPathPackageName:     "ocstructs",
 			},
 			"PlatformPath": {
 				GoTypeName:            "*Platform",
@@ -568,6 +609,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_ComponentPath": {
 				GoTypeName:            "*Platform_Component",
@@ -577,6 +619,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_Component_E1Path": {
 				GoTypeName:            "Platform_Component_E1_Union",
@@ -587,6 +630,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "enumtypedef",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_Component_EnumeratedPath": {
 				GoTypeName:            "Platform_Component_Enumerated_Union",
@@ -597,6 +641,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "enumerated-union-type",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_Component_PowerPath": {
 				GoTypeName:            "Platform_Component_Power_Union",
@@ -607,6 +652,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "union",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_Component_R1Path": {
 				GoTypeName:            "Platform_Component_E1_Union",
@@ -617,6 +663,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "leafref",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Platform_Component_TypePath": {
 				GoTypeName:            "Platform_Component_Type_Union",
@@ -627,6 +674,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "union",
+				GoPathPackageName:     "ocstructs",
 			}},
 	}, {
 		name:                                   "simple openconfig test with submodule and union list key",
@@ -644,6 +692,7 @@ func TestGeneratePathCode(t *testing.T) {
 				LocalGoTypeName:       "*Device",
 				SubsumingGoStructName: "Device",
 				YANGPath:              "/",
+				GoPathPackageName:     "ocstructs",
 			},
 			"AListPath": {
 				GoTypeName:            "*AList",
@@ -653,6 +702,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"AList_ValuePath": {
 				GoTypeName:            "AList_Value_Union",
@@ -663,6 +713,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "td",
+				GoPathPackageName:     "ocstructs",
 			},
 			"BListPath": {
 				GoTypeName:            "*BList",
@@ -672,6 +723,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"BList_ValuePath": {
 				GoTypeName:            "BList_Value_Union",
@@ -682,6 +734,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "td",
+				GoPathPackageName:     "ocstructs",
 			},
 			"CPath": {
 				GoTypeName:            "*C",
@@ -691,6 +744,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"C_ClPath": {
 				GoTypeName:            "E_EnumModule_Cl",
@@ -701,6 +755,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "enumeration",
+				GoPathPackageName:     "ocstructs",
 			},
 			"ParentPath": {
 				GoTypeName:            "*Parent",
@@ -710,6 +765,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_ChildPath": {
 				GoTypeName:            "*Parent_Child",
@@ -719,6 +775,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_IdPath": {
 				GoTypeName:            "E_EnumTypes_ID",
@@ -729,6 +786,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "identityref",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_Id2Path": {
 				GoTypeName:            "E_EnumTypes_ID",
@@ -739,6 +797,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            true,
 				YANGTypeName:          "identityref",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_EnumPath": {
 				GoTypeName:            "E_EnumTypes_TdEnum",
@@ -749,6 +808,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            true,
 				YANGTypeName:          "td-enum",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Parent_Child_InlineEnumPath": {
 				GoTypeName:            "E_Child_InlineEnum",
@@ -759,6 +819,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            true,
 				YANGTypeName:          "enumeration",
+				GoPathPackageName:     "ocstructs",
 			}},
 	}, {
 		name:                                   "simple openconfig test with choice and cases",
@@ -789,6 +850,7 @@ func TestGeneratePathCode(t *testing.T) {
 				LocalGoTypeName:       "*Device",
 				SubsumingGoStructName: "Device",
 				YANGPath:              "/",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Native": {
 				GoTypeName:            "*oc.Native",
@@ -798,6 +860,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Native_A": {
 				GoTypeName:            "string",
@@ -808,6 +871,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         true,
 				HasDefault:            false,
 				YANGTypeName:          "string",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Native_B": {
 				GoTypeName:            "string",
@@ -818,6 +882,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         true,
 				HasDefault:            false,
 				YANGTypeName:          "string",
+				GoPathPackageName:     "ocstructs",
 			},
 			"Target": {
 				GoTypeName:            "*oc.Target",
@@ -827,6 +892,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Target_Foo": {
 				GoTypeName:            "*oc.Target_Foo",
@@ -836,6 +902,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "ocstructs",
 			},
 			"Target_Foo_A": {
 				GoTypeName:            "string",
@@ -846,6 +913,7 @@ func TestGeneratePathCode(t *testing.T) {
 				IsScalarField:         true,
 				HasDefault:            false,
 				YANGTypeName:          "string",
+				GoPathPackageName:     "ocstructs",
 			}},
 	}, {
 		name:                                   "simple openconfig test with camelcase-name extension",
@@ -856,7 +924,7 @@ func TestGeneratePathCode(t *testing.T) {
 		inGenerateWildcardPaths:                true,
 		inSchemaStructPkgPath:                  "",
 		inPathStructSuffix:                     "Path",
-		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-enumcamelcase.path-txt"),
+		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-enumcamelcase-compress.path-txt"),
 	}, {
 		name:                                   "simple openconfig test with camelcase-name extension in container and leaf",
 		inFiles:                                []string{filepath.Join(datapath, "openconfig-camelcase.yang")},
@@ -866,7 +934,7 @@ func TestGeneratePathCode(t *testing.T) {
 		inGenerateWildcardPaths:                true,
 		inSchemaStructPkgPath:                  "",
 		inPathStructSuffix:                     "Path",
-		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-camelcase.path-txt"),
+		wantStructsCodeFile:                    filepath.Join(TestRoot, "testdata/structs/openconfig-camelcase-compress.path-txt"),
 	}}
 
 	for _, tt := range tests {
@@ -885,13 +953,14 @@ func TestGeneratePathCode(t *testing.T) {
 				cg.UseDefiningModuleForTypedefEnumNames = tt.inUseDefiningModuleForTypedefEnumNames
 				cg.GenerateWildcardPaths = tt.inGenerateWildcardPaths
 				cg.SimplifyWildcardPaths = tt.inSimplifyWildcardPaths
+				cg.PackageName = "ocstructs"
 
 				gotCode, gotNodeDataMap, err := cg.GeneratePathCode(tt.inFiles, tt.inIncludePaths)
 				if err != nil && !tt.wantErr {
 					t.Fatalf("GeneratePathCode(%v, %v): Config: %v, got unexpected error: %v, want: nil", tt.inFiles, tt.inIncludePaths, cg, err)
 				}
 
-				return gotCode.String(), gotNodeDataMap, cg
+				return gotCode[cg.PackageName].String(), gotNodeDataMap, cg
 			}
 
 			gotCode, gotNodeDataMap, cg := genCode()
@@ -953,19 +1022,19 @@ func TestGeneratePathCodeSplitFiles(t *testing.T) {
 		inFiles:               []string{filepath.Join(datapath, "openconfig-simple.yang")},
 		inFileNumber:          4,
 		inSchemaStructPkgPath: "github.com/openconfig/ygot/ypathgen/testdata/exampleoc",
-		wantStructsCodeFiles:  []string{filepath.Join(TestRoot, "testdata/structs/openconfig-simple-40.path-txt"), filepath.Join(TestRoot, "testdata/structs/openconfig-simple-41.path-txt"), filepath.Join(TestRoot, "testdata/structs/openconfig-simple-42.path-txt"), filepath.Join(TestRoot, "testdata/structs/openconfig-simple-43.path-txt")},
+		wantStructsCodeFiles:  []string{filepath.Join(TestRoot, "testdata/splitstructs/openconfig-simple-40.path-txt"), filepath.Join(TestRoot, "testdata/splitstructs/openconfig-simple-41.path-txt"), filepath.Join(TestRoot, "testdata/splitstructs/openconfig-simple-42.path-txt"), filepath.Join(TestRoot, "testdata/splitstructs/openconfig-simple-43.path-txt")},
 	}, {
 		name:                  "fileNumber is just under the total number of structs",
 		inFiles:               []string{filepath.Join(datapath, "openconfig-simple.yang")},
 		inFileNumber:          3,
 		inSchemaStructPkgPath: "",
-		wantStructsCodeFiles:  []string{filepath.Join(TestRoot, "testdata/structs/openconfig-simple-30.path-txt"), filepath.Join(TestRoot, "testdata/structs/openconfig-simple-31.path-txt"), filepath.Join(TestRoot, "testdata/structs/openconfig-simple-32.path-txt")},
+		wantStructsCodeFiles:  []string{filepath.Join(TestRoot, "testdata/splitstructs/openconfig-simple-30.path-txt"), filepath.Join(TestRoot, "testdata/splitstructs/openconfig-simple-31.path-txt"), filepath.Join(TestRoot, "testdata/splitstructs/openconfig-simple-32.path-txt")},
 	}, {
 		name:                  "fileNumber is half the total number of structs",
 		inFiles:               []string{filepath.Join(datapath, "openconfig-simple.yang")},
 		inFileNumber:          2,
 		inSchemaStructPkgPath: "github.com/openconfig/ygot/ypathgen/testdata/exampleoc",
-		wantStructsCodeFiles:  []string{filepath.Join(TestRoot, "testdata/structs/openconfig-simple-0.path-txt"), filepath.Join(TestRoot, "testdata/structs/openconfig-simple-1.path-txt")},
+		wantStructsCodeFiles:  []string{filepath.Join(TestRoot, "testdata/splitstructs/openconfig-simple-0.path-txt"), filepath.Join(TestRoot, "testdata/splitstructs/openconfig-simple-1.path-txt")},
 	}, {
 		name:                  "single file",
 		inFiles:               []string{filepath.Join(datapath, "openconfig-simple.yang")},
@@ -994,13 +1063,14 @@ func TestGeneratePathCodeSplitFiles(t *testing.T) {
 				}
 				cg.PreferOperationalState = true
 				cg.GenerateWildcardPaths = true
+				cg.PackageName = "ocstructs"
 
 				gotCode, _, err := cg.GeneratePathCode(tt.inFiles, tt.inIncludePaths)
 				if err != nil {
 					t.Fatalf("GeneratePathCode(%v, %v): Config: %v, got unexpected error: %v", tt.inFiles, tt.inIncludePaths, cg, err)
 				}
 
-				files, e := gotCode.SplitFiles(tt.inFileNumber)
+				files, e := gotCode[cg.PackageName].SplitFiles(tt.inFileNumber)
 				if e != nil && !tt.wantErr {
 					t.Fatalf("SplitFiles(%v): got unexpected error: %v", tt.inFileNumber, e)
 				} else if e == nil && tt.wantErr {
@@ -1033,6 +1103,109 @@ func TestGeneratePathCodeSplitFiles(t *testing.T) {
 						diff, _ := testutil.GenerateUnifiedDiff(wantCode[i], gotCode[i])
 						t.Errorf("GeneratePathCode(%v, %v), Config: %v, did not return correct code via SplitFiles function (file: %v), diff:\n%s",
 							tt.inFiles, tt.inIncludePaths, cg, tt.wantStructsCodeFiles[i], diff)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestGeneratePathCodeSplitModules(t *testing.T) {
+	tests := []struct {
+		// name is the identifier for the test.
+		name string
+		// inFiles is the set of inputFiles for the test.
+		inFiles []string
+		// inIncludePaths is the set of paths that should be searched for imports.
+		inIncludePaths            []string
+		inTrimOCPath              bool
+		inListBuilderKeyThreshold uint
+		// wantStructsCodeFileDir map from package name to want source file.
+		wantStructsCodeFiles map[string]string
+	}{{
+		name:    "oc simple",
+		inFiles: []string{filepath.Join(datapath, "openconfig-simple.yang")},
+		wantStructsCodeFiles: map[string]string{
+			"openconfigsimplepath": "testdata/modules/oc-simple/simple.txt",
+			"device":               "testdata/modules/oc-simple/device.txt",
+		},
+	}, {
+		name:         "oc simple and trim",
+		inFiles:      []string{filepath.Join(datapath, "openconfig-simple.yang")},
+		inTrimOCPath: true,
+		wantStructsCodeFiles: map[string]string{
+			"simplepath": "testdata/modules/oc-simple-trim/simple.txt",
+			"device":     "testdata/modules/oc-simple-trim/device.txt",
+		},
+	}, {
+		name:                      "oc list builder API",
+		inFiles:                   []string{filepath.Join(datapath, "openconfig-withlist.yang")},
+		inListBuilderKeyThreshold: 1,
+		wantStructsCodeFiles: map[string]string{
+			"openconfigwithlistpath": "testdata/modules/oc-list/list.txt",
+			"device":                 "testdata/modules/oc-list/device.txt",
+		},
+	}, {
+		name:    "oc import",
+		inFiles: []string{filepath.Join(datapath, "openconfig-import.yang")},
+		wantStructsCodeFiles: map[string]string{
+			"openconfigimportpath":       "testdata/modules/oc-import/import.txt",
+			"openconfigsimpletargetpath": "testdata/modules/oc-import/simpletarget.txt",
+			"device":                     "testdata/modules/oc-import/device.txt",
+		},
+	}}
+
+	for _, tt := range tests {
+		t.Run(tt.name+":"+strings.Join(tt.inFiles, ","), func(t *testing.T) {
+			genCode := func() (map[string]string, *GenConfig) {
+				cg := NewDefaultConfig("")
+				// Set the name of the caller explicitly to avoid issues when
+				// the unit tests are called by external test entities.
+				cg.GeneratingBinary = "pathgen-tests"
+				cg.FakeRootName = "device"
+				cg.PackageName = "device"
+				cg.PreferOperationalState = true
+				cg.GenerateWildcardPaths = true
+				cg.SplitByModule = true
+				cg.BaseImportPath = "example.com"
+				cg.TrimOCPackage = tt.inTrimOCPath
+				cg.ListBuilderKeyThreshold = tt.inListBuilderKeyThreshold
+
+				gotCode, _, err := cg.GeneratePathCode(tt.inFiles, tt.inIncludePaths)
+				if err != nil {
+					t.Fatalf("GeneratePathCode(%v, %v): Config: %v, got unexpected error: %v", tt.inFiles, tt.inIncludePaths, cg, err)
+				}
+				files := map[string]string{}
+				for k, v := range gotCode {
+					files[k] = v.String()
+				}
+
+				return files, cg
+			}
+
+			gotCode, cg := genCode()
+
+			wantCode := map[string]string{}
+			for pkg, codeFile := range tt.wantStructsCodeFiles {
+				wantCodeBytes, rferr := ioutil.ReadFile(codeFile)
+				if rferr != nil {
+					t.Fatalf("ioutil.ReadFile(%q) error: %v", tt.wantStructsCodeFiles, rferr)
+				}
+				wantCode[pkg] = string(wantCodeBytes)
+			}
+
+			if len(gotCode) != len(wantCode) {
+				t.Errorf("GeneratePathCode(%v, %v), Config: %v, did not return correct code via SplitFiles function (files: %v), (gotfiles: %d, wantfiles: %d), diff (-want, +got):\n%s",
+					tt.inFiles, tt.inIncludePaths, cg, tt.wantStructsCodeFiles, len(gotCode), len(wantCode), cmp.Diff(wantCode, gotCode))
+			} else {
+				for pkg := range gotCode {
+					if gotCode[pkg] != wantCode[pkg] {
+						// Use difflib to generate a unified diff between the
+						// two code snippets such that this is simpler to debug
+						// in the test output.
+						diff, _ := testutil.GenerateUnifiedDiff(wantCode[pkg], gotCode[pkg])
+						t.Errorf("GeneratePathCode(%v, %v), Config: %v, did not return correct code via SplitFiles function (file: %v), diff:\n%s",
+							tt.inFiles, tt.inIncludePaths, cg, tt.wantStructsCodeFiles[pkg], diff)
 					}
 				}
 			}
@@ -1090,7 +1263,7 @@ func getSchemaAndDirs() (*yang.Entry, map[string]*ygen.Directory, map[string]map
 						Name:    "leaf",
 						Kind:    yang.LeafEntry,
 						Type:    &yang.YangType{Name: "int32", Kind: yang.Yint32},
-						Default: "bar",
+						Default: []string{"bar"},
 					},
 				},
 			},
@@ -1225,8 +1398,9 @@ func getSchemaAndDirs() (*yang.Entry, map[string]*ygen.Directory, map[string]map
 				"list":                  schema.Dir["list-container"].Dir["list"],
 				"list-with-state":       schema.Dir["list-container-with-state"].Dir["list-with-state"],
 			},
-			Path:  []string{"", "root"},
-			Entry: fakeRoot,
+			Path:       []string{"", "root"},
+			Entry:      fakeRoot,
+			IsFakeRoot: true,
 		},
 		"/root-module/container": {
 			Name: "Container",
@@ -1310,130 +1484,6 @@ func getSchemaAndDirs() (*yang.Entry, map[string]*ygen.Directory, map[string]map
 	return schema, directories, leafTypeMap
 }
 
-// wantListMethodsNonWildcard is the expected non-wildcard child constructor
-// method for the test list node.
-const wantListMethodsNonWildcard = `
-// List returns from RootPath the path struct for its child "list".
-// Key1: string
-// Key2: oc.Binary
-// UnionKey: [oc.UnionString, oc.Binary]
-func (n *RootPath) List(Key1 string, Key2 oc.Binary, UnionKey oc.RootModule_List_UnionKey_Union) *ListPath {
-	return &ListPath{
-		NodePath: ygot.NewNodePath(
-			[]string{"list-container", "list"},
-			map[string]interface{}{"key1": Key1, "key2": Key2, "union-key": UnionKey},
-			n,
-		),
-	}
-}
-`
-
-const wantListMethodsWildcardCommon = `
-// ListAnyKey2AnyUnionKey returns from RootPath the path struct for its child "list".
-// Key1: string
-func (n *RootPath) ListAnyKey2AnyUnionKey(Key1 string) *ListPathAny {
-	return &ListPathAny{
-		NodePath: ygot.NewNodePath(
-			[]string{"list-container", "list"},
-			map[string]interface{}{"key1": Key1, "key2": "*", "union-key": "*"},
-			n,
-		),
-	}
-}
-
-// ListAnyKey1AnyUnionKey returns from RootPath the path struct for its child "list".
-// Key2: oc.Binary
-func (n *RootPath) ListAnyKey1AnyUnionKey(Key2 oc.Binary) *ListPathAny {
-	return &ListPathAny{
-		NodePath: ygot.NewNodePath(
-			[]string{"list-container", "list"},
-			map[string]interface{}{"key1": "*", "key2": Key2, "union-key": "*"},
-			n,
-		),
-	}
-}
-
-// ListAnyUnionKey returns from RootPath the path struct for its child "list".
-// Key1: string
-// Key2: oc.Binary
-func (n *RootPath) ListAnyUnionKey(Key1 string, Key2 oc.Binary) *ListPathAny {
-	return &ListPathAny{
-		NodePath: ygot.NewNodePath(
-			[]string{"list-container", "list"},
-			map[string]interface{}{"key1": Key1, "key2": Key2, "union-key": "*"},
-			n,
-		),
-	}
-}
-
-// ListAnyKey1AnyKey2 returns from RootPath the path struct for its child "list".
-// UnionKey: [oc.UnionString, oc.Binary]
-func (n *RootPath) ListAnyKey1AnyKey2(UnionKey oc.RootModule_List_UnionKey_Union) *ListPathAny {
-	return &ListPathAny{
-		NodePath: ygot.NewNodePath(
-			[]string{"list-container", "list"},
-			map[string]interface{}{"key1": "*", "key2": "*", "union-key": UnionKey},
-			n,
-		),
-	}
-}
-
-// ListAnyKey2 returns from RootPath the path struct for its child "list".
-// Key1: string
-// UnionKey: [oc.UnionString, oc.Binary]
-func (n *RootPath) ListAnyKey2(Key1 string, UnionKey oc.RootModule_List_UnionKey_Union) *ListPathAny {
-	return &ListPathAny{
-		NodePath: ygot.NewNodePath(
-			[]string{"list-container", "list"},
-			map[string]interface{}{"key1": Key1, "key2": "*", "union-key": UnionKey},
-			n,
-		),
-	}
-}
-
-// ListAnyKey1 returns from RootPath the path struct for its child "list".
-// Key2: oc.Binary
-// UnionKey: [oc.UnionString, oc.Binary]
-func (n *RootPath) ListAnyKey1(Key2 oc.Binary, UnionKey oc.RootModule_List_UnionKey_Union) *ListPathAny {
-	return &ListPathAny{
-		NodePath: ygot.NewNodePath(
-			[]string{"list-container", "list"},
-			map[string]interface{}{"key1": "*", "key2": Key2, "union-key": UnionKey},
-			n,
-		),
-	}
-}
-`
-
-// wantListMethods is the expected child constructor methods for the test list node.
-const wantListMethods = `
-// ListAny returns from RootPath the path struct for its child "list".
-func (n *RootPath) ListAny() *ListPathAny {
-	return &ListPathAny{
-		NodePath: ygot.NewNodePath(
-			[]string{"list-container", "list"},
-			map[string]interface{}{"key1": "*", "key2": "*", "union-key": "*"},
-			n,
-		),
-	}
-}
-` + wantListMethodsWildcardCommon + wantListMethodsNonWildcard
-
-// wantListMethodsSimplified is the expected child constructor methods for
-// the test list node when SimplifyWildcardPaths=true.
-const wantListMethodsSimplified = `
-// ListAny returns from RootPath the path struct for its child "list".
-func (n *RootPath) ListAny() *ListPathAny {
-	return &ListPathAny{
-		NodePath: ygot.NewNodePath(
-			[]string{"list-container", "list"},
-			map[string]interface{}{},
-			n,
-		),
-	}
-}
-` + wantListMethodsWildcardCommon + wantListMethodsNonWildcard
-
 func TestGetNodeDataMap(t *testing.T) {
 	_, directories, leafTypeMap := getSchemaAndDirs()
 
@@ -1492,8 +1542,12 @@ func TestGetNodeDataMap(t *testing.T) {
 		name                      string
 		inDirectories             map[string]*ygen.Directory
 		inLeafTypeMap             map[string]map[string]*ygen.MappedType
+		inFakeRootName            string
 		inSchemaStructPkgAccessor string
 		inPathStructSuffix        string
+		inPackageName             string
+		inPackageSuffix           string
+		inSplitByModule           bool
 		wantNodeDataMap           NodeDataMap
 		wantSorted                []string
 		wantErrSubstrings         []string
@@ -1505,6 +1559,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				"leaf": leafTypeMap["/root-module/container"]["leaf"],
 			},
 		},
+		inFakeRootName:            "device",
 		inSchemaStructPkgAccessor: "struct.",
 		inPathStructSuffix:        "Path",
 		wantNodeDataMap: NodeDataMap{
@@ -1524,6 +1579,7 @@ func TestGetNodeDataMap(t *testing.T) {
 		name:                      "non-leaf and non-scalar leaf",
 		inDirectories:             directoryWithBinaryLeaf,
 		inLeafTypeMap:             leafTypeMap2,
+		inFakeRootName:            "device",
 		inSchemaStructPkgAccessor: "struct.",
 		inPathStructSuffix:        "_Path",
 		wantNodeDataMap: NodeDataMap{
@@ -1545,8 +1601,17 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 			},
+			"Root_Path": {
+				GoTypeName:            "*struct.Device",
+				LocalGoTypeName:       "*Device",
+				GoFieldName:           "",
+				SubsumingGoStructName: "Device",
+				IsLeaf:                false,
+				IsScalarField:         false,
+				HasDefault:            false,
+			},
 		},
-		wantSorted: []string{"Container_Leaf_Path", "Container_Path"},
+		wantSorted: []string{"Container_Leaf_Path", "Container_Path", "Root_Path"},
 	}, {
 		name:          "non-existent path",
 		inDirectories: map[string]*ygen.Directory{"/root-module/container": directories["/root-module/container"]},
@@ -1558,6 +1623,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				"leaf": {NativeType: "Binary"},
 			},
 		},
+		inFakeRootName:            "device",
 		inSchemaStructPkgAccessor: "oc.",
 		inPathStructSuffix:        "Path",
 		wantErrSubstrings:         []string{`path "/root-module/container" does not exist`},
@@ -1572,6 +1638,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				"laugh": leafTypeMap["/root-module/container"]["leaf"],
 			},
 		},
+		inFakeRootName:            "device",
 		inSchemaStructPkgAccessor: "oc.",
 		inPathStructSuffix:        "Path",
 		wantErrSubstrings:         []string{`field name "leaf" does not exist`},
@@ -1579,7 +1646,11 @@ func TestGetNodeDataMap(t *testing.T) {
 		name:               "big test with everything",
 		inDirectories:      directories,
 		inLeafTypeMap:      leafTypeMap,
+		inFakeRootName:     "root",
 		inPathStructSuffix: "Path",
+		inSplitByModule:    true,
+		inPackageName:      "device",
+		inPackageSuffix:    "path",
 		wantNodeDataMap: NodeDataMap{
 			"ContainerPath": {
 				GoTypeName:            "*Container",
@@ -1589,6 +1660,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"ContainerWithConfigPath": {
 				GoTypeName:            "*ContainerWithConfig",
@@ -1598,6 +1670,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"ContainerWithConfig_LeafPath": {
 				GoTypeName:            "Binary",
@@ -1607,6 +1680,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsLeaf:                true,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"ContainerWithConfig_LeaflistPath": {
 				GoTypeName:            "[]uint32",
@@ -1616,6 +1690,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsLeaf:                true,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"ContainerWithConfig_Leaflist2Path": {
 				GoTypeName:            "[]Binary",
@@ -1625,6 +1700,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsLeaf:                true,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"Container_LeafPath": {
 				GoTypeName:            "int32",
@@ -1635,6 +1711,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsScalarField:         true,
 				HasDefault:            true,
 				YANGTypeName:          "int32",
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"LeafPath": {
 				GoTypeName:            "Binary",
@@ -1645,6 +1722,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsScalarField:         false,
 				HasDefault:            false,
 				YANGTypeName:          "ieeefloat32",
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"LeafWithDefaultPath": {
 				GoTypeName:            "string",
@@ -1655,6 +1733,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsScalarField:         true,
 				HasDefault:            true,
 				YANGTypeName:          "string",
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"ListPath": {
 				GoTypeName:            "*List",
@@ -1664,6 +1743,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"ListWithStatePath": {
 				GoTypeName:            "*ListWithState",
@@ -1673,6 +1753,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsLeaf:                false,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"ListWithState_KeyPath": {
 				GoTypeName:            "float64",
@@ -1682,6 +1763,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsLeaf:                true,
 				IsScalarField:         true,
 				HasDefault:            false,
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"List_Key1Path": {
 				GoTypeName:            "string",
@@ -1691,6 +1773,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsLeaf:                true,
 				IsScalarField:         true,
 				HasDefault:            false,
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"List_Key2Path": {
 				GoTypeName:            "Binary",
@@ -1700,6 +1783,7 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsLeaf:                true,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "rootmodulepath",
 			},
 			"List_UnionKeyPath": {
 				GoTypeName:            "RootModule_List_UnionKey_Union",
@@ -1709,6 +1793,17 @@ func TestGetNodeDataMap(t *testing.T) {
 				IsLeaf:                true,
 				IsScalarField:         false,
 				HasDefault:            false,
+				GoPathPackageName:     "rootmodulepath",
+			},
+			"RootPath": {
+				GoTypeName:            "*Root",
+				LocalGoTypeName:       "*Root",
+				GoFieldName:           "",
+				SubsumingGoStructName: "Root",
+				IsLeaf:                false,
+				IsScalarField:         false,
+				HasDefault:            false,
+				GoPathPackageName:     "device",
 			}},
 		wantSorted: []string{
 			"ContainerPath",
@@ -1725,12 +1820,13 @@ func TestGetNodeDataMap(t *testing.T) {
 			"List_Key1Path",
 			"List_Key2Path",
 			"List_UnionKeyPath",
+			"RootPath",
 		},
 	}}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, gotErrs := getNodeDataMap(tt.inDirectories, tt.inLeafTypeMap, tt.inSchemaStructPkgAccessor, tt.inPathStructSuffix)
+			got, gotErrs := getNodeDataMap(tt.inDirectories, tt.inLeafTypeMap, tt.inFakeRootName, tt.inSchemaStructPkgAccessor, tt.inPathStructSuffix, tt.inPackageName, tt.inPackageSuffix, tt.inSplitByModule, false)
 			// TODO(wenbli): Enhance gNMI's errdiff with checking a slice of substrings and use here.
 			var gotErrStrs []string
 			for _, err := range gotErrs {
@@ -1749,6 +1845,388 @@ func TestGetNodeDataMap(t *testing.T) {
 	}
 }
 
+// trimDocComments removes doc comments from the input code snippet string.
+// Example:
+//   // foo does bar
+//   func foo() {
+//     // baz is need to do boo.
+//     baz()
+//   }
+//
+//   // foo2 does bar2
+//   func foo2() {
+//     // baz2 is need to do boo2.
+//     baz2()
+//   }
+// After:
+//   func foo() {
+//     // baz is need to do boo.
+//     baz()
+//   }
+//
+//   func foo2() {
+//     // baz2 is need to do boo2.
+//     baz2()
+//   }
+func trimDocComments(snippet string) string {
+	var b strings.Builder
+	for i, line := range strings.Split(snippet, "\n") {
+		// i > 0 to prevent two newlines from being printed on an empty
+		// line at the end of the string.
+		if i > 0 && line == "" {
+			b.WriteString("\n")
+			continue
+		}
+		if !strings.HasPrefix(line, "//") {
+			if i > 0 {
+				b.WriteString("\n")
+			}
+			b.WriteString(line)
+		}
+	}
+	return b.String()
+}
+
+const (
+	// wantListMethodsNonWildcard is the expected non-wildcard child constructor
+	// method for the test list node.
+	wantListMethodsNonWildcard = `
+// List (): 
+// ----------------------------------------
+// Defining module: ""
+// Instantiating module: "root-module"
+// Path from parent: "list-container/list"
+// Path from root: "/list-container/list"
+// Key1: string
+// Key2: oc.Binary
+// UnionKey: [oc.UnionString, oc.Binary]
+func (n *RootPath) List(Key1 string, Key2 oc.Binary, UnionKey oc.RootModule_List_UnionKey_Union) *ListPath {
+	return &ListPath{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container", "list"},
+			map[string]interface{}{"key1": Key1, "key2": Key2, "union-key": UnionKey},
+			n,
+		),
+	}
+}
+`
+
+	wantListMethodsWildcardCommon = `
+// ListAnyKey2AnyUnionKey (): 
+// ----------------------------------------
+// Defining module: ""
+// Instantiating module: "root-module"
+// Path from parent: "list-container/list"
+// Path from root: "/list-container/list"
+// Key1: string
+// Key2 (wildcarded): oc.Binary
+// UnionKey (wildcarded): [oc.UnionString, oc.Binary]
+func (n *RootPath) ListAnyKey2AnyUnionKey(Key1 string) *ListPathAny {
+	return &ListPathAny{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container", "list"},
+			map[string]interface{}{"key1": Key1, "key2": "*", "union-key": "*"},
+			n,
+		),
+	}
+}
+
+// ListAnyKey1AnyUnionKey (): 
+// ----------------------------------------
+// Defining module: ""
+// Instantiating module: "root-module"
+// Path from parent: "list-container/list"
+// Path from root: "/list-container/list"
+// Key1 (wildcarded): string
+// Key2: oc.Binary
+// UnionKey (wildcarded): [oc.UnionString, oc.Binary]
+func (n *RootPath) ListAnyKey1AnyUnionKey(Key2 oc.Binary) *ListPathAny {
+	return &ListPathAny{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container", "list"},
+			map[string]interface{}{"key1": "*", "key2": Key2, "union-key": "*"},
+			n,
+		),
+	}
+}
+
+// ListAnyUnionKey (): 
+// ----------------------------------------
+// Defining module: ""
+// Instantiating module: "root-module"
+// Path from parent: "list-container/list"
+// Path from root: "/list-container/list"
+// Key1: string
+// Key2: oc.Binary
+// UnionKey (wildcarded): [oc.UnionString, oc.Binary]
+func (n *RootPath) ListAnyUnionKey(Key1 string, Key2 oc.Binary) *ListPathAny {
+	return &ListPathAny{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container", "list"},
+			map[string]interface{}{"key1": Key1, "key2": Key2, "union-key": "*"},
+			n,
+		),
+	}
+}
+
+// ListAnyKey1AnyKey2 (): 
+// ----------------------------------------
+// Defining module: ""
+// Instantiating module: "root-module"
+// Path from parent: "list-container/list"
+// Path from root: "/list-container/list"
+// Key1 (wildcarded): string
+// Key2 (wildcarded): oc.Binary
+// UnionKey: [oc.UnionString, oc.Binary]
+func (n *RootPath) ListAnyKey1AnyKey2(UnionKey oc.RootModule_List_UnionKey_Union) *ListPathAny {
+	return &ListPathAny{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container", "list"},
+			map[string]interface{}{"key1": "*", "key2": "*", "union-key": UnionKey},
+			n,
+		),
+	}
+}
+
+// ListAnyKey2 (): 
+// ----------------------------------------
+// Defining module: ""
+// Instantiating module: "root-module"
+// Path from parent: "list-container/list"
+// Path from root: "/list-container/list"
+// Key1: string
+// Key2 (wildcarded): oc.Binary
+// UnionKey: [oc.UnionString, oc.Binary]
+func (n *RootPath) ListAnyKey2(Key1 string, UnionKey oc.RootModule_List_UnionKey_Union) *ListPathAny {
+	return &ListPathAny{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container", "list"},
+			map[string]interface{}{"key1": Key1, "key2": "*", "union-key": UnionKey},
+			n,
+		),
+	}
+}
+
+// ListAnyKey1 (): 
+// ----------------------------------------
+// Defining module: ""
+// Instantiating module: "root-module"
+// Path from parent: "list-container/list"
+// Path from root: "/list-container/list"
+// Key1 (wildcarded): string
+// Key2: oc.Binary
+// UnionKey: [oc.UnionString, oc.Binary]
+func (n *RootPath) ListAnyKey1(Key2 oc.Binary, UnionKey oc.RootModule_List_UnionKey_Union) *ListPathAny {
+	return &ListPathAny{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container", "list"},
+			map[string]interface{}{"key1": "*", "key2": Key2, "union-key": UnionKey},
+			n,
+		),
+	}
+}
+`
+
+	// wantListMethods is the expected child constructor methods for the test list node.
+	wantListMethods = `
+// ListAny (): 
+// ----------------------------------------
+// Defining module: ""
+// Instantiating module: "root-module"
+// Path from parent: "list-container/list"
+// Path from root: "/list-container/list"
+// Key1 (wildcarded): string
+// Key2 (wildcarded): oc.Binary
+// UnionKey (wildcarded): [oc.UnionString, oc.Binary]
+func (n *RootPath) ListAny() *ListPathAny {
+	return &ListPathAny{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container", "list"},
+			map[string]interface{}{"key1": "*", "key2": "*", "union-key": "*"},
+			n,
+		),
+	}
+}
+` + wantListMethodsWildcardCommon + wantListMethodsNonWildcard
+
+	// wantListMethodsSimplified is the expected child constructor methods for
+	// the test list node when SimplifyWildcardPaths=true.
+	wantListMethodsSimplified = `
+// ListAny (): 
+// ----------------------------------------
+// Defining module: ""
+// Instantiating module: "root-module"
+// Path from parent: "list-container/list"
+// Path from root: "/list-container/list"
+// Key1 (wildcarded): string
+// Key2 (wildcarded): oc.Binary
+// UnionKey (wildcarded): [oc.UnionString, oc.Binary]
+func (n *RootPath) ListAny() *ListPathAny {
+	return &ListPathAny{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container", "list"},
+			map[string]interface{}{},
+			n,
+		),
+	}
+}
+` + wantListMethodsWildcardCommon + wantListMethodsNonWildcard
+
+	// wantNonListMethods is the expected child constructor methods for
+	// non-list elements from the root.
+	wantNonListMethods = `
+// Container returns from RootPath the path struct for its child "container".
+func (n *RootPath) Container() *ContainerPath {
+	return &ContainerPath{
+		NodePath: ygot.NewNodePath(
+			[]string{"container"},
+			map[string]interface{}{},
+			n,
+		),
+	}
+}
+
+// ContainerWithConfig returns from RootPath the path struct for its child "container-with-config".
+func (n *RootPath) ContainerWithConfig() *ContainerWithConfigPath {
+	return &ContainerWithConfigPath{
+		NodePath: ygot.NewNodePath(
+			[]string{"container-with-config"},
+			map[string]interface{}{},
+			n,
+		),
+	}
+}
+
+// Leaf returns from RootPath the path struct for its child "leaf".
+func (n *RootPath) Leaf() *LeafPath {
+	return &LeafPath{
+		NodePath: ygot.NewNodePath(
+			[]string{"leaf"},
+			map[string]interface{}{},
+			n,
+		),
+	}
+}
+
+// LeafWithDefault returns from RootPath the path struct for its child "leaf-with-default".
+func (n *RootPath) LeafWithDefault() *LeafWithDefaultPath {
+	return &LeafWithDefaultPath{
+		NodePath: ygot.NewNodePath(
+			[]string{"leaf-with-default"},
+			map[string]interface{}{},
+			n,
+		),
+	}
+}
+`
+
+	// wantNonListMethodsSplitModule is the expected child constructor
+	// methods for non-list elements from the root with split modules.
+	wantNonListMethodsSplitModule = `
+// Container returns from RootPath the path struct for its child "container".
+func (n *RootPath) Container() *rootmodulepath.ContainerPath {
+	return &rootmodulepath.ContainerPath{
+		NodePath: ygot.NewNodePath(
+			[]string{"container"},
+			map[string]interface{}{},
+			n,
+		),
+	}
+}
+
+// ContainerWithConfig returns from RootPath the path struct for its child "container-with-config".
+func (n *RootPath) ContainerWithConfig() *rootmodulepath.ContainerWithConfigPath {
+	return &rootmodulepath.ContainerWithConfigPath{
+		NodePath: ygot.NewNodePath(
+			[]string{"container-with-config"},
+			map[string]interface{}{},
+			n,
+		),
+	}
+}
+
+// Leaf returns from RootPath the path struct for its child "leaf".
+func (n *RootPath) Leaf() *LeafPath {
+	return &LeafPath{
+		NodePath: ygot.NewNodePath(
+			[]string{"leaf"},
+			map[string]interface{}{},
+			n,
+		),
+	}
+}
+
+// LeafWithDefault returns from RootPath the path struct for its child "leaf-with-default".
+func (n *RootPath) LeafWithDefault() *LeafWithDefaultPath {
+	return &LeafWithDefaultPath{
+		NodePath: ygot.NewNodePath(
+			[]string{"leaf-with-default"},
+			map[string]interface{}{},
+			n,
+		),
+	}
+}
+`
+
+	// wantStructBaseFakeRootNWC is the expected structs for the root device
+	// when wildcards are disabled.
+	wantFakeRootStructsNWC = `
+// RootPath represents the /root YANG schema element.
+type RootPath struct {
+	*ygot.DeviceRootBase
+}
+
+// DeviceRoot returns a new path object from which YANG paths can be constructed.
+func DeviceRoot(id string) *RootPath {
+	return &RootPath{ygot.NewDeviceRootBase(id)}
+}
+
+// LeafPath represents the /root-module/leaf YANG schema element.
+type LeafPath struct {
+	*ygot.NodePath
+}
+
+// LeafWithDefaultPath represents the /root-module/leaf-with-default YANG schema element.
+type LeafWithDefaultPath struct {
+	*ygot.NodePath
+}
+`
+
+	// wantFakeRootStructsWC is the expected structs for the root device
+	// when wildcards are enabled.
+	wantFakeRootStructsWC = `
+// RootPath represents the /root YANG schema element.
+type RootPath struct {
+	*ygot.DeviceRootBase
+}
+
+// DeviceRoot returns a new path object from which YANG paths can be constructed.
+func DeviceRoot(id string) *RootPath {
+	return &RootPath{ygot.NewDeviceRootBase(id)}
+}
+
+// LeafPath represents the /root-module/leaf YANG schema element.
+type LeafPath struct {
+	*ygot.NodePath
+}
+
+// LeafPathAny represents the wildcard version of the /root-module/leaf YANG schema element.
+type LeafPathAny struct {
+	*ygot.NodePath
+}
+
+// LeafWithDefaultPath represents the /root-module/leaf-with-default YANG schema element.
+type LeafWithDefaultPath struct {
+	*ygot.NodePath
+}
+
+// LeafWithDefaultPathAny represents the wildcard version of the /root-module/leaf-with-default YANG schema element.
+type LeafWithDefaultPathAny struct {
+	*ygot.NodePath
+}
+`
+)
+
 func TestGenerateDirectorySnippet(t *testing.T) {
 	_, directories, _ := getSchemaAndDirs()
 
@@ -1757,13 +2235,21 @@ func TestGenerateDirectorySnippet(t *testing.T) {
 		inDirectory               *ygen.Directory
 		inListBuilderKeyThreshold uint
 		inPathStructSuffix        string
-		want                      GoPathStructCodeSnippet
-		wantNoWildcard            GoPathStructCodeSnippet
+		inSplitByModule           bool
+		inPackageName             string
+		inPackageSuffix           string
+		// want may be omitted to skip testing.
+		want []GoPathStructCodeSnippet
+		// wantNoWildcard may be omitted to skip testing.
+		wantNoWildcard []GoPathStructCodeSnippet
 	}{{
-		name:        "container-with-config",
-		inDirectory: directories["/root-module/container-with-config"],
-		want: GoPathStructCodeSnippet{
+		name:            "container-with-config",
+		inDirectory:     directories["/root-module/container-with-config"],
+		inPackageName:   "device",
+		inPackageSuffix: "path",
+		want: []GoPathStructCodeSnippet{{
 			PathStructName: "ContainerWithConfig",
+			Package:        "device",
 			StructBase: `
 // ContainerWithConfig represents the /root-module/container-with-config YANG schema element.
 type ContainerWithConfig struct {
@@ -1806,7 +2292,6 @@ type ContainerWithConfig_Leaflist2Any struct {
 }
 `,
 			ChildConstructors: `
-// Leaf returns from ContainerWithConfig the path struct for its child "leaf".
 func (n *ContainerWithConfig) Leaf() *ContainerWithConfig_Leaf {
 	return &ContainerWithConfig_Leaf{
 		NodePath: ygot.NewNodePath(
@@ -1817,7 +2302,6 @@ func (n *ContainerWithConfig) Leaf() *ContainerWithConfig_Leaf {
 	}
 }
 
-// Leaf returns from ContainerWithConfigAny the path struct for its child "leaf".
 func (n *ContainerWithConfigAny) Leaf() *ContainerWithConfig_LeafAny {
 	return &ContainerWithConfig_LeafAny{
 		NodePath: ygot.NewNodePath(
@@ -1828,7 +2312,6 @@ func (n *ContainerWithConfigAny) Leaf() *ContainerWithConfig_LeafAny {
 	}
 }
 
-// Leaflist returns from ContainerWithConfig the path struct for its child "leaflist".
 func (n *ContainerWithConfig) Leaflist() *ContainerWithConfig_Leaflist {
 	return &ContainerWithConfig_Leaflist{
 		NodePath: ygot.NewNodePath(
@@ -1839,7 +2322,6 @@ func (n *ContainerWithConfig) Leaflist() *ContainerWithConfig_Leaflist {
 	}
 }
 
-// Leaflist returns from ContainerWithConfigAny the path struct for its child "leaflist".
 func (n *ContainerWithConfigAny) Leaflist() *ContainerWithConfig_LeaflistAny {
 	return &ContainerWithConfig_LeaflistAny{
 		NodePath: ygot.NewNodePath(
@@ -1850,7 +2332,6 @@ func (n *ContainerWithConfigAny) Leaflist() *ContainerWithConfig_LeaflistAny {
 	}
 }
 
-// Leaflist2 returns from ContainerWithConfig the path struct for its child "leaflist2".
 func (n *ContainerWithConfig) Leaflist2() *ContainerWithConfig_Leaflist2 {
 	return &ContainerWithConfig_Leaflist2{
 		NodePath: ygot.NewNodePath(
@@ -1861,7 +2342,6 @@ func (n *ContainerWithConfig) Leaflist2() *ContainerWithConfig_Leaflist2 {
 	}
 }
 
-// Leaflist2 returns from ContainerWithConfigAny the path struct for its child "leaflist2".
 func (n *ContainerWithConfigAny) Leaflist2() *ContainerWithConfig_Leaflist2Any {
 	return &ContainerWithConfig_Leaflist2Any{
 		NodePath: ygot.NewNodePath(
@@ -1872,9 +2352,10 @@ func (n *ContainerWithConfigAny) Leaflist2() *ContainerWithConfig_Leaflist2Any {
 	}
 }
 `,
-		},
-		wantNoWildcard: GoPathStructCodeSnippet{
+		}},
+		wantNoWildcard: []GoPathStructCodeSnippet{{
 			PathStructName: "ContainerWithConfig",
+			Package:        "device",
 			StructBase: `
 // ContainerWithConfig represents the /root-module/container-with-config YANG schema element.
 type ContainerWithConfig struct {
@@ -1897,7 +2378,6 @@ type ContainerWithConfig_Leaflist2 struct {
 }
 `,
 			ChildConstructors: `
-// Leaf returns from ContainerWithConfig the path struct for its child "leaf".
 func (n *ContainerWithConfig) Leaf() *ContainerWithConfig_Leaf {
 	return &ContainerWithConfig_Leaf{
 		NodePath: ygot.NewNodePath(
@@ -1908,7 +2388,6 @@ func (n *ContainerWithConfig) Leaf() *ContainerWithConfig_Leaf {
 	}
 }
 
-// Leaflist returns from ContainerWithConfig the path struct for its child "leaflist".
 func (n *ContainerWithConfig) Leaflist() *ContainerWithConfig_Leaflist {
 	return &ContainerWithConfig_Leaflist{
 		NodePath: ygot.NewNodePath(
@@ -1919,7 +2398,6 @@ func (n *ContainerWithConfig) Leaflist() *ContainerWithConfig_Leaflist {
 	}
 }
 
-// Leaflist2 returns from ContainerWithConfig the path struct for its child "leaflist2".
 func (n *ContainerWithConfig) Leaflist2() *ContainerWithConfig_Leaflist2 {
 	return &ContainerWithConfig_Leaflist2{
 		NodePath: ygot.NewNodePath(
@@ -1930,90 +2408,18 @@ func (n *ContainerWithConfig) Leaflist2() *ContainerWithConfig_Leaflist2 {
 	}
 }
 `,
-		},
+		}},
 	}, {
 		name:               "fakeroot",
 		inDirectory:        directories["/root"],
 		inPathStructSuffix: "Path",
-		want: GoPathStructCodeSnippet{
+		inPackageName:      "ocpathstructs",
+		inPackageSuffix:    "path",
+		want: []GoPathStructCodeSnippet{{
 			PathStructName: "RootPath",
-			StructBase: `
-// RootPath represents the /root YANG schema element.
-type RootPath struct {
-	*ygot.DeviceRootBase
-}
-
-// DeviceRoot returns a new path object from which YANG paths can be constructed.
-func DeviceRoot(id string) *RootPath {
-	return &RootPath{ygot.NewDeviceRootBase(id)}
-}
-
-// LeafPath represents the /root-module/leaf YANG schema element.
-type LeafPath struct {
-	*ygot.NodePath
-}
-
-// LeafPathAny represents the wildcard version of the /root-module/leaf YANG schema element.
-type LeafPathAny struct {
-	*ygot.NodePath
-}
-
-// LeafWithDefaultPath represents the /root-module/leaf-with-default YANG schema element.
-type LeafWithDefaultPath struct {
-	*ygot.NodePath
-}
-
-// LeafWithDefaultPathAny represents the wildcard version of the /root-module/leaf-with-default YANG schema element.
-type LeafWithDefaultPathAny struct {
-	*ygot.NodePath
-}
-`,
-			ChildConstructors: `
-// Container returns from RootPath the path struct for its child "container".
-func (n *RootPath) Container() *ContainerPath {
-	return &ContainerPath{
-		NodePath: ygot.NewNodePath(
-			[]string{"container"},
-			map[string]interface{}{},
-			n,
-		),
-	}
-}
-
-// ContainerWithConfig returns from RootPath the path struct for its child "container-with-config".
-func (n *RootPath) ContainerWithConfig() *ContainerWithConfigPath {
-	return &ContainerWithConfigPath{
-		NodePath: ygot.NewNodePath(
-			[]string{"container-with-config"},
-			map[string]interface{}{},
-			n,
-		),
-	}
-}
-
-// Leaf returns from RootPath the path struct for its child "leaf".
-func (n *RootPath) Leaf() *LeafPath {
-	return &LeafPath{
-		NodePath: ygot.NewNodePath(
-			[]string{"leaf"},
-			map[string]interface{}{},
-			n,
-		),
-	}
-}
-
-// LeafWithDefault returns from RootPath the path struct for its child "leaf-with-default".
-func (n *RootPath) LeafWithDefault() *LeafWithDefaultPath {
-	return &LeafWithDefaultPath{
-		NodePath: ygot.NewNodePath(
-			[]string{"leaf-with-default"},
-			map[string]interface{}{},
-			n,
-		),
-	}
-}
-` + wantListMethods + `
-// ListWithStateAny returns from RootPath the path struct for its child "list-with-state".
+			Package:        "ocpathstructs",
+			StructBase:     wantFakeRootStructsWC,
+			ChildConstructors: trimDocComments(wantNonListMethods+wantListMethods) + `
 func (n *RootPath) ListWithStateAny() *ListWithStatePathAny {
 	return &ListWithStatePathAny{
 		NodePath: ygot.NewNodePath(
@@ -2024,8 +2430,6 @@ func (n *RootPath) ListWithStateAny() *ListWithStatePathAny {
 	}
 }
 
-// ListWithState returns from RootPath the path struct for its child "list-with-state".
-// Key: float64
 func (n *RootPath) ListWithState(Key float64) *ListWithStatePath {
 	return &ListWithStatePath{
 		NodePath: ygot.NewNodePath(
@@ -2036,77 +2440,12 @@ func (n *RootPath) ListWithState(Key float64) *ListWithStatePath {
 	}
 }
 `,
-		},
-		wantNoWildcard: GoPathStructCodeSnippet{
+		}},
+		wantNoWildcard: []GoPathStructCodeSnippet{{
 			PathStructName: "RootPath",
-			StructBase: `
-// RootPath represents the /root YANG schema element.
-type RootPath struct {
-	*ygot.DeviceRootBase
-}
-
-// DeviceRoot returns a new path object from which YANG paths can be constructed.
-func DeviceRoot(id string) *RootPath {
-	return &RootPath{ygot.NewDeviceRootBase(id)}
-}
-
-// LeafPath represents the /root-module/leaf YANG schema element.
-type LeafPath struct {
-	*ygot.NodePath
-}
-
-// LeafWithDefaultPath represents the /root-module/leaf-with-default YANG schema element.
-type LeafWithDefaultPath struct {
-	*ygot.NodePath
-}
-`,
-			ChildConstructors: `
-// Container returns from RootPath the path struct for its child "container".
-func (n *RootPath) Container() *ContainerPath {
-	return &ContainerPath{
-		NodePath: ygot.NewNodePath(
-			[]string{"container"},
-			map[string]interface{}{},
-			n,
-		),
-	}
-}
-
-// ContainerWithConfig returns from RootPath the path struct for its child "container-with-config".
-func (n *RootPath) ContainerWithConfig() *ContainerWithConfigPath {
-	return &ContainerWithConfigPath{
-		NodePath: ygot.NewNodePath(
-			[]string{"container-with-config"},
-			map[string]interface{}{},
-			n,
-		),
-	}
-}
-
-// Leaf returns from RootPath the path struct for its child "leaf".
-func (n *RootPath) Leaf() *LeafPath {
-	return &LeafPath{
-		NodePath: ygot.NewNodePath(
-			[]string{"leaf"},
-			map[string]interface{}{},
-			n,
-		),
-	}
-}
-
-// LeafWithDefault returns from RootPath the path struct for its child "leaf-with-default".
-func (n *RootPath) LeafWithDefault() *LeafWithDefaultPath {
-	return &LeafWithDefaultPath{
-		NodePath: ygot.NewNodePath(
-			[]string{"leaf-with-default"},
-			map[string]interface{}{},
-			n,
-		),
-	}
-}
-` + wantListMethodsNonWildcard + `
-// ListWithState returns from RootPath the path struct for its child "list-with-state".
-// Key: float64
+			Package:        "ocpathstructs",
+			StructBase:     wantFakeRootStructsNWC,
+			ChildConstructors: trimDocComments(wantNonListMethods+wantListMethodsNonWildcard) + `
 func (n *RootPath) ListWithState(Key float64) *ListWithStatePath {
 	return &ListWithStatePath{
 		NodePath: ygot.NewNodePath(
@@ -2117,12 +2456,15 @@ func (n *RootPath) ListWithState(Key float64) *ListWithStatePath {
 	}
 }
 `,
-		},
+		}},
 	}, {
-		name:        "list",
-		inDirectory: directories["/root-module/list-container/list"],
-		want: GoPathStructCodeSnippet{
+		name:            "list",
+		inDirectory:     directories["/root-module/list-container/list"],
+		inPackageName:   "device",
+		inPackageSuffix: "path",
+		want: []GoPathStructCodeSnippet{{
 			PathStructName: "List",
+			Package:        "device",
 			StructBase: `
 // List represents the /root-module/list-container/list YANG schema element.
 type List struct {
@@ -2165,7 +2507,6 @@ type List_UnionKeyAny struct {
 }
 `,
 			ChildConstructors: `
-// Key1 returns from List the path struct for its child "key1".
 func (n *List) Key1() *List_Key1 {
 	return &List_Key1{
 		NodePath: ygot.NewNodePath(
@@ -2176,7 +2517,6 @@ func (n *List) Key1() *List_Key1 {
 	}
 }
 
-// Key1 returns from ListAny the path struct for its child "key1".
 func (n *ListAny) Key1() *List_Key1Any {
 	return &List_Key1Any{
 		NodePath: ygot.NewNodePath(
@@ -2187,7 +2527,6 @@ func (n *ListAny) Key1() *List_Key1Any {
 	}
 }
 
-// Key2 returns from List the path struct for its child "key2".
 func (n *List) Key2() *List_Key2 {
 	return &List_Key2{
 		NodePath: ygot.NewNodePath(
@@ -2198,7 +2537,6 @@ func (n *List) Key2() *List_Key2 {
 	}
 }
 
-// Key2 returns from ListAny the path struct for its child "key2".
 func (n *ListAny) Key2() *List_Key2Any {
 	return &List_Key2Any{
 		NodePath: ygot.NewNodePath(
@@ -2209,7 +2547,6 @@ func (n *ListAny) Key2() *List_Key2Any {
 	}
 }
 
-// UnionKey returns from List the path struct for its child "union-key".
 func (n *List) UnionKey() *List_UnionKey {
 	return &List_UnionKey{
 		NodePath: ygot.NewNodePath(
@@ -2220,7 +2557,6 @@ func (n *List) UnionKey() *List_UnionKey {
 	}
 }
 
-// UnionKey returns from ListAny the path struct for its child "union-key".
 func (n *ListAny) UnionKey() *List_UnionKeyAny {
 	return &List_UnionKeyAny{
 		NodePath: ygot.NewNodePath(
@@ -2231,9 +2567,10 @@ func (n *ListAny) UnionKey() *List_UnionKeyAny {
 	}
 }
 `,
-		},
-		wantNoWildcard: GoPathStructCodeSnippet{
+		}},
+		wantNoWildcard: []GoPathStructCodeSnippet{{
 			PathStructName: "List",
+			Package:        "device",
 			StructBase: `
 // List represents the /root-module/list-container/list YANG schema element.
 type List struct {
@@ -2256,7 +2593,6 @@ type List_UnionKey struct {
 }
 `,
 			ChildConstructors: `
-// Key1 returns from List the path struct for its child "key1".
 func (n *List) Key1() *List_Key1 {
 	return &List_Key1{
 		NodePath: ygot.NewNodePath(
@@ -2267,7 +2603,6 @@ func (n *List) Key1() *List_Key1 {
 	}
 }
 
-// Key2 returns from List the path struct for its child "key2".
 func (n *List) Key2() *List_Key2 {
 	return &List_Key2{
 		NodePath: ygot.NewNodePath(
@@ -2278,7 +2613,6 @@ func (n *List) Key2() *List_Key2 {
 	}
 }
 
-// UnionKey returns from List the path struct for its child "union-key".
 func (n *List) UnionKey() *List_UnionKey {
 	return &List_UnionKey{
 		NodePath: ygot.NewNodePath(
@@ -2289,31 +2623,134 @@ func (n *List) UnionKey() *List_UnionKey {
 	}
 }
 `,
-		},
+		}},
+	}, {
+		name:               "fakeroot split by modules",
+		inDirectory:        directories["/root"],
+		inPathStructSuffix: "Path",
+		inSplitByModule:    true,
+		inPackageName:      "device",
+		inPackageSuffix:    "path",
+		wantNoWildcard: []GoPathStructCodeSnippet{{
+			PathStructName: "RootPath",
+			Package:        "device",
+			Deps:           []string{"rootmodulepath"},
+			StructBase:     wantFakeRootStructsNWC,
+			ChildConstructors: trimDocComments(wantNonListMethodsSplitModule) + `
+func (n *RootPath) List(Key1 string, Key2 oc.Binary, UnionKey oc.RootModule_List_UnionKey_Union) *rootmodulepath.ListPath {
+	return &rootmodulepath.ListPath{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container", "list"},
+			map[string]interface{}{"key1": Key1, "key2": Key2, "union-key": UnionKey},
+			n,
+		),
+	}
+}
+
+func (n *RootPath) ListWithState(Key float64) *rootmodulepath.ListWithStatePath {
+	return &rootmodulepath.ListWithStatePath{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container-with-state", "list-with-state"},
+			map[string]interface{}{"key": Key},
+			n,
+		),
+	}
+}
+`,
+		}},
+	}, {
+		name:                      "fakeroot split by modules and builder API",
+		inDirectory:               directories["/root"],
+		inPathStructSuffix:        "Path",
+		inSplitByModule:           true,
+		inPackageName:             "device",
+		inPackageSuffix:           "path",
+		inListBuilderKeyThreshold: 1,
+		want: []GoPathStructCodeSnippet{{
+			Package:        "device",
+			PathStructName: "RootPath",
+			Deps:           []string{"rootmodulepath"},
+			StructBase:     wantFakeRootStructsWC,
+			ChildConstructors: trimDocComments(wantNonListMethodsSplitModule) + `
+func (n *RootPath) ListAny() *rootmodulepath.ListPathAny {
+	return &rootmodulepath.ListPathAny{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container", "list"},
+			map[string]interface{}{"key1": "*", "key2": "*", "union-key": "*"},
+			n,
+		),
+	}
+}
+
+func (n *RootPath) ListWithStateAny() *rootmodulepath.ListWithStatePathAny {
+	return &rootmodulepath.ListWithStatePathAny{
+		NodePath: ygot.NewNodePath(
+			[]string{"list-container-with-state", "list-with-state"},
+			map[string]interface{}{"key": "*"},
+			n,
+		),
+	}
+}
+`,
+		}, {
+			PathStructName: "RootPath",
+			Package:        "rootmodulepath",
+			ChildConstructors: `
+func (n *ListPathAny) WithKey1(Key1 string) *ListPathAny {
+	ygot.ModifyKey(n.NodePath, "key1", Key1)
+	return n
+}
+
+func (n *ListPathAny) WithKey2(Key2 oc.Binary) *ListPathAny {
+	ygot.ModifyKey(n.NodePath, "key2", Key2)
+	return n
+}
+
+func (n *ListPathAny) WithUnionKey(UnionKey oc.RootModule_List_UnionKey_Union) *ListPathAny {
+	ygot.ModifyKey(n.NodePath, "union-key", UnionKey)
+	return n
+}
+
+func (n *ListWithStatePathAny) WithKey(Key float64) *ListWithStatePathAny {
+	ygot.ModifyKey(n.NodePath, "key", Key)
+	return n
+}
+`,
+		}},
 	}}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, gotErr := generateDirectorySnippet(tt.inDirectory, directories, "oc.", tt.inPathStructSuffix, tt.inListBuilderKeyThreshold, true, false)
-			if gotErr != nil {
-				t.Fatalf("func generateDirectorySnippet, unexpected error: %v", gotErr)
-			}
+		if tt.want != nil {
+			t.Run(tt.name, func(t *testing.T) {
+				got, gotErr := generateDirectorySnippet(tt.inDirectory, directories, "oc.", tt.inPathStructSuffix, tt.inListBuilderKeyThreshold, true, false, tt.inSplitByModule, false, tt.inPackageName, tt.inPackageSuffix)
+				if gotErr != nil {
+					t.Fatalf("func generateDirectorySnippet, unexpected error: %v", gotErr)
+				}
 
-			if diff := cmp.Diff(tt.want, got); diff != "" {
-				t.Errorf("func generateDirectorySnippet mismatch (-want, +got):\n%s", diff)
-			}
-		})
+				for i, s := range got {
+					got[i].ChildConstructors = trimDocComments(s.ChildConstructors)
+				}
+				if diff := cmp.Diff(tt.want, got); diff != "" {
+					t.Errorf("func generateDirectorySnippet mismatch (-want, +got):\n%s", diff)
+				}
+			})
+		}
 
-		t.Run(tt.name+" no wildcard", func(t *testing.T) {
-			got, gotErr := generateDirectorySnippet(tt.inDirectory, directories, "oc.", tt.inPathStructSuffix, tt.inListBuilderKeyThreshold, false, false)
-			if gotErr != nil {
-				t.Fatalf("func generateDirectorySnippet, unexpected error: %v", gotErr)
-			}
+		if tt.wantNoWildcard != nil {
+			t.Run(tt.name+" no wildcard", func(t *testing.T) {
+				got, gotErr := generateDirectorySnippet(tt.inDirectory, directories, "oc.", tt.inPathStructSuffix, tt.inListBuilderKeyThreshold, false, false, tt.inSplitByModule, false, tt.inPackageName, tt.inPackageSuffix)
+				if gotErr != nil {
+					t.Fatalf("func generateDirectorySnippet, unexpected error: %v", gotErr)
+				}
 
-			if diff := cmp.Diff(tt.wantNoWildcard, got); diff != "" {
-				t.Errorf("func generateDirectorySnippet mismatch (-want, +got):\n%s", diff)
-			}
-		})
+				for i, s := range got {
+					got[i].ChildConstructors = trimDocComments(s.ChildConstructors)
+				}
+				if diff := cmp.Diff(tt.wantNoWildcard, got); diff != "" {
+					t.Errorf("func generateDirectorySnippet mismatch (-want, +got):\n%s", diff)
+				}
+			})
+		}
 	}
 }
 
@@ -2470,7 +2907,11 @@ func TestGenerateChildConstructor(t *testing.T) {
 		inPathStructSuffix        string
 		inGenerateWildcardPaths   bool
 		inSimplifyWildcardPaths   bool
-		want                      string
+		inChildAccessor           string
+		testMethodDocComment      bool
+		wantMethod                string
+		// testMethodDocComment determines whether the doc comments for methods are tested.
+		wantListBuilderAPI string
 	}{{
 		name:                    "container method",
 		inDirectory:             directories["/root"],
@@ -2479,8 +2920,7 @@ func TestGenerateChildConstructor(t *testing.T) {
 		inUniqueFieldName:       "Container",
 		inPathStructSuffix:      "Path",
 		inGenerateWildcardPaths: true,
-		want: `
-// Container returns from RootPath the path struct for its child "container".
+		wantMethod: `
 func (n *RootPath) Container() *ContainerPath {
 	return &ContainerPath{
 		NodePath: ygot.NewNodePath(
@@ -2499,8 +2939,7 @@ func (n *RootPath) Container() *ContainerPath {
 		inUniqueFieldName:       "Leaf",
 		inPathStructSuffix:      "Path",
 		inGenerateWildcardPaths: true,
-		want: `
-// Leaf returns from ContainerPath the path struct for its child "leaf".
+		wantMethod: `
 func (n *ContainerPath) Leaf() *Container_LeafPath {
 	return &Container_LeafPath{
 		NodePath: ygot.NewNodePath(
@@ -2511,7 +2950,6 @@ func (n *ContainerPath) Leaf() *Container_LeafPath {
 	}
 }
 
-// Leaf returns from ContainerPathAny the path struct for its child "leaf".
 func (n *ContainerPathAny) Leaf() *Container_LeafPathAny {
 	return &Container_LeafPathAny{
 		NodePath: ygot.NewNodePath(
@@ -2530,8 +2968,7 @@ func (n *ContainerPathAny) Leaf() *Container_LeafPathAny {
 		inUniqueFieldName:       "Leaf",
 		inPathStructSuffix:      "Path",
 		inGenerateWildcardPaths: false,
-		want: `
-// Leaf returns from ContainerPath the path struct for its child "leaf".
+		wantMethod: `
 func (n *ContainerPath) Leaf() *Container_LeafPath {
 	return &Container_LeafPath{
 		NodePath: ygot.NewNodePath(
@@ -2550,8 +2987,7 @@ func (n *ContainerPath) Leaf() *Container_LeafPath {
 		inUniqueFieldName:       "Leaf",
 		inPathStructSuffix:      "Path",
 		inGenerateWildcardPaths: true,
-		want: `
-// Leaf returns from RootPath the path struct for its child "leaf".
+		wantMethod: `
 func (n *RootPath) Leaf() *LeafPath {
 	return &LeafPath{
 		NodePath: ygot.NewNodePath(
@@ -2570,8 +3006,7 @@ func (n *RootPath) Leaf() *LeafPath {
 		inUniqueFieldName:       "Leaf",
 		inPathStructSuffix:      "Path",
 		inGenerateWildcardPaths: true,
-		want: `
-// Leaf returns from ContainerWithConfigPath the path struct for its child "leaf".
+		wantMethod: `
 func (n *ContainerWithConfigPath) Leaf() *ContainerWithConfig_LeafPath {
 	return &ContainerWithConfig_LeafPath{
 		NodePath: ygot.NewNodePath(
@@ -2582,7 +3017,6 @@ func (n *ContainerWithConfigPath) Leaf() *ContainerWithConfig_LeafPath {
 	}
 }
 
-// Leaf returns from ContainerWithConfigPathAny the path struct for its child "leaf".
 func (n *ContainerWithConfigPathAny) Leaf() *ContainerWithConfig_LeafPathAny {
 	return &ContainerWithConfig_LeafPathAny{
 		NodePath: ygot.NewNodePath(
@@ -2601,8 +3035,7 @@ func (n *ContainerWithConfigPathAny) Leaf() *ContainerWithConfig_LeafPathAny {
 		inUniqueFieldName:       "List",
 		inPathStructSuffix:      "Path",
 		inGenerateWildcardPaths: true,
-		want: `
-// ListAny returns from ContainerPath the path struct for its child "list".
+		wantMethod: `
 func (n *ContainerPath) ListAny() *Container_ListPathAny {
 	return &Container_ListPathAny{
 		NodePath: ygot.NewNodePath(
@@ -2613,7 +3046,6 @@ func (n *ContainerPath) ListAny() *Container_ListPathAny {
 	}
 }
 
-// ListAny returns from ContainerPathAny the path struct for its child "list".
 func (n *ContainerPathAny) ListAny() *Container_ListPathAny {
 	return &Container_ListPathAny{
 		NodePath: ygot.NewNodePath(
@@ -2624,8 +3056,6 @@ func (n *ContainerPathAny) ListAny() *Container_ListPathAny {
 	}
 }
 
-// List returns from ContainerPath the path struct for its child "list".
-// Key: string
 func (n *ContainerPath) List(Key string) *Container_ListPath {
 	return &Container_ListPath{
 		NodePath: ygot.NewNodePath(
@@ -2636,8 +3066,6 @@ func (n *ContainerPath) List(Key string) *Container_ListPath {
 	}
 }
 
-// List returns from ContainerPathAny the path struct for its child "list".
-// Key: string
 func (n *ContainerPathAny) List(Key string) *Container_ListPathAny {
 	return &Container_ListPathAny{
 		NodePath: ygot.NewNodePath(
@@ -2657,8 +3085,7 @@ func (n *ContainerPathAny) List(Key string) *Container_ListPathAny {
 		inListBuilderKeyThreshold: 1,
 		inPathStructSuffix:        "Path",
 		inGenerateWildcardPaths:   true,
-		want: `
-// ListAny returns from ContainerPath the path struct for its child "list".
+		wantMethod: `
 func (n *ContainerPath) ListAny() *Container_ListPathAny {
 	return &Container_ListPathAny{
 		NodePath: ygot.NewNodePath(
@@ -2669,7 +3096,6 @@ func (n *ContainerPath) ListAny() *Container_ListPathAny {
 	}
 }
 
-// ListAny returns from ContainerPathAny the path struct for its child "list".
 func (n *ContainerPathAny) ListAny() *Container_ListPathAny {
 	return &Container_ListPathAny{
 		NodePath: ygot.NewNodePath(
@@ -2679,7 +3105,8 @@ func (n *ContainerPathAny) ListAny() *Container_ListPathAny {
 		),
 	}
 }
-
+`,
+		wantListBuilderAPI: `
 // WithKey sets Container_ListPathAny's key "key" to the specified value.
 // Key: string
 func (n *Container_ListPathAny) WithKey(Key string) *Container_ListPathAny {
@@ -2695,7 +3122,8 @@ func (n *Container_ListPathAny) WithKey(Key string) *Container_ListPathAny {
 		inUniqueFieldName:       "List",
 		inPathStructSuffix:      "Path",
 		inGenerateWildcardPaths: true,
-		want:                    ``,
+		testMethodDocComment:    true,
+		wantMethod:              ``,
 	}, {
 		name:                    "inner container",
 		inDirectory:             deepSchemaDirectories["/root-module/container"],
@@ -2704,8 +3132,7 @@ func (n *Container_ListPathAny) WithKey(Key string) *Container_ListPathAny {
 		inUniqueFieldName:       "InnerContainer",
 		inPathStructSuffix:      "Path",
 		inGenerateWildcardPaths: true,
-		want: `
-// InnerContainer returns from ContainerPath the path struct for its child "inner-container".
+		wantMethod: `
 func (n *ContainerPath) InnerContainer() *Container_InnerContainerPath {
 	return &Container_InnerContainerPath{
 		NodePath: ygot.NewNodePath(
@@ -2716,7 +3143,6 @@ func (n *ContainerPath) InnerContainer() *Container_InnerContainerPath {
 	}
 }
 
-// InnerContainer returns from ContainerPathAny the path struct for its child "inner-container".
 func (n *ContainerPathAny) InnerContainer() *Container_InnerContainerPathAny {
 	return &Container_InnerContainerPathAny{
 		NodePath: ygot.NewNodePath(
@@ -2735,8 +3161,7 @@ func (n *ContainerPathAny) InnerContainer() *Container_InnerContainerPathAny {
 		inUniqueFieldName:       "ListWithState",
 		inPathStructSuffix:      "Path",
 		inGenerateWildcardPaths: true,
-		want: `
-// ListWithStateAny returns from RootPath the path struct for its child "list-with-state".
+		wantMethod: `
 func (n *RootPath) ListWithStateAny() *ListWithStatePathAny {
 	return &ListWithStatePathAny{
 		NodePath: ygot.NewNodePath(
@@ -2747,8 +3172,6 @@ func (n *RootPath) ListWithStateAny() *ListWithStatePathAny {
 	}
 }
 
-// ListWithState returns from RootPath the path struct for its child "list-with-state".
-// Key: float64
 func (n *RootPath) ListWithState(Key float64) *ListWithStatePath {
 	return &ListWithStatePath{
 		NodePath: ygot.NewNodePath(
@@ -2767,7 +3190,8 @@ func (n *RootPath) ListWithState(Key float64) *ListWithStatePath {
 		inUniqueFieldName:       "List",
 		inPathStructSuffix:      "Path",
 		inGenerateWildcardPaths: true,
-		want:                    wantListMethods,
+		testMethodDocComment:    true,
+		wantMethod:              wantListMethods,
 	}, {
 		name:                      "root-level list methods with builder API threshold over the number of keys",
 		inDirectory:               directories["/root"],
@@ -2777,7 +3201,8 @@ func (n *RootPath) ListWithState(Key float64) *ListWithStatePath {
 		inListBuilderKeyThreshold: 4,
 		inPathStructSuffix:        "Path",
 		inGenerateWildcardPaths:   true,
-		want:                      wantListMethods,
+		testMethodDocComment:      true,
+		wantMethod:                wantListMethods,
 	}, {
 		name:                      "root-level list methods with builder API threshold over the number of keys, inSimplifyWildcardPaths=true",
 		inDirectory:               directories["/root"],
@@ -2788,7 +3213,8 @@ func (n *RootPath) ListWithState(Key float64) *ListWithStatePath {
 		inPathStructSuffix:        "Path",
 		inGenerateWildcardPaths:   true,
 		inSimplifyWildcardPaths:   true,
-		want:                      wantListMethodsSimplified,
+		testMethodDocComment:      true,
+		wantMethod:                wantListMethodsSimplified,
 	}, {
 		name:                      "root-level list methods over key threshold -- should use builder API",
 		inDirectory:               directories["/root"],
@@ -2798,8 +3224,7 @@ func (n *RootPath) ListWithState(Key float64) *ListWithStatePath {
 		inListBuilderKeyThreshold: 3,
 		inPathStructSuffix:        "Path",
 		inGenerateWildcardPaths:   true,
-		want: `
-// ListAny returns from RootPath the path struct for its child "list".
+		wantMethod: `
 func (n *RootPath) ListAny() *ListPathAny {
 	return &ListPathAny{
 		NodePath: ygot.NewNodePath(
@@ -2809,7 +3234,8 @@ func (n *RootPath) ListAny() *ListPathAny {
 		),
 	}
 }
-
+`,
+		wantListBuilderAPI: `
 // WithKey1 sets ListPathAny's key "key1" to the specified value.
 // Key1: string
 func (n *ListPathAny) WithKey1(Key1 string) *ListPathAny {
@@ -2835,14 +3261,23 @@ func (n *ListPathAny) WithUnionKey(UnionKey oc.RootModule_List_UnionKey_Union) *
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var buf strings.Builder
-			if errs := generateChildConstructors(&buf, tt.inDirectory, tt.inFieldName, tt.inUniqueFieldName, tt.inDirectories, "oc.", tt.inPathStructSuffix, tt.inListBuilderKeyThreshold, tt.inGenerateWildcardPaths, tt.inSimplifyWildcardPaths); errs != nil {
+			var methodBuf strings.Builder
+			var builderBuf strings.Builder
+			if errs := generateChildConstructors(&methodBuf, &builderBuf, tt.inDirectory, tt.inFieldName, tt.inUniqueFieldName, tt.inDirectories, "oc.", tt.inPathStructSuffix, tt.inListBuilderKeyThreshold, tt.inGenerateWildcardPaths, tt.inSimplifyWildcardPaths, tt.inChildAccessor); errs != nil {
 				t.Fatal(errs)
 			}
 
-			if got, want := buf.String(), tt.want; got != want {
+			gotMethod := methodBuf.String()
+			if !tt.testMethodDocComment {
+				gotMethod = trimDocComments(gotMethod)
+			}
+			if got, want := gotMethod, tt.wantMethod; got != want {
 				diff, _ := testutil.GenerateUnifiedDiff(want, got)
-				t.Errorf("func generateChildConstructors returned incorrect code, diff:\n%s", diff)
+				t.Errorf("func generateChildConstructors methodBuf returned incorrect code, diff:\n%s", diff)
+			}
+			if got, want := builderBuf.String(), tt.wantListBuilderAPI; got != want {
+				diff, _ := testutil.GenerateUnifiedDiff(want, got)
+				t.Errorf("func generateChildConstructors builderBuf returned incorrect code, diff:\n%s", diff)
 			}
 		})
 	}
@@ -2864,14 +3299,14 @@ func TestMakeKeyParams(t *testing.T) {
 			Keys:     map[string]*ygen.MappedType{"fluorine": {NativeType: "string"}},
 			KeyElems: []*yang.Entry{{Name: "fluorine"}},
 		},
-		wantKeyParams: []keyParam{{name: "fluorine", varName: "Fluorine", typeName: "string", typeDocString: "Fluorine: string"}},
+		wantKeyParams: []keyParam{{name: "fluorine", varName: "Fluorine", typeName: "string", typeDocString: "string"}},
 	}, {
 		name: "simple int param, also testing camel-case",
 		in: &ygen.YangListAttr{
 			Keys:     map[string]*ygen.MappedType{"cl-cl": {NativeType: "int"}},
 			KeyElems: []*yang.Entry{{Name: "cl-cl"}},
 		},
-		wantKeyParams: []keyParam{{name: "cl-cl", varName: "ClCl", typeName: "int", typeDocString: "ClCl: int"}},
+		wantKeyParams: []keyParam{{name: "cl-cl", varName: "ClCl", typeName: "int", typeDocString: "int"}},
 	}, {
 		name: "name uniquification",
 		in: &ygen.YangListAttr{
@@ -2882,8 +3317,8 @@ func TestMakeKeyParams(t *testing.T) {
 			KeyElems: []*yang.Entry{{Name: "cl-cl"}, {Name: "clCl"}},
 		},
 		wantKeyParams: []keyParam{
-			{name: "cl-cl", varName: "ClCl", typeName: "int", typeDocString: "ClCl: int"},
-			{name: "clCl", varName: "ClCl_", typeName: "int", typeDocString: "ClCl_: int"},
+			{name: "cl-cl", varName: "ClCl", typeName: "int", typeDocString: "int"},
+			{name: "clCl", varName: "ClCl_", typeName: "int", typeDocString: "int"},
 		},
 	}, {
 		name: "unsupported type",
@@ -2891,7 +3326,7 @@ func TestMakeKeyParams(t *testing.T) {
 			Keys:     map[string]*ygen.MappedType{"fluorine": {NativeType: "interface{}"}},
 			KeyElems: []*yang.Entry{{Name: "fluorine"}},
 		},
-		wantKeyParams: []keyParam{{name: "fluorine", varName: "Fluorine", typeName: "string", typeDocString: "Fluorine: string"}},
+		wantKeyParams: []keyParam{{name: "fluorine", varName: "Fluorine", typeName: "string", typeDocString: "string"}},
 	}, {
 		name: "keyElems doesn't match keys",
 		in: &ygen.YangListAttr{
@@ -2918,10 +3353,10 @@ func TestMakeKeyParams(t *testing.T) {
 			KeyElems: []*yang.Entry{{Name: "fluorine"}, {Name: "cl-cl"}, {Name: "bromine"}, {Name: "iodine"}},
 		},
 		wantKeyParams: []keyParam{
-			{name: "fluorine", varName: "Fluorine", typeName: "string", typeDocString: "Fluorine: string"},
-			{name: "cl-cl", varName: "ClCl", typeName: "int", typeDocString: "ClCl: int"},
-			{name: "bromine", varName: "Bromine", typeName: "complex128", typeDocString: "Bromine: complex128"},
-			{name: "iodine", varName: "Iodine", typeName: "float64", typeDocString: "Iodine: float64"},
+			{name: "fluorine", varName: "Fluorine", typeName: "string", typeDocString: "string"},
+			{name: "cl-cl", varName: "ClCl", typeName: "int", typeDocString: "int"},
+			{name: "bromine", varName: "Bromine", typeName: "complex128", typeDocString: "complex128"},
+			{name: "iodine", varName: "Iodine", typeName: "float64", typeDocString: "float64"},
 		},
 	}, {
 		name: "enumerated and union parameters",
@@ -2933,8 +3368,8 @@ func TestMakeKeyParams(t *testing.T) {
 			KeyElems: []*yang.Entry{{Name: "astatine"}, {Name: "tennessine"}},
 		},
 		wantKeyParams: []keyParam{
-			{name: "astatine", varName: "Astatine", typeName: "oc.Halogen", typeDocString: "Astatine: oc.Halogen"},
-			{name: "tennessine", varName: "Tennessine", typeName: "oc.Ununseptium", typeDocString: "Tennessine: [oc.UnionInt32, oc.UnionFloat64, *oc.UnionUnsupported]"},
+			{name: "astatine", varName: "Astatine", typeName: "oc.Halogen", typeDocString: "oc.Halogen"},
+			{name: "tennessine", varName: "Tennessine", typeName: "oc.Ununseptium", typeDocString: "[oc.UnionInt32, oc.UnionFloat64, *oc.UnionUnsupported]"},
 		},
 	}, {
 		name: "Binary and Empty",
@@ -2946,8 +3381,8 @@ func TestMakeKeyParams(t *testing.T) {
 			KeyElems: []*yang.Entry{{Name: "cl-cl"}, {Name: "bromine"}},
 		},
 		wantKeyParams: []keyParam{
-			{name: "cl-cl", varName: "ClCl", typeName: "oc.YANGEmpty", typeDocString: "ClCl: oc.YANGEmpty"},
-			{name: "bromine", varName: "Bromine", typeName: "oc.Binary", typeDocString: "Bromine: oc.Binary"},
+			{name: "cl-cl", varName: "ClCl", typeName: "oc.YANGEmpty", typeDocString: "oc.YANGEmpty"},
+			{name: "bromine", varName: "Bromine", typeName: "oc.Binary", typeDocString: "oc.Binary"},
 		},
 	}}
 

@@ -136,10 +136,10 @@ func EnumName(e GoEnum) (string, error) {
 // enumFieldToString takes an input reflect.Value, which is type asserted to
 // be a GoEnum, and resolves the string name corresponding to the value within
 // the YANG schema. Returns the string name of the enum, a bool indicating
-// whether the value was set, or an error. The appendModuleName specifies whether
+// whether the value was set, or an error. The prependModuleNameIref specifies whether
 // the defining module name should be appended to the enumerated value's name in
 // the form "module:name", as per the encoding rules in RFC7951.
-func enumFieldToString(field reflect.Value, appendModuleName bool) (string, bool, error) {
+func enumFieldToString(field reflect.Value, prependModuleNameIref bool) (string, bool, error) {
 	// Generated structs can only have fields that are not pointers when they are enumerated
 	// values, since these values have an UNSET value that allows us to determine when they
 	// are not explicitly set by the user.
@@ -174,7 +174,7 @@ func enumFieldToString(field reflect.Value, appendModuleName bool) (string, bool
 	}
 
 	n := def.Name
-	if appendModuleName && def.DefiningModule != "" {
+	if prependModuleNameIref && def.DefiningModule != "" {
 		n = fmt.Sprintf("%s:%s", def.DefiningModule, def.Name)
 	}
 	return n, true, nil
@@ -261,7 +261,7 @@ func pruneBranchesInternal(t reflect.Type, v reflect.Value) bool {
 				// Ensure that if the field value was actually nil, we skip over this
 				// field since its already nil.
 				continue
-			case cmp.Equal(zVal.Interface(), fVal.Elem().Interface()):
+			case reflect.DeepEqual(zVal.Interface(), fVal.Elem().Interface()):
 				// In the case that the zero value's interface is the same as the
 				// dereferenced field value's nil value, then we set it to the zero value
 				// of the field type. The fType contains a pointer to the struct, so
@@ -321,7 +321,7 @@ func pruneBranchesInternal(t reflect.Type, v reflect.Value) bool {
 				v = v.Elem()
 				t = t.Elem()
 			}
-			if v.IsValid() && !cmp.Equal(reflect.Zero(t).Interface(), v.Interface()) {
+			if v.IsValid() && !reflect.DeepEqual(reflect.Zero(t).Interface(), v.Interface()) {
 				allChildrenPruned = false
 			}
 		}
@@ -871,7 +871,7 @@ func copySliceField(dstField, srcField reflect.Value, opts ...MergeOpt) error {
 	}
 
 	if _, ok := srcField.Interface().([]Annotation); !ok {
-		if cmp.Equal(srcField.Interface(), dstField.Interface()) {
+		if reflect.DeepEqual(srcField.Interface(), dstField.Interface()) {
 			return nil
 		}
 
@@ -919,7 +919,7 @@ func uniqueSlices(a, b reflect.Value) (bool, error) {
 
 	for i := 0; i < a.Len(); i++ {
 		for j := 0; j < b.Len(); j++ {
-			if cmp.Equal(a.Index(i).Interface(), b.Index(j).Interface()) {
+			if reflect.DeepEqual(a.Index(i).Interface(), b.Index(j).Interface()) {
 				return false, nil
 			}
 		}

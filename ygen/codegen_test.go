@@ -432,8 +432,9 @@ func TestSimpleStructs(t *testing.T) {
 		inFiles: []string{filepath.Join(datapath, "openconfig-simple.yang")},
 		inConfig: GeneratorConfig{
 			GoOptions: GoOpts{
-				GenerateSimpleUnions: true,
-				GenerateLeafGetters:  true,
+				GenerateSimpleUnions:    true,
+				GenerateLeafGetters:     true,
+				GeneratePopulateDefault: true,
 			},
 			TransformationOptions: TransformationOpts{
 				CompressBehaviour:                    genutil.PreferIntendedConfig,
@@ -464,8 +465,9 @@ func TestSimpleStructs(t *testing.T) {
 		inFiles: []string{filepath.Join(datapath, "openconfig-simple.yang")},
 		inConfig: GeneratorConfig{
 			GoOptions: GoOpts{
-				GenerateSimpleUnions: true,
-				GenerateLeafGetters:  true,
+				GenerateSimpleUnions:    true,
+				GenerateLeafGetters:     true,
+				GeneratePopulateDefault: true,
 			},
 			TransformationOptions: TransformationOpts{
 				ShortenEnumLeafNames:                 true,
@@ -501,6 +503,22 @@ func TestSimpleStructs(t *testing.T) {
 			},
 		},
 		wantStructsCodeFile: filepath.Join(TestRoot, "testdata/structs/openconfig-simple-no-compress.trimmed-enum.formatted-txt"),
+	}, {
+		name:    "OpenConfig leaf-list defaults test, with compression",
+		inFiles: []string{filepath.Join(datapath, "openconfig-leaflist-default.yang")},
+		inConfig: GeneratorConfig{
+			GoOptions: GoOpts{
+				GenerateSimpleUnions:    true,
+				GenerateLeafGetters:     true,
+				GeneratePopulateDefault: true,
+			},
+			TransformationOptions: TransformationOpts{
+				CompressBehaviour:                    genutil.PreferIntendedConfig,
+				ShortenEnumLeafNames:                 true,
+				UseDefiningModuleForTypedefEnumNames: true,
+			},
+		},
+		wantStructsCodeFile: filepath.Join(TestRoot, "testdata/structs/openconfig-leaflist-default.formatted-txt"),
 	}, {
 		name:    "OpenConfig schema test - with annotations",
 		inFiles: []string{filepath.Join(datapath, "openconfig-simple.yang")},
@@ -904,6 +922,7 @@ func TestSimpleStructs(t *testing.T) {
 			GoOptions: GoOpts{
 				GenerateSimpleUnions:                true,
 				GenerateLeafGetters:                 true,
+				GeneratePopulateDefault:             true,
 				AppendEnumSuffixForSimpleUnionEnums: true,
 			},
 			TransformationOptions: TransformationOpts{
@@ -920,6 +939,7 @@ func TestSimpleStructs(t *testing.T) {
 		inConfig: GeneratorConfig{
 			GoOptions: GoOpts{
 				GenerateLeafGetters:                 true,
+				GeneratePopulateDefault:             true,
 				AppendEnumSuffixForSimpleUnionEnums: true,
 			},
 			TransformationOptions: TransformationOpts{
@@ -1038,8 +1058,9 @@ func TestSimpleStructs(t *testing.T) {
 				CompressBehaviour:                    genutil.PreferIntendedConfig,
 			},
 			GoOptions: GoOpts{
-				GenerateLeafGetters:  true,
-				GenerateSimpleUnions: true,
+				GenerateLeafGetters:     true,
+				GeneratePopulateDefault: true,
+				GenerateSimpleUnions:    true,
 			},
 		},
 		wantStructsCodeFile: filepath.Join(TestRoot, "testdata", "structs", "openconfig-list-enum-key.leaf-getters.formatted-txt"),
@@ -2097,6 +2118,7 @@ func TestGenerateProto3(t *testing.T) {
 			"openconfig.proto_test_c.entity":       filepath.Join(TestRoot, "testdata", "proto", "proto-test-c.proto-test-c.entity.formatted-txt"),
 			"openconfig.proto_test_c.elists":       filepath.Join(TestRoot, "testdata", "proto", "proto-test-c.proto-test-c.elists.formatted-txt"),
 			"openconfig.proto_test_c.elists.elist": filepath.Join(TestRoot, "testdata", "proto", "proto-test-c.proto-test-c.elists.elist.formatted-txt"),
+			"openconfig.enums":                     filepath.Join(TestRoot, "testdata", "proto", "proto-test-c.enums.formatted-txt"),
 		},
 	}, {
 		name:    "yang schema with identityref and enumerated typedef, compression off",
@@ -2146,6 +2168,18 @@ func TestGenerateProto3(t *testing.T) {
 			"openconfig.proto_test_f":     filepath.Join(TestRoot, "testdata", "proto", "proto_test_f.uncompressed.proto_test_f.formatted-txt"),
 			"openconfig.proto_test_f.a":   filepath.Join(TestRoot, "testdata", "proto", "proto_test_f.uncompressed.proto_test_f.a.formatted-txt"),
 			"openconfig.proto_test_f.a.c": filepath.Join(TestRoot, "testdata", "proto", "proto_test_f.uncompressed.proto_test_f.a.c.formatted-txt"),
+		},
+	}, {
+		name:    "yang schema with leafrefs that point to the same path",
+		inFiles: []string{filepath.Join(TestRoot, "testdata", "proto", "proto-test-g.yang")},
+		inConfig: GeneratorConfig{
+			ProtoOptions: ProtoOpts{
+				GoPackageBase:  "github.com/foo/baz",
+				NestedMessages: true,
+			},
+		},
+		wantOutputFiles: map[string]string{
+			"openconfig.proto_test_g": filepath.Join(TestRoot, "testdata", "proto", "proto-test-g.proto-test-g.formatted-txt"),
 		},
 	}, {
 		name:    "yang schema with fake root, path compression and union list key",

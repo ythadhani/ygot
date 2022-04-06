@@ -292,7 +292,7 @@ type generatedLeafGetter struct {
 	// Zero is the value that should be returned if the field is set to nil.
 	Zero string
 	// Default is the default value specified in the YANG schema for the type
-	// or leaf.
+	// or leaf. For leaf-lists, this would be a Go literal for a slice.
 	Default *string
 	// IsPtr stores whether the value is a pointer, such that it can be checked
 	// against nil, or against the zero value.
@@ -303,6 +303,20 @@ type generatedLeafGetter struct {
 
 type uniqueExtParams struct {
 	keyword, argument string
+}
+
+// generatedDefaultMethod is used to represent parameters required to generate
+// a PopulateDefaults method for a GoStruct that recursively populates default
+// values within the subtree.
+type generatedDefaultMethod struct {
+	// Receiver is the name of the receiver for the default method.
+	Receiver string
+	// ChildContainerNames are the names of the container fields of the GoStruct.
+	ChildContainerNames []string
+	// ChildContainerNames are the names of the list fields of the GoStruct.
+	ChildListNames []string
+	// Leaves represent the leaf fields of the GoStruct.
+	Leaves []*generatedLeafGetter
 }
 
 var (
@@ -773,6 +787,41 @@ func (t *{{ .Receiver }}) Get{{ .Name }}() {{ .Type }} {
 		{{- end }}
 	}
 	return {{ if .IsPtr -}} * {{- end -}} t.{{ .Name }}
+}
+`)
+
+	// goDefaultMethodTemplate is a template for generating a PopulateDefaults method
+	// for a GoStruct that recursively populates default values within the subtree.
+	goDefaultMethodTemplate = mustMakeTemplate("populateDefaults", `
+// PopulateDefaults recursively populates unset leaf fields in the {{ .Receiver }}
+// with default values as specified in the YANG schema, instantiating any nil
+// container fields.
+func (t *{{ .Receiver }}) PopulateDefaults() {
+	if (t == nil) {
+		return
+	}
+	ygot.BuildEmptyTree(t)
+
+	{{- range $Leaf := .Leaves }}
+	{{- if $Leaf.Default }}
+	if t.{{ $Leaf.Name }} == {{ if $Leaf.IsPtr -}} nil {{- else }} {{ $Leaf.Zero }} {{- end }} {
+		{{- if $Leaf.IsPtr }}
+		var v {{ $Leaf.Type }} = {{ $Leaf.Default }}
+		t.{{ $Leaf.Name }} = &v
+		{{- else }}
+		t.{{ $Leaf.Name }} = {{ $Leaf.Default }}
+		{{- end }}
+	}
+	{{- end }}
+	{{- end }}
+	{{- range $containerName := .ChildContainerNames }}
+	t.{{ $containerName }}.PopulateDefaults()
+	{{- end }}
+	{{- range $listName := .ChildListNames }}
+	for _, e := range t.{{ $listName }} {
+		e.PopulateDefaults()
+	}
+	{{- end }}
 }
 `)
 
@@ -1258,6 +1307,50 @@ func IsScalarField(field *yang.Entry, t *MappedType) bool {
 	return true
 }
 
+// generateGoDefaultValue returns a pointer to a Go literal that represents the
+// default value for the entry. If there is no default value for the field, nil
+// is returned.
+func generateGoDefaultValue(field *yang.Entry, mtype *MappedType, gogen *goGenState, compressPaths, skipEnumDedup, shortenEnumLeafNames, useDefiningModuleForTypedefEnumNames bool, enumOrgPrefixesToTrim []string, simpleUnions bool) (*string, error) {
+	// Set the default type to the mapped Go type.
+	defaultValues := field.DefaultValues()
+	if len(defaultValues) == 0 && mtype.DefaultValue != nil {
+		defaultValues = []string{*mtype.DefaultValue}
+	}
+	for i, defVal := range defaultValues {
+		var err error
+		if defaultValues[i], _, err = gogen.yangDefaultValueToGo(defVal, resolveTypeArgs{yangType: field.Type, contextEntry: field}, len(mtype.UnionTypes) == 1, compressPaths, skipEnumDedup, shortenEnumLeafNames, useDefiningModuleForTypedefEnumNames, enumOrgPrefixesToTrim); err != nil {
+			return nil, err
+		}
+	}
+	// TODO(wenbli): In ygot v1, we should no longer
+	// support the wrapper union generated code, so this if
+	// block would be obsolete.
+	if !simpleUnions {
+		defaultValues = goLeafDefaults(field, mtype)
+		if len(defaultValues) != 0 && len(mtype.UnionTypes) > 1 {
+			// If the default value is applied to a union type, we will generate
+			// non-compilable code when generating wrapper unions, so error out and inform
+			// the user instead of having the user find out that the code doesn't compile.
+			return nil, fmt.Errorf("path %q: default value not supported for wrapper union values, please generate using simplified union leaves", field.Path())
+		}
+	}
+
+	var defaultValue *string
+	if len(defaultValues) > 0 {
+		switch {
+		case field.ListAttr != nil: // field is a leaf-list
+			dv := fmt.Sprintf("[]%s{%s}", mtype.NativeType, strings.Join(defaultValues, ", "))
+			defaultValue = &dv
+		case len(defaultValues) == 1:
+			dv := defaultValues[0]
+			defaultValue = &dv
+		default:
+			return nil, fmt.Errorf("path: %q, unexpected multiple default values %v for a non-leaf-list field", field.Path(), defaultValues)
+		}
+	}
+	return defaultValue, nil
+}
+
 // writeGoStruct generates code snippets for targetStruct. The parameter goStructElements
 // contains other Directory structs for which code is being generated, that may be referenced
 // during the generation of the code corresponding to targetStruct (e.g., to determine a
@@ -1303,9 +1396,12 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 	var associatedListMethods []*generatedGoListMethod
 
 	// associatedLeafGetters is a slice of structs which define the set of leaf getters
-	// to generated for the struct. It is only populated if the GenerateLeafGetters option
-	// is set to true.
+	// to generated for the struct.
 	var associatedLeafGetters []*generatedLeafGetter
+
+	associatedDefaultMethod := generatedDefaultMethod{
+		Receiver: targetStruct.Name,
+	}
 
 	// The Go names of the struct's fields.
 	goFieldNameMap := GoFieldNameMap(targetStruct)
@@ -1365,6 +1461,7 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 				Type:       fieldType,
 				IsYANGList: true,
 			}
+			associatedDefaultMethod.ChildListNames = append(associatedDefaultMethod.ChildListNames, fieldName)
 
 			if listMethods != nil {
 				associatedListMethods = append(associatedListMethods, listMethods)
@@ -1391,6 +1488,7 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 				Type:            fmt.Sprintf("*%s", structName),
 				IsYANGContainer: true,
 			}
+			associatedDefaultMethod.ChildContainerNames = append(associatedDefaultMethod.ChildContainerNames, fieldName)
 		case field.IsLeaf() || field.IsLeafList():
 			// This is a leaf or leaf-list, so we map it into the Go type that corresponds to the
 			// YANG type that the leaf represents.
@@ -1400,32 +1498,10 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 				continue
 			}
 
-			// Set the default type to the mapped Go type.
-			var defaultValue *string
-			switch {
-			case field.Default != "":
-				defaultValue = &field.Default
-			case mtype.DefaultValue != nil:
-				defaultValue = mtype.DefaultValue
-			}
-			if defaultValue != nil {
-				var err error
-				if defaultValue, _, err = gogen.yangDefaultValueToGo(*defaultValue, resolveTypeArgs{yangType: field.Type, contextEntry: field}, len(mtype.UnionTypes) == 1, compressPaths, skipEnumDedup, shortenEnumLeafNames, useDefiningModuleForTypedefEnumNames, enumOrgPrefixesToTrim); err != nil {
-					errs = append(errs, err)
-				}
-			}
-			// TODO(wenbli): In ygot v1, we should no longer
-			// support the wrapper union generated code, so this if
-			// block would be obsolete.
-			if !goOpts.GenerateSimpleUnions {
-				defaultValue = goLeafDefault(field, mtype)
-				if defaultValue != nil && len(mtype.UnionTypes) > 1 {
-					// If the default value is applied to a union type, we will generate
-					// non-compilable code when generating wrapper unions, so error out and inform
-					// the user instead of having the user find out that the code doesn't compile.
-					errs = append(errs, fmt.Errorf("path %q: default value not supported for wrapper union values, please generate using simplified union leaves", field.Path()))
-					continue
-				}
+			defaultValue, err := generateGoDefaultValue(field, mtype, gogen, compressPaths, skipEnumDedup, shortenEnumLeafNames, useDefiningModuleForTypedefEnumNames, enumOrgPrefixesToTrim, goOpts.GenerateSimpleUnions)
+			if err != nil {
+				errs = append(errs, err)
+				continue
 			}
 
 			fType := mtype.NativeType
@@ -1522,19 +1598,17 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 				enumTypeMap[schemapath] = append(enumTypeMap[schemapath], mtype.NativeType)
 			}
 
-			if goOpts.GenerateLeafGetters {
-				// If we are generating leaf getters, then append the relevant information
-				// to the associatedLeafGetters slice to be generated along with other
-				// associated methods.
-				associatedLeafGetters = append(associatedLeafGetters, &generatedLeafGetter{
-					Name:     fieldName,
-					Type:     fType,
-					Zero:     zeroValue,
-					IsPtr:    scalarField,
-					Receiver: targetStruct.Name,
-					Default:  defaultValue,
-				})
-			}
+			// If we are generating leaf getters, then append the relevant information
+			// to the associatedLeafGetters slice to be generated along with other
+			// associated methods.
+			associatedLeafGetters = append(associatedLeafGetters, &generatedLeafGetter{
+				Name:     fieldName,
+				Type:     fType,
+				Zero:     zeroValue,
+				IsPtr:    scalarField,
+				Receiver: targetStruct.Name,
+				Default:  defaultValue,
+			})
 
 			fieldDef = &goStructField{
 				Name:          fieldName,
@@ -1704,6 +1778,12 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 
 	if goOpts.GenerateLeafGetters {
 		if err := generateLeafGetters(&methodBuf, associatedLeafGetters); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if goOpts.GeneratePopulateDefault {
+		associatedDefaultMethod.Leaves = associatedLeafGetters
+		if err := goDefaultMethodTemplate.Execute(&methodBuf, associatedDefaultMethod); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -2270,36 +2350,32 @@ func writeGoSchema(js []byte, schemaVarName string) (string, error) {
 	return buf.String(), nil
 }
 
-// goLeafDefault returns the default value of the leaf e if specified. If it
+// goLeafDefaults returns the default value(s) of the leaf e if specified. If it
 // is unspecified, the value specified by the type is returned if it is not nil,
 // otherwise nil is returned to indicate no default was specified.
-func goLeafDefault(e *yang.Entry, t *MappedType) *string {
-	if e.Default != "" {
-		if t.IsEnumeratedValue {
-			return enumDefaultValue(t.NativeType, e.Default, goEnumPrefix)
-		}
-		return quoteDefault(&e.Default, t.NativeType)
+// TODO(wenbli): This doesn't handle unions. Deprecate this for v1 release.
+func goLeafDefaults(e *yang.Entry, t *MappedType) []string {
+	defaultValues := e.DefaultValues()
+	if len(defaultValues) == 0 && t.DefaultValue != nil {
+		defaultValues = []string{*t.DefaultValue}
 	}
 
-	if t.DefaultValue != nil {
+	for i, defVal := range defaultValues {
 		if t.IsEnumeratedValue {
-			return enumDefaultValue(t.NativeType, *t.DefaultValue, goEnumPrefix)
+			defaultValues[i] = enumDefaultValue(t.NativeType, defVal, goEnumPrefix)
+		} else {
+			defaultValues[i] = quoteDefault(defVal, t.NativeType)
 		}
-		return quoteDefault(t.DefaultValue, t.NativeType)
 	}
 
-	return nil
+	return defaultValues
 }
 
 // quoteDefault adds quotation marks to the value string if the goType specified
 // is a string, and hence requires quoting.
-func quoteDefault(value *string, goType string) *string {
-	if value == nil {
-		return nil
-	}
-
+func quoteDefault(value string, goType string) string {
 	if goType == "string" {
-		return ygot.String(fmt.Sprintf("%q", *value))
+		return fmt.Sprintf("%q", value)
 	}
 
 	return value

@@ -24,13 +24,6 @@ import (
 	"github.com/openconfig/goyang/pkg/yang"
 )
 
-var (
-	// YangMaxNumber represents the maximum value for any integer type.
-	YangMaxNumber = yang.Number{Kind: yang.MaxNumber}
-	// YangMinNumber represents the minimum value for any integer type.
-	YangMinNumber = yang.Number{Kind: yang.MinNumber}
-)
-
 // CompressedSchemaAnnotation stores the name of the annotation indicating
 // whether a set of structs were built with -compress_path. It is appended
 // to the yang.Entry struct of the root entity of the structs within the
@@ -303,18 +296,7 @@ func fixYangRegexp(pattern string) string {
 // the state. If the element at the top of the tree does not have config set, then config
 // is true. See https://tools.ietf.org/html/rfc6020#section-7.19.1.
 func IsConfig(e *yang.Entry) bool {
-	for ; e.Parent != nil; e = e.Parent {
-		switch e.Config {
-		case yang.TSTrue:
-			return true
-		case yang.TSFalse:
-			return false
-		}
-	}
-
-	// Reached the last element in the tree without explicit configuration
-	// being set.
-	return e.Config != yang.TSFalse
+	return !e.ReadOnly()
 }
 
 // isPathChild takes an input slice of strings representing a path and determines
@@ -413,6 +395,44 @@ func findFirstNonChoiceOrCaseInternal(e *yang.Entry) map[string]*yang.Entry {
 		}
 	}
 	return m
+}
+
+// findFirstNonChoiceOrCaseEntry recursively traverses the schema tree and returns a
+// map with the set of the first nodes in every path that are neither case nor
+// choice nodes. The keys in the map are the identifiers of the non-choice or case
+// elements, since the identifiers of all these child nodes MUST be unique
+// within all cases in a choice. If there are duplicate elements, then an error
+// is returned.
+// https://datatracker.ietf.org/doc/html/rfc7950#section-7.9.2
+func findFirstNonChoiceOrCaseEntry(e *yang.Entry) (map[string]*yang.Entry, error) {
+	m := make(map[string]*yang.Entry)
+	for _, ch := range e.Dir {
+		m2, err := findFirstNonChoiceOrCaseEntryInternal(ch)
+		if err != nil {
+			return nil, nil
+		}
+		addToEntryMap(m, m2)
+	}
+	return m, nil
+}
+
+// findFirstNonChoiceOrCaseEntryInternal is an internal part of
+// findFirstNonChoiceOrCaseEntry.
+func findFirstNonChoiceOrCaseEntryInternal(e *yang.Entry) (map[string]*yang.Entry, error) {
+	m := make(map[string]*yang.Entry)
+	switch {
+	case !IsChoiceOrCase(e):
+		m[e.Name] = e
+	case e.IsDir():
+		for _, ch := range e.Dir {
+			m2, err := findFirstNonChoiceOrCaseEntryInternal(ch)
+			if err != nil {
+				return nil, nil
+			}
+			addToEntryMap(m, m2)
+		}
+	}
+	return m, nil
 }
 
 // addToEntryMap merges from into to, overwriting overlapping key-value pairs.

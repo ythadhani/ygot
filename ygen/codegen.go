@@ -213,6 +213,10 @@ type GoOpts struct {
 	// whether a field has been explicitly set to the zero value (i.e., an integer
 	// field is set to 0), or whether the field was actually unset.
 	GenerateLeafGetters bool
+	// GeneratePopulateDefault specifies whether a PopulateDefaults method
+	// should be generated for every GoStruct that recursively populates
+	// default values within the subtree.
+	GeneratePopulateDefault bool
 	// GNMIProtoPath specifies the path to the generated gNMI protobuf, which
 	// is used to store the catalogue entries for generated modules.
 	GNMIProtoPath string
@@ -356,10 +360,12 @@ type GeneratedProto3 struct {
 
 // Proto3Package stores the code for a generated protobuf3 package.
 type Proto3Package struct {
-	FilePath []string // FilePath is the path to the file that this package should be written to.
-	Header   string   // Header is the header text to be used in the package.
-	Messages []string // Messages is a slice of strings containing the set of messages that are within the generated package.
-	Enums    []string // Enums is a slice of string containing the generated set of enumerations within the package.
+	FilePath           []string // FilePath is the path to the file that this package should be written to.
+	Header             string   // Header is the header text to be used in the package.
+	Messages           []string // Messages is a slice of strings containing the set of messages that are within the generated package.
+	Enums              []string // Enums is a slice of string containing the generated set of enumerations within the package.
+	UsesYwrapperImport bool     // UsesYwrapperImport indicates whether the ywrapper proto package is used within the generated package.
+	UsesYextImport     bool     // UsesYextImport indicates whether the yext proto package is used within the generated package.
 }
 
 const (
@@ -725,8 +731,9 @@ func (cg *YANGCodeGenerator) GenerateProto3(yangFiles, includePaths []string) (*
 		sort.Strings(protoEnums)
 		fp := []string{basePackageName, enumPackageName, fmt.Sprintf("%s.proto", enumPackageName)}
 		genProto.Packages[fmt.Sprintf("%s.%s", basePackageName, enumPackageName)] = Proto3Package{
-			FilePath: fp,
-			Enums:    protoEnums,
+			FilePath:       fp,
+			Enums:          protoEnums,
+			UsesYextImport: cg.Config.ProtoOptions.AnnotateEnumNames,
 		}
 	}
 
@@ -778,6 +785,12 @@ func (cg *YANGCodeGenerator) GenerateProto3(yangFiles, includePaths []string) (*
 			tp = genProto.Packages[genMsg.PackageName]
 		}
 		tp.Messages = append(tp.Messages, genMsg.MessageCode)
+		if genMsg.UsesYwrapperImport {
+			tp.UsesYwrapperImport = true
+		}
+		if genMsg.UsesYextImport {
+			tp.UsesYextImport = true
+		}
 		genProto.Packages[genMsg.PackageName] = tp
 	}
 
@@ -785,6 +798,14 @@ func (cg *YANGCodeGenerator) GenerateProto3(yangFiles, includePaths []string) (*
 		var gpn string
 		if cg.Config.ProtoOptions.GoPackageBase != "" {
 			gpn = fmt.Sprintf("%s/%s", cg.Config.ProtoOptions.GoPackageBase, strings.ReplaceAll(n, ".", "/"))
+		}
+		ywrapperPath := ywrapperPath
+		if !pkg.UsesYwrapperImport {
+			ywrapperPath = ""
+		}
+		yextPath := yextPath
+		if !pkg.UsesYextImport {
+			yextPath = ""
 		}
 		h, err := writeProto3Header(proto3Header{
 			PackageName:            n,
@@ -818,20 +839,18 @@ func (cg *YANGCodeGenerator) GenerateProto3(yangFiles, includePaths []string) (*
 // generated code for the modules. If errors are returned during the Goyang
 // processing of the modules, these errors are returned.
 func processModules(yangFiles, includePaths []string, options yang.Options) ([]*yang.Entry, util.Errors) {
+	// Initialise the set of YANG modules within the Goyang parsing package.
+	moduleSet := yang.NewModules()
+	// Propagate the options for the YANG library through to the parsing
+	// code - this allows the calling binary to specify characteristics
+	// of the YANG in a manner that we are transparent to.
+	moduleSet.ParseOptions = options
 	// Append the includePaths to the Goyang path variable, this ensures
 	// that where a YANG module uses an 'include' statement to reference
 	// another module, then Goyang can find this module to process.
 	for _, path := range includePaths {
-		yang.AddPath(path)
+		moduleSet.AddPath(path)
 	}
-
-	// Propagate the options for the YANG library through to the parsing
-	// code - this allows the calling binary to specify characteristics
-	// of the YANG in a manner that we are transparent to.
-	yang.ParseOptions = options
-
-	// Initialise the set of YANG modules within the Goyang parsing package.
-	moduleSet := yang.NewModules()
 
 	var errs util.Errors
 	for _, name := range yangFiles {
