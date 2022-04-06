@@ -19,4 +19,4 @@ if [ -z ${SRCDIR} ]; then
    SRCDIR=${DIR}/../..
 fi
 
-cd ${SRCDIR}/../../../../src && protoc --proto_path=. --go_out=:. github.com/openconfig/ygot/proto/notification/notification.proto
+cd ${SRCDIR}/../../../../src && protoc --proto_path=. --proto_path=github.com/openconfig/gnmi/proto/gnmi --go_out=:. github.com/openconfig/ygot/proto/notification/notification.proto
