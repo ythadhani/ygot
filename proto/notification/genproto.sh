@@ -16,4 +16,6 @@
 
 pwd
 ls ./../../../
+ls ~/home/runner/go
+find ~ -type d -name "gnmi" -print
 protoc --proto_path=. --proto_path=./../../../../.. --go_out=. --go_opt=paths=source_relative notification.proto
