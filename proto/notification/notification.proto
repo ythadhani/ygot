@@ -10,5 +10,5 @@ option go_package = "github.com/openconfig/ygot/proto/notification";
 
 message NotificationWithAdds {
     gnmi.Notification gnmi_notif = 1;
-    gnmi.Update Addition = 2;
+    repeated gnmi.Update Addition = 2;
 }

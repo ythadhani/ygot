@@ -25,6 +25,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	gnmipb "github.com/openconfig/gnmi/proto/gnmi"
+	notifpb "github.com/openconfig/ygot/proto/notification"
 )
 
 // schemaPathTogNMIPath takes an input schema path represented as a slice of
@@ -431,10 +432,10 @@ func Diff(original, modified GoStruct, opts ...DiffOpt) (*gnmipb.Notification, e
 	if err != nil {
 		return nil, err
 	}
-	return notifWithAddPaths.Notification, nil
+	return notifWithAddPaths.GetGnmiNotif(), nil
 }
 
-func DiffWithAdds(original, modified GoStruct, opts ...DiffOpt) (*NotificationWithAdds, error) {
+func DiffWithAdds(original, modified GoStruct, opts ...DiffOpt) (*notifpb.NotificationWithAdds, error) {
 	notifWithAddPaths, err := computeDiff(original, modified, true, opts...)
 	if err != nil {
 		return nil, err
@@ -442,7 +443,7 @@ func DiffWithAdds(original, modified GoStruct, opts ...DiffOpt) (*NotificationWi
 	return notifWithAddPaths, nil
 }
 
-func computeDiff(original, modified GoStruct, includeAddPaths bool, opts ...DiffOpt) (*NotificationWithAdds, error) {
+func computeDiff(original, modified GoStruct, includeAddPaths bool, opts ...DiffOpt) (*notifpb.NotificationWithAdds, error) {
 	if reflect.TypeOf(original) != reflect.TypeOf(modified) {
 		return nil, fmt.Errorf("cannot diff structs of different types, original: %T, modified: %T", original, modified)
 	}
@@ -458,7 +459,7 @@ func computeDiff(original, modified GoStruct, includeAddPaths bool, opts ...Diff
 	}
 
 	matched := map[*pathSpec]bool{}
-	n := &NotificationWithAdds{&gnmipb.Notification{}, []*gnmipb.Update{}}
+	n := &notifpb.NotificationWithAdds{GnmiNotif: &gnmipb.Notification{}, Addition: []*gnmipb.Update{}}
 	for origPath, origVal := range origLeaves {
 		var origMatched bool
 		for modPath, modVal := range modLeaves {
@@ -470,7 +471,7 @@ func computeDiff(original, modified GoStruct, includeAddPaths bool, opts ...Diff
 				if !reflect.DeepEqual(origVal, modVal) {
 					// The contents of the value should indicate that value a has changed
 					// to value b.
-					if n.Update, err = appendUpdate(n.GetUpdate(), origPath, modVal); err != nil {
+					if n.GnmiNotif.Update, err = appendUpdate(n.GnmiNotif.GetUpdate(), origPath, modVal); err != nil {
 						return nil, err
 					}
 				}
@@ -479,7 +480,7 @@ func computeDiff(original, modified GoStruct, includeAddPaths bool, opts ...Diff
 		if !origMatched {
 			// This leaf was set in the original struct, but not in the modified
 			// struct, therefore it has been deleted.
-			n.Delete = append(n.Delete, origPath.gNMIPaths...)
+			n.GnmiNotif.Delete = append(n.GnmiNotif.Delete, origPath.gNMIPaths...)
 		}
 	}
 	if hasIgnoreAdditions(opts) != nil {
@@ -494,7 +495,7 @@ func computeDiff(original, modified GoStruct, includeAddPaths bool, opts ...Diff
 					return nil, err
 				}
 			} else {
-				if n.Update, err = appendUpdate(n.GetUpdate(), modPath, modVal); err != nil {
+				if n.GnmiNotif.Update, err = appendUpdate(n.GnmiNotif.GetUpdate(), modPath, modVal); err != nil {
 					return nil, err
 				}
 			}
