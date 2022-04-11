@@ -24,6 +24,13 @@ import (
 	"github.com/openconfig/ygot/ygot"
 )
 
+type Action uint8
+
+const (
+	Clear Action = iota
+	Make
+)
+
 // Refer to: https://tools.ietf.org/html/rfc6020#section-7.7.
 
 // validateLeafList validates each of the values in value against the given
@@ -125,7 +132,7 @@ func unmarshalLeafList(schema *yang.Entry, parent interface{}, value interface{}
 			return fmt.Errorf("unmarshalLeafList for schema %s: value %v: got empty leaf list, expect non-empty leaf list", schema.Name, util.ValueStr(value))
 		}
 		// A new leaf-list update specifies the entire leaf-list, so we should clear its contents if it is non-nil.
-		clearSliceField(parent, fieldName)
+		makeOrClearSliceField(parent, fieldName, Clear)
 		for _, v := range sa.LeaflistVal.GetElement() {
 			if err := unmarshalGeneric(&leafSchema, parent, v, enc); err != nil {
 				return err
@@ -138,7 +145,11 @@ func unmarshalLeafList(schema *yang.Entry, parent interface{}, value interface{}
 		}
 
 		// A new leaf-list update specifies the entire leaf-list, so we should clear its contents if it is non-nil.
-		clearSliceField(parent, fieldName)
+		makeOrClearSliceField(parent, fieldName, Clear)
+		if len(leafList) == 0 {
+			makeOrClearSliceField(parent, fieldName, Make)
+			return nil
+		}
 		for _, leaf := range leafList {
 			if err := unmarshalGeneric(&leafSchema, parent, leaf, enc); err != nil {
 				return err
@@ -151,13 +162,13 @@ func unmarshalLeafList(schema *yang.Entry, parent interface{}, value interface{}
 	return nil
 }
 
-// clearSliceField sets updates a field called fieldName (which must exist, but may be
+// makeOrClearSliceField sets updates a field called fieldName (which must exist, but may be
 // nil) in parentStruct, with value nil.
-func clearSliceField(parentStruct interface{}, fieldName string) error {
-	util.DbgPrint("clearSliceField field %s of parent type %T with value %v", fieldName, parentStruct)
+func makeOrClearSliceField(parentStruct interface{}, fieldName string, action Action) error {
+	util.DbgPrint("makeOrClearSliceField field %s of parent type %T with value %v", fieldName, parentStruct)
 
 	if util.IsValueNil(parentStruct) {
-		return fmt.Errorf("parent is nil in clearSliceField for field %s", fieldName)
+		return fmt.Errorf("parent is nil in makeOrClearSliceField for field %s", fieldName)
 	}
 
 	pt, pv := reflect.TypeOf(parentStruct), reflect.ValueOf(parentStruct)
@@ -174,6 +185,14 @@ func clearSliceField(parentStruct interface{}, fieldName string) error {
 		return fmt.Errorf("field %s of parent type %T must be Slice type (%v)", fieldName, parentStruct, ft.Type.Kind())
 	}
 
-	pv.Elem().FieldByName(fieldName).Set(reflect.Zero(ft.Type))
+	switch action {
+	case Clear:
+		pv.Elem().FieldByName(fieldName).Set(reflect.Zero(ft.Type))
+	case Make:
+		pv.Elem().FieldByName(fieldName).Set(reflect.MakeSlice(ft.Type, 0, 0))
+	default:
+		return fmt.Errorf("makeOrClearSliceField received unsupported action: %d", action)
+	}
+
 	return nil
 }
