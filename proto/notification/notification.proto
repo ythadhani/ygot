@@ -9,6 +9,7 @@ import "github.com/openconfig/gnmi/proto/gnmi/gnmi.proto";
 option go_package = "github.com/openconfig/ygot/proto/notification";
 
 message NotificationWithAdds {
-    gnmi.Notification gnmi_notif = 1;
-    repeated gnmi.Update Addition = 2;
+    repeated gnmi.Update Addition = 1;
+    repeated gnmi.Update Update = 2;
+    repeated gnmi.Update Delete = 3;
 }

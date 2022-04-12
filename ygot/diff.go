@@ -15,6 +15,7 @@
 package ygot
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -27,6 +28,10 @@ import (
 	gnmipb "github.com/openconfig/gnmi/proto/gnmi"
 	notifpb "github.com/openconfig/ygot/proto/notification"
 )
+
+type notification interface {
+	GetUpdate() []*gnmipb.Update
+}
 
 // schemaPathTogNMIPath takes an input schema path represented as a slice of
 // strings, and returns a gNMI Path using the v0.4.0 path format Elem field
@@ -428,22 +433,36 @@ func (*DiffPathOpt) IsDiffOpt() {}
 // to the fields specified if a GoStruct that does not represent the root of
 // a YANG schema tree is not supplied as original and modified.
 func Diff(original, modified GoStruct, opts ...DiffOpt) (*gnmipb.Notification, error) {
-	notifWithAddPaths, err := computeDiff(original, modified, false, opts...)
+	notif, err := computeDiff(original, modified, false, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return notifWithAddPaths.GetGnmiNotif(), nil
+	return notif.(*gnmipb.Notification), nil
 }
 
+// DiffWithAdds is a slight modification to Diff such that:
+//
+//  - The contents of the Update field of the notification indicate that the
+//    field in modified was present in original but had a different
+//    field value.
+//  - The contents of the Delete field of the notification indicate that the
+//    field was not present in the modified struct, but was set in the original.
+//    The value here is that of the original struct.
+//  - The contents of the Addition field of the notification indicate that the
+//    field in modified was not present in the original.
 func DiffWithAdds(original, modified GoStruct, opts ...DiffOpt) (*notifpb.NotificationWithAdds, error) {
-	notifWithAddPaths, err := computeDiff(original, modified, true, opts...)
+	notif, err := computeDiff(original, modified, true, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return notifWithAddPaths, nil
+	return notif.(*notifpb.NotificationWithAdds), nil
 }
 
-func computeDiff(original, modified GoStruct, includeAddPaths bool, opts ...DiffOpt) (*notifpb.NotificationWithAdds, error) {
+func computeDiff(original, modified GoStruct, getNotifWithAddPaths bool, opts ...DiffOpt) (notification, error) {
+	var (
+		gnmiNotif         *gnmipb.Notification          = &gnmipb.Notification{}
+		notifWithAddPaths *notifpb.NotificationWithAdds = &notifpb.NotificationWithAdds{}
+	)
 	if reflect.TypeOf(original) != reflect.TypeOf(modified) {
 		return nil, fmt.Errorf("cannot diff structs of different types, original: %T, modified: %T", original, modified)
 	}
@@ -459,7 +478,6 @@ func computeDiff(original, modified GoStruct, includeAddPaths bool, opts ...Diff
 	}
 
 	matched := map[*pathSpec]bool{}
-	n := &notifpb.NotificationWithAdds{GnmiNotif: &gnmipb.Notification{}, Addition: []*gnmipb.Update{}}
 	for origPath, origVal := range origLeaves {
 		var origMatched bool
 		for modPath, modVal := range modLeaves {
@@ -469,10 +487,16 @@ func computeDiff(original, modified GoStruct, includeAddPaths bool, opts ...Diff
 				matched[modPath] = true
 				origMatched = true
 				if !reflect.DeepEqual(origVal, modVal) {
-					// The contents of the value should indicate that value a has changed
-					// to value b.
-					if n.GnmiNotif.Update, err = appendUpdate(n.GnmiNotif.GetUpdate(), origPath, modVal); err != nil {
-						return nil, err
+					if getNotifWithAddPaths {
+						// The contents of the value should indicate that value a has changed
+						// to value b.
+						if notifWithAddPaths.Update, err = appendUpdate(notifWithAddPaths.Update, origPath, modVal); err != nil {
+							return nil, err
+						}
+					} else {
+						if gnmiNotif.Update, err = appendUpdate(gnmiNotif.Update, origPath, modVal); err != nil {
+							return nil, err
+						}
 					}
 				}
 			}
@@ -480,27 +504,39 @@ func computeDiff(original, modified GoStruct, includeAddPaths bool, opts ...Diff
 		if !origMatched {
 			// This leaf was set in the original struct, but not in the modified
 			// struct, therefore it has been deleted.
-			n.GnmiNotif.Delete = append(n.GnmiNotif.Delete, origPath.gNMIPaths...)
+			if getNotifWithAddPaths {
+				if notifWithAddPaths.Delete, err = appendUpdate(notifWithAddPaths.Delete, origPath, origVal); err != nil {
+					return nil, err
+				}
+			} else {
+				gnmiNotif.Delete = append(gnmiNotif.Delete, origPath.gNMIPaths...)
+			}
 		}
 	}
 	if hasIgnoreAdditions(opts) != nil {
-		return n, nil
+		if getNotifWithAddPaths {
+			return nil, errors.New("DiffWithAdds does not support the IgnoreAdditions option")
+		}
+		return gnmiNotif, nil
 	}
 	// Check that all paths that are in the modified struct have been examined, if
 	// not they are updates.
 	for modPath, modVal := range modLeaves {
 		if !matched[modPath] {
-			if includeAddPaths {
-				if n.Addition, err = appendUpdate(n.GetAddition(), modPath, modVal); err != nil {
+			if getNotifWithAddPaths {
+				if notifWithAddPaths.Addition, err = appendUpdate(notifWithAddPaths.Addition, modPath, modVal); err != nil {
 					return nil, err
 				}
 			} else {
-				if n.GnmiNotif.Update, err = appendUpdate(n.GnmiNotif.GetUpdate(), modPath, modVal); err != nil {
+				if gnmiNotif.Update, err = appendUpdate(gnmiNotif.Update, modPath, modVal); err != nil {
 					return nil, err
 				}
 			}
 		}
 	}
 
-	return n, nil
+	if getNotifWithAddPaths {
+		return notifWithAddPaths, nil
+	}
+	return gnmiNotif, nil
 }
