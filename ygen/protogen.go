@@ -45,6 +45,9 @@ const (
 	// DefaultYextPath defines the default import path for the yext.proto file, excluding
 	// the filename.
 	DefaultYextPath = "github.com/openconfig/ygot/proto/yext"
+	// ywrapperAccessor is the package accessor to the ywrapper.proto
+	// file's definitions.
+	ywrapperAccessor = "ywrapper."
 )
 
 const (
@@ -179,10 +182,15 @@ var (
 syntax = "proto3";
 
 package {{ .PackageName }};
-
+{{- if or .YwrapperPath .YextPath .Imports }}
+{{ end -}}
+{{ if .YwrapperPath }}
 import "{{ .YwrapperPath }}/ywrapper.proto";
+{{- end -}}
+{{ if .YextPath }}
 import "{{ .YextPath }}/yext.proto";
-{{- range $importedProto := .Imports }}
+{{- end -}}
+{{ range $importedProto := .Imports }}
 import "{{ $importedProto }}";
 {{- end -}}
 
@@ -226,7 +234,7 @@ message {{ .Name }} {
     {{- range $i, $opt := $field.Options -}}
       {{- $opt.Name }} = {{ $opt.Value -}}
       {{- if ne (inc $i) $noOptions -}}, {{- end }}
-   {{- end -}}
+    {{- end -}}
   ]
   {{- end -}}
   ;
@@ -272,9 +280,11 @@ func writeProto3Header(in proto3Header) (string, error) {
 
 // generatedProto3Message contains the code for a proto3 message.
 type generatedProto3Message struct {
-	PackageName     string   // PackageName is the name of the package that the proto3 message is within.
-	MessageCode     string   // MessageCode contains the proto3 definition of the message.
-	RequiredImports []string // RequiredImports contains the imports that are required by the generated message.
+	PackageName        string   // PackageName is the name of the package that the proto3 message is within.
+	MessageCode        string   // MessageCode contains the proto3 definition of the message.
+	RequiredImports    []string // RequiredImports contains the imports that are required by the generated message.
+	UsesYwrapperImport bool     // UsesYwrapperImport indicates whether the ywrapper proto package is used by the generated message.
+	UsesYextImport     bool     // UsesYextImport indicates whether the yext proto package is used by the generated message.
 }
 
 // protoMsgConfig defines the set of configuration options required to generate a Protobuf message.
@@ -359,7 +369,7 @@ func writeProto3MsgNested(msg *Directory, msgs map[string]*Directory, protogen *
 		return nil, append(gerrs, errs...)
 	}
 
-	gmsg, errs := genProto3MsgCode(pkg, msgDefs, false)
+	gmsg, errs := genProto3MsgCode(cfg, pkg, msgDefs, false)
 	if errs != nil {
 		return nil, append(gerrs, errs...)
 	}
@@ -380,6 +390,13 @@ func writeProto3MsgNested(msg *Directory, msgs map[string]*Directory, protogen *
 		for _, ch := range childMsgs {
 			for _, i := range ch.RequiredImports {
 				allImports[i] = true
+			}
+			// Inherit yext and ywrapper imports.
+			if ch.UsesYextImport {
+				gmsg.UsesYextImport = true
+			}
+			if ch.UsesYwrapperImport {
+				gmsg.UsesYwrapperImport = true
 			}
 		}
 		for _, i := range gmsg.RequiredImports {
@@ -461,17 +478,18 @@ func writeProto3MsgSingleMsg(msg *Directory, msgs map[string]*Directory, protoge
 		return nil, errs
 	}
 
-	return genProto3MsgCode(pkg, msgDefs, true)
+	return genProto3MsgCode(cfg, pkg, msgDefs, true)
 }
 
 // genProto3MsgCode takes an input package name, and set of protobuf message
 // definitions, and outputs the generated code for the messages. If the
 // pathComment argument is setFunc, each message is output with a comment
 // indicating its path in the YANG schema, otherwise it is included.
-func genProto3MsgCode(pkg string, msgDefs []*protoMsg, pathComment bool) (*generatedProto3Message, util.Errors) {
+func genProto3MsgCode(cfg *protoMsgConfig, pkg string, msgDefs []*protoMsg, pathComment bool) (*generatedProto3Message, util.Errors) {
 	var b bytes.Buffer
 	var errs util.Errors
 	imports := map[string]interface{}{}
+	var usesYwrapperImport, usesYextImport bool
 	for i, msgDef := range msgDefs {
 		// Sort the child messages into a determinstic order. We cannot use the
 		// package name as a key as it may be the same for multiple packages, therefore
@@ -494,6 +512,29 @@ func genProto3MsgCode(pkg string, msgDefs []*protoMsg, pathComment bool) (*gener
 		msgDef.ChildMsgs = nm
 		msgDef.PathComment = pathComment
 
+		// If one of the fields uses a definition from the ywrapper or
+		// yext packages, then make sure to mark it for import.
+		for _, field := range msgDef.Fields {
+			if strings.HasPrefix(field.Type, ywrapperAccessor) {
+				usesYwrapperImport = true
+			}
+			for _, f := range field.OneOfFields {
+				if strings.HasPrefix(f.Type, ywrapperAccessor) {
+					usesYwrapperImport = true
+				}
+			}
+			for _, o := range field.Options {
+				if o.Name == protoSchemaAnnotationOption {
+					usesYextImport = true
+				}
+			}
+		}
+		// If there is any annotated enums, then make sure to mark the
+		// yext package for import.
+		if cfg.annotateEnumNames && len(msgDef.Enums) > 0 {
+			usesYextImport = true
+		}
+
 		if err := protoMessageTemplate.Execute(&b, msgDef); err != nil {
 			return nil, []error{err}
 		}
@@ -508,9 +549,11 @@ func genProto3MsgCode(pkg string, msgDefs []*protoMsg, pathComment bool) (*gener
 	}
 
 	return &generatedProto3Message{
-		PackageName:     pkg,
-		MessageCode:     b.String(),
-		RequiredImports: stringKeys(imports),
+		PackageName:        pkg,
+		MessageCode:        b.String(),
+		RequiredImports:    stringKeys(imports),
+		UsesYwrapperImport: usesYwrapperImport,
+		UsesYextImport:     usesYextImport,
 	}, nil
 }
 
@@ -661,7 +704,7 @@ func addProtoListField(fieldDef *protoMsgField, msgDef *protoMsg, args *protoDef
 			// If nested messages are being output, we must ensure that the
 			// generated key message is output within the parent message - hence
 			// it is generated directly here and appended to the child messages.
-			kc, cerrs := genProto3MsgCode(args.parentPkg, []*protoMsg{keyMsg}, false)
+			kc, cerrs := genProto3MsgCode(args.cfg, args.parentPkg, []*protoMsg{keyMsg}, false)
 			if cerrs != nil {
 				return nil, nil, cerrs
 			}
@@ -742,7 +785,7 @@ func addProtoLeafOrLeafListField(fieldDef *protoMsgField, msgDef *protoMsg, args
 
 	if d.repeatedMsg != nil {
 		if args.cfg.nestedMessages {
-			gm, errs := genProto3MsgCode(args.parentPkg, []*protoMsg{d.repeatedMsg}, false)
+			gm, errs := genProto3MsgCode(args.cfg, args.parentPkg, []*protoMsg{d.repeatedMsg}, false)
 			if err != nil {
 				return nil, nil, errs
 			}
@@ -867,16 +910,25 @@ func genProtoEnum(field *yang.Entry, annotateEnumNames bool) (*protoMsgEnum, err
 	names := field.Type.Enum.NameMap()
 	eval[0] = protoEnumValue{ProtoLabel: protoEnumZeroName}
 
-	if d := field.DefaultValue(); d != "" {
-		if _, ok := names[d]; !ok {
-			return nil, fmt.Errorf("enumeration %s specified a default - %s - that was not a valid value", field.Path(), d)
-		}
+	var defaultValue string
+	// Not having an UNSET only makes sense for non-leaf-lists because
+	// doing this doesn't populate repeated fields.
+	// Typedef enum definitions are never leaf-lists even though they can
+	// be used within a leaf-list.
+	if field.ListAttr == nil || !util.IsYANGBaseType(field.Type) {
+		var ok bool
+		defaultValue, ok = field.SingleDefaultValue()
+		if ok {
+			if _, ok := names[defaultValue]; !ok {
+				return nil, fmt.Errorf("enumeration %s specified a default - %s - that was not a valid value", field.Path(), defaultValue)
+			}
 
-		eval[0] = toProtoEnumValue(safeProtoIdentifierName(d), d, annotateEnumNames)
+			eval[0] = toProtoEnumValue(safeProtoIdentifierName(defaultValue), defaultValue, annotateEnumNames)
+		}
 	}
 
 	for n := range names {
-		if n == field.DefaultValue() {
+		if n == defaultValue {
 			// Can't happen if there was not a default, since "" is not
 			// a valid enumeration name in YANG.
 			continue
@@ -995,7 +1047,7 @@ func protoLeafDefinition(leafName string, args *protoDefinitionArgs, useDefining
 	case util.IsEnumeratedType(args.field.Type):
 		d.globalEnum = true
 	case protoType.UnionTypes != nil:
-		u, err := unionFieldToOneOf(leafName, args.field, protoType, args.cfg.annotateEnumNames, useDefiningModuleForTypedefEnumNames, useConsistentNamesForProtoUnionEnums)
+		u, err := unionFieldToOneOf(leafName, args.field, args.field.Path(), protoType, args.cfg.annotateEnumNames, useDefiningModuleForTypedefEnumNames, useConsistentNamesForProtoUnionEnums)
 		if err != nil {
 			return nil, err
 		}
@@ -1085,6 +1137,10 @@ func genListKeyProto(listPackage string, listName string, args *protoDefinitionA
 
 	definedFieldNames := map[string]bool{}
 	ctag := uint32(1)
+	// unionEntries keeps track of union keys such that if two keys point
+	// to the same union entry, such a conflict when creating field tags
+	// for them can be detected to avoid a tag collision.
+	unionEntries := map[*yang.Entry]bool{}
 	for _, k := range strings.Fields(args.field.Key) {
 		kf, ok := args.directory.Fields[k]
 		if !ok {
@@ -1166,7 +1222,18 @@ func genListKeyProto(listPackage string, listName string, args *protoDefinitionA
 			km.Enums[tn] = enum
 		case unionEntry != nil:
 			fd.IsOneOf = true
-			u, err := unionFieldToOneOf(fd.Name, unionEntry, scalarType, args.cfg.annotateEnumNames, useDefiningModuleForTypedefEnumNames, useConsistentNamesForProtoUnionEnums)
+			path := unionEntry.Path()
+			if unionEntries[unionEntry] {
+				// It is possible for two keys to point to the same resolved unionEntry.
+				// In this case, the path we use to generate the proto tag numbers needs
+				// to be different to avoid a collision, and here we use the path of the
+				// (leafref) key field. The reason the first instance uses the resolved
+				// unionEntry is for backwards compatibility
+				// (https://github.com/openconfig/ygot/pull/610#discussion_r781510037).
+				path = kf.Path()
+			}
+			unionEntries[unionEntry] = true
+			u, err := unionFieldToOneOf(fd.Name, unionEntry, path, scalarType, args.cfg.annotateEnumNames, useDefiningModuleForTypedefEnumNames, useConsistentNamesForProtoUnionEnums)
 			if err != nil {
 				return nil, fmt.Errorf("error generating type for union list key %s in list %s", k, args.field.Path())
 			}
@@ -1269,11 +1336,12 @@ type protoUnionField struct {
 	hadGlobalEnums bool                     // hadGlobalEnums determines whether there was a global scope enum (typedef, identityref) in the message.
 }
 
-// unionFieldToOneOf takes an input name, a yang.Entry containing a field definition and a MappedType
+// unionFieldToOneOf takes an input name, a yang.Entry containing a field
+// definition, a path argument used to compute the field tag numbers, and a MappedType
 // containing the proto type that the entry has been mapped to, and returns a definition of a union
 // field within the protobuf message. If the annotateEnumNames boolean is set, then any enumerated types
 // within the union have their original names within the YANG schema appended.
-func unionFieldToOneOf(fieldName string, e *yang.Entry, mtype *MappedType, annotateEnumNames, useDefiningModuleForTypedefEnumNames, useConsistentNamesForProtoUnionEnums bool) (*protoUnionField, error) {
+func unionFieldToOneOf(fieldName string, e *yang.Entry, path string, mtype *MappedType, annotateEnumNames, useDefiningModuleForTypedefEnumNames, useConsistentNamesForProtoUnionEnums bool) (*protoUnionField, error) {
 	enums, err := enumInProtoUnionField(fieldName, resolveTypeArgs{yangType: e.Type, contextEntry: e}, annotateEnumNames, useDefiningModuleForTypedefEnumNames, useConsistentNamesForProtoUnionEnums)
 	if err != nil {
 		return nil, err
@@ -1301,7 +1369,7 @@ func unionFieldToOneOf(fieldName string, e *yang.Entry, mtype *MappedType, annot
 		// such that we have unique inputs for each option. We make the name lower-case
 		// as it is conventional that protobuf field names are lowercase separated by
 		// underscores.
-		ft, err := fieldTag(fmt.Sprintf("%s_%s", e.Path(), strings.ToLower(tn)))
+		ft, err := fieldTag(fmt.Sprintf("%s_%s", path, strings.ToLower(tn)))
 		if err != nil {
 			return nil, fmt.Errorf("could not calculate tag number for %s, type %s in oneof", e.Path(), tn)
 		}

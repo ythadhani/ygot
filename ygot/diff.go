@@ -15,18 +15,23 @@
 package ygot
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
 	"strings"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/openconfig/ygot/util"
 	"google.golang.org/protobuf/proto"
 
 	gnmipb "github.com/openconfig/gnmi/proto/gnmi"
+	notifpb "github.com/openconfig/ygot/proto/notification"
 )
+
+type notification interface {
+	GetUpdate() []*gnmipb.Update
+}
 
 // schemaPathTogNMIPath takes an input schema path represented as a slice of
 // strings, and returns a gNMI Path using the v0.4.0 path format Elem field
@@ -214,7 +219,7 @@ func findSetLeaves(s GoStruct, opts ...DiffOpt) (map[*pathSpec]interface{}, erro
 	processedPaths := map[string]bool{}
 
 	findSetIterFunc := func(ni *util.NodeInfo, in, out interface{}) (errs util.Errors) {
-		if cmp.Equal(ni.StructField, reflect.StructField{}) {
+		if reflect.DeepEqual(ni.StructField, reflect.StructField{}) {
 			return
 		}
 
@@ -339,7 +344,7 @@ func leastSpecificPath(paths [][]string) []string {
 
 // appendUpdate adds an update to the supplied gNMI Notification message corresponding
 // to the path and value supplied.
-func appendUpdate(n *gnmipb.Notification, path *pathSpec, val interface{}) error {
+func appendUpdate(updates []*gnmipb.Update, path *pathSpec, val interface{}) ([]*gnmipb.Update, error) {
 	var (
 		v   *gnmipb.TypedValue
 		err error
@@ -351,15 +356,15 @@ func appendUpdate(n *gnmipb.Notification, path *pathSpec, val interface{}) error
 		v, err = EncodeTypedValue(val, gnmipb.Encoding_PROTO)
 	}
 	if err != nil {
-		return fmt.Errorf("cannot represent field value %v as TypedValue for path %v: %v", val, path, err)
+		return nil, fmt.Errorf("cannot represent field value %v as TypedValue for path %v: %v", val, path, err)
 	}
 	for _, p := range path.gNMIPaths {
-		n.Update = append(n.Update, &gnmipb.Update{
+		updates = append(updates, &gnmipb.Update{
 			Path: p,
 			Val:  v,
 		})
 	}
-	return nil
+	return updates, nil
 }
 
 // DiffOpt is an interface that is implemented by the options to the Diff
@@ -428,6 +433,36 @@ func (*DiffPathOpt) IsDiffOpt() {}
 // to the fields specified if a GoStruct that does not represent the root of
 // a YANG schema tree is not supplied as original and modified.
 func Diff(original, modified GoStruct, opts ...DiffOpt) (*gnmipb.Notification, error) {
+	notif, err := computeDiff(original, modified, false, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return notif.(*gnmipb.Notification), nil
+}
+
+// DiffWithAdds is a slight modification to Diff such that:
+//
+//  - The contents of the Update field of the notification indicate that the
+//    field in modified was present in original but had a different
+//    field value.
+//  - The contents of the Delete field of the notification indicate that the
+//    field was not present in the modified struct, but was set in the original.
+//    The value here is that of the original struct.
+//  - The contents of the Addition field of the notification indicate that the
+//    field in modified was not present in the original.
+func DiffWithAdds(original, modified GoStruct, opts ...DiffOpt) (*notifpb.NotificationWithAdds, error) {
+	notif, err := computeDiff(original, modified, true, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return notif.(*notifpb.NotificationWithAdds), nil
+}
+
+func computeDiff(original, modified GoStruct, getNotifWithAddPaths bool, opts ...DiffOpt) (notification, error) {
+	var (
+		gnmiNotif         *gnmipb.Notification          = &gnmipb.Notification{}
+		notifWithAddPaths *notifpb.NotificationWithAdds = &notifpb.NotificationWithAdds{}
+	)
 	if reflect.TypeOf(original) != reflect.TypeOf(modified) {
 		return nil, fmt.Errorf("cannot diff structs of different types, original: %T, modified: %T", original, modified)
 	}
@@ -443,7 +478,6 @@ func Diff(original, modified GoStruct, opts ...DiffOpt) (*gnmipb.Notification, e
 	}
 
 	matched := map[*pathSpec]bool{}
-	n := &gnmipb.Notification{}
 	for origPath, origVal := range origLeaves {
 		var origMatched bool
 		for modPath, modVal := range modLeaves {
@@ -452,11 +486,17 @@ func Diff(original, modified GoStruct, opts ...DiffOpt) (*gnmipb.Notification, e
 				// is equal.
 				matched[modPath] = true
 				origMatched = true
-				if !cmp.Equal(origVal, modVal) {
-					// The contents of the value should indicate that value a has changed
-					// to value b.
-					if err := appendUpdate(n, origPath, modVal); err != nil {
-						return nil, err
+				if !reflect.DeepEqual(origVal, modVal) {
+					if getNotifWithAddPaths {
+						// The contents of the value should indicate that value a has changed
+						// to value b.
+						if notifWithAddPaths.Update, err = appendUpdate(notifWithAddPaths.Update, origPath, modVal); err != nil {
+							return nil, err
+						}
+					} else {
+						if gnmiNotif.Update, err = appendUpdate(gnmiNotif.Update, origPath, modVal); err != nil {
+							return nil, err
+						}
 					}
 				}
 			}
@@ -464,21 +504,39 @@ func Diff(original, modified GoStruct, opts ...DiffOpt) (*gnmipb.Notification, e
 		if !origMatched {
 			// This leaf was set in the original struct, but not in the modified
 			// struct, therefore it has been deleted.
-			n.Delete = append(n.Delete, origPath.gNMIPaths...)
+			if getNotifWithAddPaths {
+				if notifWithAddPaths.Delete, err = appendUpdate(notifWithAddPaths.Delete, origPath, origVal); err != nil {
+					return nil, err
+				}
+			} else {
+				gnmiNotif.Delete = append(gnmiNotif.Delete, origPath.gNMIPaths...)
+			}
 		}
 	}
 	if hasIgnoreAdditions(opts) != nil {
-		return n, nil
+		if getNotifWithAddPaths {
+			return nil, errors.New("DiffWithAdds does not support the IgnoreAdditions option")
+		}
+		return gnmiNotif, nil
 	}
 	// Check that all paths that are in the modified struct have been examined, if
 	// not they are updates.
 	for modPath, modVal := range modLeaves {
 		if !matched[modPath] {
-			if err := appendUpdate(n, modPath, modVal); err != nil {
-				return nil, err
+			if getNotifWithAddPaths {
+				if notifWithAddPaths.Addition, err = appendUpdate(notifWithAddPaths.Addition, modPath, modVal); err != nil {
+					return nil, err
+				}
+			} else {
+				if gnmiNotif.Update, err = appendUpdate(gnmiNotif.Update, modPath, modVal); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
 
-	return n, nil
+	if getNotifWithAddPaths {
+		return notifWithAddPaths, nil
+	}
+	return gnmiNotif, nil
 }

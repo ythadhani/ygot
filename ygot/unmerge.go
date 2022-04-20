@@ -164,7 +164,6 @@ func pruneStruct(structVal reflect.Value, keyMap map[string]struct{}, fieldNameM
 	for _, keyFieldVal := range keyFieldVals {
 		keyFieldVal.Set(reflect.Zero(keyFieldVal.Type()))
 	}
-	return
 }
 
 func unmergeInterfaceField(baseVal, unmergeVal reflect.Value, fieldName string) error {
@@ -223,12 +222,11 @@ func unmergeMapField(baseVal, unmergeVal reflect.Value, schema *yang.Entry) erro
 
 	for _, k := range unmergeVal.MapKeys() {
 		v := unmergeVal.MapIndex(k)
-		d := reflect.New(v.Elem().Type())
 		// TODO(ythadhani): Do we need to maintain dstKeys, can't we directly check if v is zero value
 		if _, ok := baseKeys[k.Interface()]; !ok {
 			return fmt.Errorf("could not find key: %v in base map field: '%s'", k.Interface(), schema.Name)
 		}
-		d = baseVal.MapIndex(k)
+		d := baseVal.MapIndex(k)
 		if err := unmergeStructs(d.Elem(), v.Elem(), schema); err != nil {
 			return err
 		}
@@ -250,6 +248,11 @@ func unmergePtrField(baseVal, unmergeVal reflect.Value, schema *yang.Entry) (boo
 		return false, fmt.Errorf("received non-ptr type: %v for unmerge struct field: '%s'", unmergeVal.Kind(), schema.Name)
 	}
 	if util.IsNilOrInvalidValue(baseVal) {
+		// TODO(ythadhani): Get rid of the following if-block once SetNodeFromNotif method
+		// in fsp-shared-datastore cleans up empty non-presence containers.
+		if util.IsZeroIgnoreDefaultStruct(unmergeVal) {
+			return false, nil
+		}
 		return false, fmt.Errorf("base struct field: %s was not set", schema.Name)
 	}
 

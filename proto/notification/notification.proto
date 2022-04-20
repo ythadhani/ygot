@@ -1,0 +1,15 @@
+// notification extends the Notification message from openconfig/gnmi
+// to include gNMI paths for data elements that have been added.
+syntax = "proto3";
+
+package notification;
+
+import "github.com/openconfig/gnmi/proto/gnmi/gnmi.proto";
+
+option go_package = "github.com/openconfig/ygot/proto/notification";
+
+message NotificationWithAdds {
+    repeated gnmi.Update Addition = 1;
+    repeated gnmi.Update Update = 2;
+    repeated gnmi.Update Delete = 3;
+}

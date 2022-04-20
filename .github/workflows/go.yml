@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go: ['1.13', '1.14', '1.15', '1.16', '1.x']
+        go: ['1.13', '1.14', '1.15', '1.16', '1.17', '1.18', '1.x']
 
     steps:
       - name: Install protobuf
@@ -28,17 +28,17 @@ jobs:
           go-version: ${{ matrix.go }}
         id: go
 
-      - name: Install protoc-gen-go
+      - if: ${{ matrix.go == '1.13' || matrix.go == '1.14' || matrix.go == '1.15' }}
+        name: Install protoc-gen-go, goimports, Staticcheck
         run: |
-          go get -u google.golang.org/protobuf/cmd/protoc-gen-go
+          GO111MODULE=on go get google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          GO111MODULE=on go get golang.org/x/tools/cmd/goimports@latest
 
-      - name: Install goimports
+      - if: ${{ !(matrix.go == '1.13' || matrix.go == '1.14' || matrix.go == '1.15') }}
+        name: Install protoc-gen-go, goimports, Staticcheck
         run: |
-          go get -u golang.org/x/tools/cmd/goimports
-
-      - name: Install Staticcheck
-        run: |
-          go get -u honnef.co/go/tools/cmd/staticcheck
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install golang.org/x/tools/cmd/goimports@latest
 
       - name: Check out code
         uses: actions/checkout@v2
@@ -67,13 +67,15 @@ jobs:
         working-directory: go/src/github.com/openconfig/ygot
 
       - name: Check that Go integration test files compile
-        working-directory: go/src/github.com/openconfig/ygot/ygen/testdata
+        working-directory: go/src/github.com/openconfig/ygot
         run: |
           function test-go-build() {
             cwd=$(pwd)
             tmpdir=$(mktemp -d -p $cwd)
-            name=$(basename $1)
-            cp "$1" "$tmpdir"/"${name}.go"
+            for f in "$@"; do
+                name=$(basename $f)
+                cp "$f" "$tmpdir"/"${name}.go"
+            done
             cd $tmpdir
             goimports -w *.go
             go build
@@ -81,24 +83,39 @@ jobs:
             rm -r $tmpdir
           }
 
-          expectFail=(
+          skipped=(
+            # fake ygot and ytype paths specified in generation options.
+            "openconfig-options-explicit.formatted-txt.go"
           )
-          for f in structs/*.formatted-txt; do
-            if [[ ${expectFail[@]} =~ $(basename $f) ]]; then
+          for f in ygen/testdata/schema/*.formatted-txt; do
+            if [[ ${skipped[@]} =~ $(basename $f) ]]; then
               continue
             fi
             test-go-build $f
           done
 
-          expectFail=(
-            # fake ygot and ytype paths specified in generation options.
-            "openconfig-options-explicit.formatted-txt.go"
+          skipped=(
           )
-          for f in schema/*.formatted-txt; do
-            if [[ ${expectFail[@]} =~ $(basename $f) ]]; then
+          for f in ygen/testdata/structs/*.formatted-txt; do
+            if [[ ${skipped[@]} =~ $(basename $f) ]]; then
               continue
             fi
             test-go-build $f
+          done
+
+          skipped=(
+            # GoStructs in a separate package, harder to set-up.
+            "openconfig-augmented.path-txt"
+            "openconfig-withlist-separate-package.path-txt"
+          )
+          for f in ypathgen/testdata/structs/*.path-txt; do
+            if [[ ${skipped[@]} =~ $(basename $f) ]]; then
+              continue
+            fi
+            filename=$(basename $f)
+            f_prefix="${filename%%.*}"
+            ygen_file="ygen/testdata/structs/${f_prefix}.formatted-txt"
+            test-go-build $f $ygen_file
           done
 
   static_analysis:
@@ -109,14 +126,14 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: '1.15'
+          go-version: '1.x'
         id: go
 
       - name: Install required static analysis tools
         run: |
-          go get -u github.com/go-playground/overalls
-          go get -u github.com/mattn/goveralls
-          go get -u honnef.co/go/tools/cmd/staticcheck
+          go install github.com/go-playground/overalls@latest
+          go install github.com/mattn/goveralls@latest
+          go install honnef.co/go/tools/cmd/staticcheck@latest
 
       - name: Check out ygot code
         uses: actions/checkout@v2

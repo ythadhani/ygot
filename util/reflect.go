@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/openconfig/goyang/pkg/yang"
 
@@ -412,7 +411,7 @@ func InsertIntoMapStructField(parentStruct interface{}, fieldName string, key, f
 // If the field is a slice, no need to initialize as appending a new element
 // will do the same thing. Note that if the field is initialized already, this
 // function doesn't re-initialize it.
-func InitializeStructField(parent interface{}, fieldName string) error {
+func InitializeStructField(parent interface{}, fieldName string, initializeLeafs bool) error {
 	if parent == nil {
 		return errors.New("parent is nil")
 	}
@@ -431,7 +430,9 @@ func InitializeStructField(parent interface{}, fieldName string) error {
 	}
 	switch {
 	case IsValuePtr(fV) && fV.IsNil():
-		fV.Set(reflect.New(fV.Type().Elem()))
+		if v := reflect.New(fV.Type().Elem()); initializeLeafs || !IsValueScalar(v) {
+			fV.Set(v)
+		}
 	case IsValueMap(fV) && fV.IsNil():
 		fV.Set(reflect.MakeMap(fV.Type()))
 	}
@@ -482,7 +483,7 @@ func DeepEqualDerefPtrs(a, b interface{}) bool {
 	if !IsValueNil(b) && reflect.TypeOf(b).Kind() == reflect.Ptr {
 		bb = reflect.ValueOf(b).Elem().Interface()
 	}
-	return cmp.Equal(aa, bb)
+	return reflect.DeepEqual(aa, bb)
 }
 
 // ChildSchema returns the schema for the struct field f, if f contains a valid
@@ -713,12 +714,6 @@ func forEachFieldInternal(ni *NodeInfo, in, out interface{}, iterFunction FieldI
 					continue
 				}
 				nn.PathFromParent = p
-				// In the case of a map/slice, the path is of the form
-				// "container/element" in the compressed schema, so trim off
-				// any extra path elements in this case.
-				if IsTypeSlice(sf.Type) || IsTypeMap(sf.Type) {
-					nn.PathFromParent = p[0:1]
-				}
 				switch in.(type) {
 				case *PathQueryNodeMemo: // Memoization of path queries requested.
 					errs = AppendErrs(errs, forEachFieldInternal(nn, newPathQueryMemo(), out, iterFunction))
@@ -1076,11 +1071,12 @@ func getNodesList(schema *yang.Entry, root interface{}, path *gpb.Path) ([]inter
 					if !fv.IsValid() {
 						return nil, nil, fmt.Errorf("element struct type %s does not contain key field %s", k.Type(), kfn)
 					}
-					nv := fv
-					if fv.Type().Kind() == reflect.Ptr {
-						// Ptr values are deferenced in key struct.
-						nv = nv.Elem()
-					}
+					// FIXME(wenbli): This block was here but is not doing anything. We need to ensure that no functionality would be missing by removing it.
+					//nv := fv
+					//if fv.Type().Kind() == reflect.Ptr {
+					//	// Ptr values are deferenced in key struct.
+					//	nv = nv.Elem()
+					//}
 					kf, ok := listElementType.FieldByName(kfn)
 					if !ok {
 						return nil, nil, fmt.Errorf("element struct type %s does not contain key field %s", k.Type(), kfn)
@@ -1160,4 +1156,23 @@ func getKeyValue(structVal reflect.Value, key string) (interface{}, error) {
 	}
 
 	return nil, fmt.Errorf("could not find key field %s in struct type %s", key, structVal.Type())
+}
+
+// IsZeroIgnoreDefaultStruct reports whether v is the zero value for its type.
+// A ptr with its underlying struct set to its zero value is treated the same as
+// being set to its zero value that is nil.
+// It panics if the argument is invalid.
+func IsZeroIgnoreDefaultStruct(v reflect.Value) bool {
+	if IsValueStructPtr(v) {
+		structVal := v.Elem()
+		for i := 0; i < structVal.NumField(); i++ {
+			if !IsZeroIgnoreDefaultStruct(structVal.Field(i)) {
+				return false
+			}
+		}
+		return true
+	} else if v.IsZero() {
+		return true
+	}
+	return false
 }
