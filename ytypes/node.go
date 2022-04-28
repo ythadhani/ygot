@@ -200,7 +200,7 @@ func retrieveNodeContainer(schema *yang.Entry, root interface{}, path *gpb.Path,
 					if args.tolerateJSONInconsistenciesForVal {
 						encoding = gNMIEncodingWithJSONTolerance
 					}
-					if err := unmarshalGeneric(cschema, root, args.val, encoding); err != nil {
+					if err := unmarshalGeneric(cschema, root, args.val, encoding, unmarshalConfig{}); err != nil {
 						return nil, status.Errorf(codes.Unknown, "failed to update struct field %s in %T with value %v; %v", ft.Name, root, args.val, err)
 					}
 				}
@@ -517,7 +517,6 @@ func SetNode(schema *yang.Entry, root interface{}, path *gpb.Path, val interface
 		tolerateJSONInconsistenciesForVal: hasTolerateJSONInconsistencies(opts),
 		preferShadowPath:                  hasSetNodePreferShadowPath(opts),
 	})
-
 	if err != nil {
 		return err
 	}

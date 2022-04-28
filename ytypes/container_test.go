@@ -472,10 +472,10 @@ func TestUnmarshalContainer(t *testing.T) {
 	}
 
 	// Additional tests through private API.
-	if err := unmarshalContainer(nil, nil, nil, JSONEncoding); err != nil {
+	if err := unmarshalContainer(nil, nil, nil, JSONEncoding, unmarshalConfig{}); err != nil {
 		t.Errorf("nil value: got error: %v, want error: nil", err)
 	}
-	if err := unmarshalContainer(nil, nil, map[string]interface{}{}, JSONEncoding); err == nil {
+	if err := unmarshalContainer(nil, nil, map[string]interface{}{}, JSONEncoding, unmarshalConfig{}); err == nil {
 		t.Errorf("nil schema: got error: nil, want nil schema error")
 	}
 }

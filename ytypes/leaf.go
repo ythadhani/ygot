@@ -84,7 +84,7 @@ func validateLeaf(inSchema *yang.Entry, value interface{}) util.Errors {
 	case yang.Ybits:
 		return nil
 		// TODO(mostrowski): restore when representation is decided.
-		//return util.NewErrs(validateBitset(schema, rv))
+		// return util.NewErrs(validateBitset(schema, rv))
 	case yang.Ybool:
 		return util.NewErrs(validateBool(schema, rv))
 	case yang.Yempty:

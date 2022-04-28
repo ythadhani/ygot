@@ -1184,7 +1184,7 @@ func structJSON(s GoStruct, parentMod string, args jsonOutputConfig) (map[string
 		}
 
 		if extensions, hasExtensions := fType.Tag.Lookup("extensions"); hasExtensions && args.extHandler != nil {
-			value, err = processExtensions(value, extensions, args.extHandler)
+			value, err = yext.ProcessExtensions(value, extensions, args.extHandler)
 			if err != nil {
 				errs.Add(err)
 				continue
@@ -1254,27 +1254,6 @@ func structJSON(s GoStruct, parentMod string, args jsonOutputConfig) (map[string
 	}
 
 	return jsonout, nil
-}
-
-func processExtensions(value interface{}, extensions string, extHandler yext.ExtensionHandler) (interface{}, error) {
-	extSlice := strings.Split(extensions, ";")
-	var extensionList []yext.ExtensionParams = []yext.ExtensionParams{}
-	for _, ext := range extSlice {
-		nameAndArg := strings.Split(ext, ",")
-		keyword := nameAndArg[0]
-		argument := ""
-		if len(nameAndArg) == 2 {
-			argument = nameAndArg[1]
-		}
-		extension := yext.ExtensionParams{Keyword: keyword, Argument: argument}
-		if extHandler.IsExtensionSupported(extension) {
-			extensionList = append(extensionList, extension)
-		}
-	}
-	if len(extensionList) > 0 {
-		return extHandler.Process(extensionList, value)
-	}
-	return value, nil
 }
 
 // writeIETFScalarJSON takes an input scalar value, and returns it in the format
