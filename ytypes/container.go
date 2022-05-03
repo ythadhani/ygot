@@ -210,11 +210,6 @@ func unmarshalStruct(schema *yang.Entry, parent interface{}, jsonTree map[string
 			return err
 		}
 
-		if jsonValue == nil {
-			util.DbgPrint("field %s paths %v not present in tree", ft.Name, sp)
-			continue
-		}
-
 		if extensions, hasExtensions := ft.Tag.Lookup("extensions"); hasExtensions {
 			if unmarshalConf.extHandler != nil {
 				jsonValue, err = yext.ProcessExtensions(jsonValue, extensions, unmarshalConf.extHandler)
@@ -222,6 +217,11 @@ func unmarshalStruct(schema *yang.Entry, parent interface{}, jsonTree map[string
 					return err
 				}
 			}
+		}
+
+		if jsonValue == nil {
+			util.DbgPrint("field %s paths %v not present in tree", ft.Name, sp)
+			continue
 		}
 
 		util.DbgPrint("populating field %s type %s with paths %v.", ft.Name, ft.Type, sp)
