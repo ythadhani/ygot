@@ -23,6 +23,7 @@ import (
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/openconfig/goyang/pkg/yang"
 	"github.com/openconfig/ygot/util"
+	"github.com/openconfig/ygot/yext"
 	"github.com/openconfig/ygot/ygot"
 )
 
@@ -113,7 +114,7 @@ func validateContainer(schema *yang.Entry, value ygot.GoStruct) util.Errors {
 //   jsonTree is a JSON data tree which must be a map[string]interface{}.
 //   opts is the set of options that should be used when unmarshalling the JSON
 //     into the supplied parent.
-func unmarshalContainer(schema *yang.Entry, parent interface{}, jsonTree interface{}, enc Encoding, opts ...UnmarshalOpt) error {
+func unmarshalContainer(schema *yang.Entry, parent interface{}, jsonTree interface{}, enc Encoding, unmarshalConf unmarshalConfig) error {
 	if util.IsValueNil(jsonTree) {
 		return nil
 	}
@@ -137,7 +138,7 @@ func unmarshalContainer(schema *yang.Entry, parent interface{}, jsonTree interfa
 		return fmt.Errorf("unmarshalContainer got parent type %T, expect struct ptr", parent)
 	}
 
-	return unmarshalStruct(schema, parent, jt, enc, opts...)
+	return unmarshalStruct(schema, parent, jt, enc, unmarshalConf)
 }
 
 // unmarshalStruct unmarshals a JSON tree into a struct.
@@ -145,7 +146,7 @@ func unmarshalContainer(schema *yang.Entry, parent interface{}, jsonTree interfa
 //     unmarshalled into.
 //   parent is the parent struct, which must be a struct ptr.
 //   jsonTree is a JSON data tree which must be a map[string]interface{}.
-func unmarshalStruct(schema *yang.Entry, parent interface{}, jsonTree map[string]interface{}, enc Encoding, opts ...UnmarshalOpt) error {
+func unmarshalStruct(schema *yang.Entry, parent interface{}, jsonTree map[string]interface{}, enc Encoding, unmarshalConf unmarshalConfig) error {
 	destv := reflect.ValueOf(parent).Elem()
 	var allSchemaPaths [][]string
 
@@ -209,6 +210,15 @@ func unmarshalStruct(schema *yang.Entry, parent interface{}, jsonTree map[string
 			return err
 		}
 
+		if extensions, hasExtensions := ft.Tag.Lookup("extensions"); hasExtensions {
+			if unmarshalConf.extHandler != nil {
+				jsonValue, err = yext.ProcessExtensions(jsonValue, extensions, unmarshalConf.extHandler)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
 		if jsonValue == nil {
 			util.DbgPrint("field %s paths %v not present in tree", ft.Name, sp)
 			continue
@@ -234,13 +244,13 @@ func unmarshalStruct(schema *yang.Entry, parent interface{}, jsonTree map[string
 			// current container.
 			p = f.Interface()
 		}
-		if err := unmarshalGeneric(cschema, p, jsonValue, enc, opts...); err != nil {
+		if err := unmarshalGeneric(cschema, p, jsonValue, enc, unmarshalConf); err != nil {
 			return err
 		}
 	}
 
 	// Only check for missing fields if the IgnoreExtraFields option isn't specified.
-	if !hasIgnoreExtraFields(opts) {
+	if !unmarshalConf.ignoreExtFields {
 		// Go over all JSON fields to make sure that each one is covered
 		// by a data path in the struct.
 		if err := checkDataTreeAgainstPaths(jsonTree, allSchemaPaths); err != nil {

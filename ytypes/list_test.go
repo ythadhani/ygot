@@ -391,31 +391,31 @@ func TestValidateListStructKey(t *testing.T) {
 
 func TestUnmarshalList(t *testing.T) {
 	// nil value
-	if got := unmarshalList(nil, nil, nil, JSONEncoding); got != nil {
+	if got := unmarshalList(nil, nil, nil, JSONEncoding, unmarshalConfig{}); got != nil {
 		t.Errorf("nil value: Unmarshal got error: %v, want error: nil", got)
 	}
 
 	// nil schema
 	wantErr := `list schema is nil`
-	if got, want := errToString(unmarshalList(nil, nil, []struct{}{}, JSONEncoding)), wantErr; got != want {
+	if got, want := errToString(unmarshalList(nil, nil, []struct{}{}, JSONEncoding, unmarshalConfig{})), wantErr; got != want {
 		t.Errorf("nil schema: Unmarshal got error: %v, want error: %v", got, want)
 	}
 
 	// bad parent type
 	wantErr = `unmarshalList for valid-list-schema got parent type struct, expect map, slice ptr or struct ptr`
-	if got, want := errToString(unmarshalList(validListSchema, struct{}{}, []interface{}{}, JSONEncoding)), wantErr; got != want {
+	if got, want := errToString(unmarshalList(validListSchema, struct{}{}, []interface{}{}, JSONEncoding, unmarshalConfig{})), wantErr; got != want {
 		t.Errorf("nil schema: Unmarshal got error: %v, want error: %v", got, want)
 	}
 
 	// bad value type
 	wantErr = `unmarshalContainer for schema valid-list-schema: jsonTree 42 (int): got type int inside container, expect map[string]interface{}`
-	if got, want := errToString(unmarshalList(validListSchema, &struct{}{}, int(42), JSONEncoding)), wantErr; got != want {
+	if got, want := errToString(unmarshalList(validListSchema, &struct{}{}, int(42), JSONEncoding, unmarshalConfig{})), wantErr; got != want {
 		t.Errorf("nil schema: Unmarshal got error: %v, want error: %v", got, want)
 	}
 
 	// bad parent type for unmarshalContainerWithListSchema
 	wantErr = `unmarshalContainerWithListSchema value [], type []interface {}, into parent type struct {}, schema name valid-list-schema: parent must be a struct ptr`
-	if got, want := errToString(unmarshalContainerWithListSchema(validListSchema, struct{}{}, []interface{}{})), wantErr; got != want {
+	if got, want := errToString(unmarshalContainerWithListSchema(validListSchema, struct{}{}, []interface{}{}, unmarshalConfig{})), wantErr; got != want {
 		t.Errorf("nil schema: Unmarshal got error: %v, want error: %v", got, want)
 	}
 }

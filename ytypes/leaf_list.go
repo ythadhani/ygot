@@ -134,7 +134,7 @@ func unmarshalLeafList(schema *yang.Entry, parent interface{}, value interface{}
 		// A new leaf-list update specifies the entire leaf-list, so we should clear its contents if it is non-nil.
 		makeOrClearSliceField(parent, fieldName, Clear)
 		for _, v := range sa.LeaflistVal.GetElement() {
-			if err := unmarshalGeneric(&leafSchema, parent, v, enc); err != nil {
+			if err := unmarshalGeneric(&leafSchema, parent, v, enc, unmarshalConfig{}); err != nil {
 				return err
 			}
 		}
@@ -151,7 +151,7 @@ func unmarshalLeafList(schema *yang.Entry, parent interface{}, value interface{}
 			return nil
 		}
 		for _, leaf := range leafList {
-			if err := unmarshalGeneric(&leafSchema, parent, leaf, enc); err != nil {
+			if err := unmarshalGeneric(&leafSchema, parent, leaf, enc, unmarshalConfig{}); err != nil {
 				return err
 			}
 		}

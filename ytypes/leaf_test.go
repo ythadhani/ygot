@@ -1592,7 +1592,7 @@ func TestUnmarshalLeafJSONEncoding(t *testing.T) {
 			},
 		},
 	}
-	var leafSchemas = []*yang.Entry{
+	leafSchemas := []*yang.Entry{
 		typeToLeafSchema("int8-leaf", yang.Yint8),
 		typeToLeafSchema("uint8-leaf", yang.Yuint8),
 		typeToLeafSchema("int16-leaf", yang.Yint16),
@@ -2237,7 +2237,7 @@ func TestUnmarshalLeafGNMIEncoding(t *testing.T) {
 	}
 	for _, tt := range tests {
 		inParent := &LeafContainerStruct{}
-		err := unmarshalGeneric(tt.inSchema, inParent, tt.inVal, GNMIEncoding)
+		err := unmarshalGeneric(tt.inSchema, inParent, tt.inVal, GNMIEncoding, unmarshalConfig{})
 		if diff := errdiff.Substring(err, tt.wantErr); diff != "" {
 			t.Errorf("%s: unmarshalLeaf(%v, %v, %v, GNMIEncoding): %v", tt.desc, tt.inSchema, inParent, tt.inVal, diff)
 		}
