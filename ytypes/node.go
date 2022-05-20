@@ -446,7 +446,7 @@ func GetNode(schema *yang.Entry, root interface{}, path *gpb.Path, opts ...GetNo
 	return retrieveNode(schema, root, path, nil, retrieveNodeArgs{
 		// We never want to modify the input root, so we specify modifyRoot.
 		modifyRoot:       false,
-		partialKeyMatch:  hasPartialKeyMatch(opts),
+		partialKeyMatch:  hasGetNodePartialKeyMatch(opts),
 		handleWildcards:  hasHandleWildcards(opts),
 		preferShadowPath: hasGetNodePreferShadowPath(opts),
 	})
@@ -458,19 +458,34 @@ type GetNodeOpt interface {
 	IsGetNodeOpt()
 }
 
-// GetPartialKeyMatch specifies that a match within GetNode should be allowed to partially match
-// keys for list entries.
-type GetPartialKeyMatch struct{}
+// PartialKeyMatch specifies that a match within GetNode or SetNode should be allowed to partially
+// match keys for list entries.
+type PartialKeyMatch struct{}
 
 // IsGetNodeOpt implements the GetNodeOpt interface.
-func (*GetPartialKeyMatch) IsGetNodeOpt() {}
+func (*PartialKeyMatch) IsGetNodeOpt() {}
 
-// hasPartialKeyMatch determines whether there is an instance of GetPartialKeyMatch within the supplied
+// IsSetNodeOpt implements the SetNodeOpt interface.
+func (*PartialKeyMatch) IsSetNodeOpt() {}
+
+// hasGetNodePartialKeyMatch determines whether there is an instance of PartialKeyMatch within the supplied
 // GetNodeOpt slice. It is used to determine whether partial key matches should be allowed in an operation
 // involving a GetNode.
-func hasPartialKeyMatch(opts []GetNodeOpt) bool {
+func hasGetNodePartialKeyMatch(opts []GetNodeOpt) bool {
 	for _, o := range opts {
-		if _, ok := o.(*GetPartialKeyMatch); ok {
+		if _, ok := o.(*PartialKeyMatch); ok {
+			return true
+		}
+	}
+	return false
+}
+
+// hasSetNodePartialKeyMatch determines whether there is an instance of PartialKeyMatch within the supplied
+// SetNodeOpt slice. It is used to determine whether partial key matches should be allowed in an operation
+// involving a SetNode.
+func hasSetNodePartialKeyMatch(opts []SetNodeOpt) bool {
+	for _, o := range opts {
+		if _, ok := o.(*PartialKeyMatch); ok {
 			return true
 		}
 	}
@@ -516,6 +531,7 @@ func SetNode(schema *yang.Entry, root interface{}, path *gpb.Path, val interface
 		val:                               val,
 		tolerateJSONInconsistenciesForVal: hasTolerateJSONInconsistencies(opts),
 		preferShadowPath:                  hasSetNodePreferShadowPath(opts),
+		partialKeyMatch:                   hasSetNodePartialKeyMatch(opts),
 	})
 	if err != nil {
 		return err

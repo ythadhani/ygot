@@ -143,7 +143,7 @@ func TestGetNodeFull(t *testing.T) {
 		}(),
 		inSchema: rootSchema,
 		inPath:   mustPath("/interfaces/interface/config/description"),
-		inOpts:   []ytypes.GetNodeOpt{&ytypes.GetPartialKeyMatch{}},
+		inOpts:   []ytypes.GetNodeOpt{&ytypes.PartialKeyMatch{}},
 		wantNodes: []*ytypes.TreeNode{{
 			Path: mustPath("/interfaces/interface[name=eth0]/config/description"),
 			Data: ygot.String("eth0"),
@@ -161,7 +161,7 @@ func TestGetNodeFull(t *testing.T) {
 		}(),
 		inSchema: rootSchema,
 		inPath:   mustPath("/interfaces/interface"),
-		inOpts:   []ytypes.GetNodeOpt{&ytypes.GetPartialKeyMatch{}},
+		inOpts:   []ytypes.GetNodeOpt{&ytypes.PartialKeyMatch{}},
 		wantNodes: []*ytypes.TreeNode{{
 			Path: mustPath("/interfaces/interface[name=eth0]"),
 			Data: &oc.Interface{
