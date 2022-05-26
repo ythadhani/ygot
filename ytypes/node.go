@@ -60,6 +60,9 @@ type retrieveNodeArgs struct {
 	// GoStruct to determine the path elements instead of the
 	// "path" tag, whenever the former is present.
 	preferShadowPath bool
+	// tolerateMissingElements means to not return an error if a node is not
+	// found at the given path.
+	tolerateMissingElements bool
 }
 
 // retrieveNode is an internal function that retrieves the node specified by
@@ -90,7 +93,7 @@ func retrieveNode(schema *yang.Entry, root interface{}, path, traversedPath *gpb
 			Data:   root,
 		}}, nil
 	case util.IsValueNil(root):
-		if args.delete {
+		if args.delete || args.tolerateMissingElements {
 			// No-op in case of a delete on a field whose value is not populated.
 			return nil, nil
 		}
@@ -532,12 +535,13 @@ func SetNode(schema *yang.Entry, root interface{}, path *gpb.Path, val interface
 		tolerateJSONInconsistenciesForVal: hasTolerateJSONInconsistencies(opts),
 		preferShadowPath:                  hasSetNodePreferShadowPath(opts),
 		partialKeyMatch:                   hasSetNodePartialKeyMatch(opts),
+		tolerateMissingElements:           hasTolerateMissingElements(opts),
 	})
 	if err != nil {
 		return err
 	}
 
-	if len(nodes) == 0 {
+	if len(nodes) == 0 && !hasTolerateMissingElements(opts) {
 		return status.Errorf(codes.NotFound, "unable to find any nodes for the given path %v", path)
 	}
 
@@ -581,6 +585,24 @@ func (*TolerateJSONInconsistencies) IsSetNodeOpt() {}
 func hasTolerateJSONInconsistencies(opts []SetNodeOpt) bool {
 	for _, o := range opts {
 		if _, ok := o.(*TolerateJSONInconsistencies); ok {
+			return true
+		}
+	}
+	return false
+}
+
+// TolerateMissingElements signals SetNode to not return an error if a node
+// is not found at the given path.
+type TolerateMissingElements struct{}
+
+// IsSetNodeOpt implements the SetNodeOpt interface.
+func (*TolerateMissingElements) IsSetNodeOpt() {}
+
+// hasTolerateMissingElements determines whether there is an instance of
+// TolerateMissingElements within the supplied SetNodeOpt slice.
+func hasTolerateMissingElements(opts []SetNodeOpt) bool {
+	for _, o := range opts {
+		if _, ok := o.(*TolerateMissingElements); ok {
 			return true
 		}
 	}
