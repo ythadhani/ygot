@@ -60,6 +60,9 @@ type retrieveNodeArgs struct {
 	// GoStruct to determine the path elements instead of the
 	// "path" tag, whenever the former is present.
 	preferShadowPath bool
+	// tolerateMissingElements means to not return an error if a node is not
+	// found at the given path.
+	tolerateMissingElements bool
 }
 
 // retrieveNode is an internal function that retrieves the node specified by
@@ -90,7 +93,7 @@ func retrieveNode(schema *yang.Entry, root interface{}, path, traversedPath *gpb
 			Data:   root,
 		}}, nil
 	case util.IsValueNil(root):
-		if args.delete {
+		if args.delete || args.tolerateMissingElements {
 			// No-op in case of a delete on a field whose value is not populated.
 			return nil, nil
 		}
@@ -446,7 +449,7 @@ func GetNode(schema *yang.Entry, root interface{}, path *gpb.Path, opts ...GetNo
 	return retrieveNode(schema, root, path, nil, retrieveNodeArgs{
 		// We never want to modify the input root, so we specify modifyRoot.
 		modifyRoot:       false,
-		partialKeyMatch:  hasPartialKeyMatch(opts),
+		partialKeyMatch:  hasGetNodePartialKeyMatch(opts),
 		handleWildcards:  hasHandleWildcards(opts),
 		preferShadowPath: hasGetNodePreferShadowPath(opts),
 	})
@@ -458,19 +461,34 @@ type GetNodeOpt interface {
 	IsGetNodeOpt()
 }
 
-// GetPartialKeyMatch specifies that a match within GetNode should be allowed to partially match
-// keys for list entries.
-type GetPartialKeyMatch struct{}
+// PartialKeyMatch specifies that a match within GetNode or SetNode should be allowed to partially
+// match keys for list entries.
+type PartialKeyMatch struct{}
 
 // IsGetNodeOpt implements the GetNodeOpt interface.
-func (*GetPartialKeyMatch) IsGetNodeOpt() {}
+func (*PartialKeyMatch) IsGetNodeOpt() {}
 
-// hasPartialKeyMatch determines whether there is an instance of GetPartialKeyMatch within the supplied
+// IsSetNodeOpt implements the SetNodeOpt interface.
+func (*PartialKeyMatch) IsSetNodeOpt() {}
+
+// hasGetNodePartialKeyMatch determines whether there is an instance of PartialKeyMatch within the supplied
 // GetNodeOpt slice. It is used to determine whether partial key matches should be allowed in an operation
 // involving a GetNode.
-func hasPartialKeyMatch(opts []GetNodeOpt) bool {
+func hasGetNodePartialKeyMatch(opts []GetNodeOpt) bool {
 	for _, o := range opts {
-		if _, ok := o.(*GetPartialKeyMatch); ok {
+		if _, ok := o.(*PartialKeyMatch); ok {
+			return true
+		}
+	}
+	return false
+}
+
+// hasSetNodePartialKeyMatch determines whether there is an instance of PartialKeyMatch within the supplied
+// SetNodeOpt slice. It is used to determine whether partial key matches should be allowed in an operation
+// involving a SetNode.
+func hasSetNodePartialKeyMatch(opts []SetNodeOpt) bool {
+	for _, o := range opts {
+		if _, ok := o.(*PartialKeyMatch); ok {
 			return true
 		}
 	}
@@ -516,12 +534,14 @@ func SetNode(schema *yang.Entry, root interface{}, path *gpb.Path, val interface
 		val:                               val,
 		tolerateJSONInconsistenciesForVal: hasTolerateJSONInconsistencies(opts),
 		preferShadowPath:                  hasSetNodePreferShadowPath(opts),
+		partialKeyMatch:                   hasSetNodePartialKeyMatch(opts),
+		tolerateMissingElements:           hasTolerateMissingElements(opts),
 	})
 	if err != nil {
 		return err
 	}
 
-	if len(nodes) == 0 {
+	if len(nodes) == 0 && !hasTolerateMissingElements(opts) {
 		return status.Errorf(codes.NotFound, "unable to find any nodes for the given path %v", path)
 	}
 
@@ -565,6 +585,24 @@ func (*TolerateJSONInconsistencies) IsSetNodeOpt() {}
 func hasTolerateJSONInconsistencies(opts []SetNodeOpt) bool {
 	for _, o := range opts {
 		if _, ok := o.(*TolerateJSONInconsistencies); ok {
+			return true
+		}
+	}
+	return false
+}
+
+// TolerateMissingElements signals SetNode to not return an error if a node
+// is not found at the given path.
+type TolerateMissingElements struct{}
+
+// IsSetNodeOpt implements the SetNodeOpt interface.
+func (*TolerateMissingElements) IsSetNodeOpt() {}
+
+// hasTolerateMissingElements determines whether there is an instance of
+// TolerateMissingElements within the supplied SetNodeOpt slice.
+func hasTolerateMissingElements(opts []SetNodeOpt) bool {
+	for _, o := range opts {
+		if _, ok := o.(*TolerateMissingElements); ok {
 			return true
 		}
 	}

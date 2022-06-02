@@ -1458,7 +1458,7 @@ func TestGetNode(t *testing.T) {
 			},
 		},
 		inPath: mustPath("/list"),
-		inArgs: []GetNodeOpt{&GetPartialKeyMatch{}},
+		inArgs: []GetNodeOpt{&PartialKeyMatch{}},
 		wantTreeNodes: []*TreeNode{{
 			Data:   &listEntry{Key: ygot.String("one")},
 			Schema: simpleListSchema,
@@ -1474,7 +1474,7 @@ func TestGetNode(t *testing.T) {
 			},
 		},
 		inPath: mustPath("/list"),
-		inArgs: []GetNodeOpt{&GetPartialKeyMatch{}},
+		inArgs: []GetNodeOpt{&PartialKeyMatch{}},
 		wantTreeNodes: []*TreeNode{{
 			Data:   &listEntry{Key: ygot.String("one")},
 			Schema: simpleListSchema,
@@ -1629,7 +1629,7 @@ func TestGetNode(t *testing.T) {
 			},
 		},
 		inPath: mustPath("/multilist[keyone=1]"),
-		inArgs: []GetNodeOpt{&GetPartialKeyMatch{}},
+		inArgs: []GetNodeOpt{&PartialKeyMatch{}},
 		wantTreeNodes: []*TreeNode{{
 			Data:   &multiListEntry{Keyone: ygot.Uint32(1), Keytwo: ygot.Uint32(2)},
 			Schema: multiKeyListSchema,
@@ -1981,7 +1981,8 @@ func TestSetNode(t *testing.T) {
 				LeaflistVal: &gpb.ScalarArray{
 					Element: []*gpb.TypedValue{
 						{Value: &gpb.TypedValue_IntVal{IntVal: 42}},
-					}},
+					},
+				},
 			}},
 			inOpts:   []SetNodeOpt{&InitMissingElements{}},
 			wantLeaf: []int32{42},
@@ -2008,7 +2009,8 @@ func TestSetNode(t *testing.T) {
 				LeaflistVal: &gpb.ScalarArray{
 					Element: []*gpb.TypedValue{
 						{Value: &gpb.TypedValue_IntVal{IntVal: 43}},
-					}},
+					},
+				},
 			}},
 			inOpts:   []SetNodeOpt{&InitMissingElements{}},
 			wantLeaf: []int32{43},
