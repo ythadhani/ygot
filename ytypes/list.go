@@ -19,7 +19,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/kylelemons/godebug/pretty"
 	"github.com/openconfig/goyang/pkg/yang"
 	"github.com/openconfig/ygot/util"
 )
@@ -362,7 +361,7 @@ func unmarshalList(schema *yang.Entry, parent interface{}, jsonList interface{},
 			return err
 		}
 	}
-	util.DbgPrint("list after unmarshal:\n%s\n", pretty.Sprint(parent))
+	// util.DbgPrint("list after unmarshal:\n%s\n", pretty.Sprint(parent))
 
 	return nil
 }
