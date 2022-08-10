@@ -15,7 +15,6 @@
 package annotations
 
 import (
-	"encoding/json"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -28,6 +27,7 @@ import (
 	gpb "github.com/openconfig/gnmi/proto/gnmi"
 	"github.com/openconfig/ygot/integration_tests/annotations/apb"
 	"github.com/openconfig/ygot/integration_tests/annotations/proto2apb"
+	json "github.com/openconfig/ygot/yjson"
 )
 
 type IncludedProto3 struct {

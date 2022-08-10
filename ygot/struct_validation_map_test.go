@@ -15,12 +15,13 @@
 package ygot
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	json "github.com/openconfig/ygot/yjson"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/kylelemons/godebug/pretty"

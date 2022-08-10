@@ -13,11 +13,11 @@ Imported modules were sourced from:
 package ocstructs
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 
 	"github.com/openconfig/ygot/ygot"
+	json "github.com/openconfig/ygot/yjson"
 )
 
 // Binary is a type that is used for fields that have a YANG type of

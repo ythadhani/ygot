@@ -16,12 +16,13 @@ package ygen
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"sort"
 	"testing"
+
+	json "github.com/openconfig/ygot/yjson"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -342,10 +343,12 @@ func TestFindMappableEntities(t *testing.T) {
 		},
 		wantCompressed: map[string][]string{
 			"structs": {"container"},
-			"enums":   {"choice-case-container-leaf", "choice-case2-leaf", "direct"}},
+			"enums":   {"choice-case-container-leaf", "choice-case2-leaf", "direct"},
+		},
 		wantUncompressed: map[string][]string{
 			"structs": {"container"},
-			"enums":   {"choice-case-container-leaf", "choice-case2-leaf", "direct"}},
+			"enums":   {"choice-case-container-leaf", "choice-case2-leaf", "direct"},
+		},
 	}}
 
 	for _, tt := range tests {
@@ -790,6 +793,7 @@ func TestSimpleStructs(t *testing.T) {
 				GoyangImportPath:     "foo/goyang",
 				YgotImportPath:       "bar/ygot",
 				YtypesImportPath:     "baz/ytypes",
+				JsonImportPath:       "qux/yjson",
 				GenerateSimpleUnions: true,
 			},
 		},
@@ -2404,7 +2408,6 @@ func TestGenerateProto3(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			sortedPkgNames := func(pkgs map[string]string) []string {
 				wantPkgs := []string{}
 				for k := range tt.wantOutputFiles {

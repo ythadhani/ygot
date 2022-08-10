@@ -24,13 +24,13 @@ package ygot
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/openconfig/ygot/util"
+	json "github.com/openconfig/ygot/yjson"
 )
 
 const (

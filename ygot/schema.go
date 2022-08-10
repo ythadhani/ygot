@@ -17,10 +17,10 @@ package ygot
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"io/ioutil"
 
 	"github.com/openconfig/goyang/pkg/yang"
+	json "github.com/openconfig/ygot/yjson"
 )
 
 // GzipToSchema takes an input byte slice, and returns it as

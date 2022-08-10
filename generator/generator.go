@@ -77,6 +77,7 @@ var (
 	trimEnumOpenConfigPrefix             = flag.Bool("trim_enum_openconfig_prefix", false, `If set to true when compressPaths=true, the organizational prefix "openconfig-" is trimmed from the module part of the name of enumerated names in the generated code`)
 	includeDescriptions                  = flag.Bool("include_descriptions", false, "If set to true when generateSchema=true, the YANG descriptions will be included in the generated code artefact.")
 	enumOrgPrefixesToTrim                []string
+	jsonImportPath                       = flag.String("json_path", genutil.GoDefaultJsonImportPath, "The import path to use for json.")
 
 	// Flags used for GoStruct generation only.
 	generateFakeRoot        = flag.Bool("generate_fakeroot", false, "If set to true, a fake element at the root of the data tree is generated. By default the fake root entity is named Device, its name can be controlled with the fakeroot_name flag.")
@@ -351,6 +352,7 @@ func main() {
 				YgotImportPath:                      *ygotImportPath,
 				YtypesImportPath:                    *ytypesImportPath,
 				GoyangImportPath:                    *goyangImportPath,
+				JsonImportPath:                      *jsonImportPath,
 				GenerateRenameMethod:                *generateRename,
 				AddAnnotationFields:                 *addAnnotations,
 				AnnotationPrefix:                    *annotationPrefix,

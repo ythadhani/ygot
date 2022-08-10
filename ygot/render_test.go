@@ -16,10 +16,11 @@ package ygot
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
+
+	json "github.com/openconfig/ygot/yjson"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -744,7 +745,6 @@ func TestSliceToScalarArray(t *testing.T) {
 
 	for _, tt := range tests {
 		got, err := sliceToScalarArray(tt.in)
-
 		if err != nil {
 			if !tt.wantErr {
 				t.Errorf("%s: sliceToScalarArray(%v): got unexpected error: %v", tt.name, tt.in, err)
@@ -1361,7 +1361,7 @@ func TestTogNMINotifications(t *testing.T) {
 				{String("arthur")},
 			},
 		},
-		wantErr: true, //unimplemented.
+		wantErr: true, // unimplemented.
 	}, {
 		name:        "invalid element in leaf-list",
 		inTimestamp: 42,
@@ -2482,7 +2482,8 @@ func TestConstructJSON(t *testing.T) {
 	}, {
 		name: "presence container example",
 		in: &routerPresenceExample{
-			Bgp: &exampleBgp{}},
+			Bgp: &exampleBgp{},
+		},
 		wantIETF: map[string]interface{}{
 			"bgp": map[string]interface{}{},
 		},
@@ -2965,7 +2966,6 @@ type uFieldMulti struct {
 func (*uFieldMulti) IsU() {}
 
 func TestUnwrapUnionInterfaceValue(t *testing.T) {
-
 	// This is the only unwrap test that is used by the simple union API
 	// (i.e. unsupported types).
 	testZero := &unionTestOne{
@@ -3438,16 +3438,19 @@ func TestEncodeTypedValue(t *testing.T) {
 	}, {
 		name:  "slice union encoding",
 		inVal: []exampleUnion{testutil.UnionString("hello"), testutil.UnionInt64(42), testutil.UnionFloat64(3.14), testBinary, testutil.UnionBool(true), testutil.YANGEmpty(false)},
-		want: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_LeaflistVal{
-			&gnmipb.ScalarArray{
-				Element: []*gnmipb.TypedValue{
-					{Value: &gnmipb.TypedValue_StringVal{"hello"}},
-					{Value: &gnmipb.TypedValue_IntVal{42}},
-					{Value: &gnmipb.TypedValue_FloatVal{3.14}},
-					{Value: &gnmipb.TypedValue_BytesVal{[]byte(base64testString)}},
-					{Value: &gnmipb.TypedValue_BoolVal{true}},
-					{Value: &gnmipb.TypedValue_BoolVal{false}}},
-			}},
+		want: &gnmipb.TypedValue{
+			Value: &gnmipb.TypedValue_LeaflistVal{
+				&gnmipb.ScalarArray{
+					Element: []*gnmipb.TypedValue{
+						{Value: &gnmipb.TypedValue_StringVal{"hello"}},
+						{Value: &gnmipb.TypedValue_IntVal{42}},
+						{Value: &gnmipb.TypedValue_FloatVal{3.14}},
+						{Value: &gnmipb.TypedValue_BytesVal{[]byte(base64testString)}},
+						{Value: &gnmipb.TypedValue_BoolVal{true}},
+						{Value: &gnmipb.TypedValue_BoolVal{false}},
+					},
+				},
+			},
 		},
 	}, {
 		name: "struct val - ietf json",

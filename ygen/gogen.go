@@ -342,11 +342,11 @@ Imported modules were sourced from:
 package {{ .PackageName }}
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 
 	"{{ .GoOptions.YgotImportPath }}"
+	json "{{ .GoOptions.JsonImportPath }}"
 
 {{- if .GenerateSchema }}
 	"{{ .GoOptions.GoyangImportPath }}"
@@ -1240,6 +1240,9 @@ func writeGoHeader(yangFiles, includePaths []string, cfg GeneratorConfig, rootNa
 	}
 	if cfg.GoOptions.GNMIProtoPath == "" {
 		cfg.GoOptions.GNMIProtoPath = genutil.GoDefaultGNMIImportPath
+	}
+	if cfg.GoOptions.JsonImportPath == "" {
+		cfg.GoOptions.JsonImportPath = genutil.GoDefaultJsonImportPath
 	}
 
 	// Build input to the header template which stores parameters which are included

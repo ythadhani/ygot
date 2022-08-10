@@ -15,7 +15,6 @@
 package ygot
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -26,6 +25,7 @@ import (
 	"github.com/openconfig/gnmi/value"
 	"github.com/openconfig/ygot/util"
 	"github.com/openconfig/ygot/yext"
+	json "github.com/openconfig/ygot/yjson"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/proto"
 

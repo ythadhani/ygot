@@ -17,13 +17,14 @@ package validate
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
+
+	json "github.com/openconfig/ygot/yjson"
 
 	"github.com/openconfig/ygot/testutil"
 	"github.com/openconfig/ygot/util"
@@ -64,11 +65,9 @@ const (
 	testRoot string = "."
 )
 
-var (
-	// testErrOutput controls whether expect error test cases log the error
-	// values.
-	testErrOutput = false
-)
+// testErrOutput controls whether expect error test cases log the error
+// values.
+var testErrOutput = false
 
 // testErrLog logs err to t if err != nil and global value testErrOutput is set.
 func testErrLog(t *testing.T, desc string, err error) {
@@ -731,7 +730,6 @@ func TestUnmarshal(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-
 			j, err := ioutil.ReadFile(filepath.Join(testRoot, "testdata", tt.jsonFilePath))
 			if err != nil {
 				t.Errorf("%s: ioutil.ReadFile(%s): could not open file: %v", tt.desc, tt.jsonFilePath, err)

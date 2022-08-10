@@ -40,6 +40,9 @@ const (
 	// GoDefaultGNMIImportPath is the default import path that is used for the gNMI generated
 	// Go protobuf code in the generated output.
 	GoDefaultGNMIImportPath = "github.com/openconfig/gnmi/proto/gnmi"
+	// GoDefaultJsonImportPath is the default import path used for the json library
+	// in the generated code.
+	GoDefaultJsonImportPath = "github.com/openconfig/ygot/yjson"
 )
 
 // WriteIfNotEmpty writes the string s to b if it has a non-zero length.

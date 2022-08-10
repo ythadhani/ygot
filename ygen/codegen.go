@@ -180,6 +180,9 @@ type GoOpts struct {
 	// YtypesImportPath specifies the path to ytypes library that should be used
 	// in the generated code.
 	YtypesImportPath string
+	// JsonImportPath specifies the path to json library that should be used
+	// in the generated code.
+	JsonImportPath string
 	// GenerateRenameMethod specifies whether methods for renaming list entries
 	// should be generated in the output Go code.
 	GenerateRenameMethod bool

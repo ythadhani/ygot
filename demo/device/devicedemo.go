@@ -18,7 +18,7 @@
 package main
 
 import (
-	"encoding/json"
+	"json "github.com/openconfig/ygot/yjson""
 	"fmt"
 
 	log "github.com/golang/glog"

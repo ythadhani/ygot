@@ -13,11 +13,11 @@ Imported modules were sourced from:
 package ocstructs
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 
 	"github.com/openconfig/ygot/ygot"
+	json "github.com/openconfig/ygot/yjson"
 	"github.com/openconfig/goyang/pkg/yang"
 	"github.com/openconfig/ygot/ytypes"
 )

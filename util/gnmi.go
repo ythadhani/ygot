@@ -15,7 +15,6 @@
 package util
 
 import (
-	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -24,6 +23,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	gpb "github.com/openconfig/gnmi/proto/gnmi"
+	json "github.com/openconfig/ygot/yjson"
 )
 
 // PathMatchesPrefix reports whether prefix is a prefix of path.

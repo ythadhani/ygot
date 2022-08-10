@@ -12,11 +12,11 @@ Imported modules were sourced from:
 package ocstructs
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 
 	"bar/ygot"
+	json "qux/yjson"
 	"foo/goyang"
 	"baz/ytypes"
 )

@@ -15,10 +15,11 @@
 package ygot
 
 import (
-	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
+
+	json "github.com/openconfig/ygot/yjson"
 
 	"github.com/openconfig/goyang/pkg/yang"
 	"github.com/openconfig/ygot/testutil"

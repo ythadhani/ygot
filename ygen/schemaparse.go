@@ -17,12 +17,12 @@ package ygen
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/openconfig/goyang/pkg/yang"
 	"github.com/openconfig/ygot/util"
+	json "github.com/openconfig/ygot/yjson"
 )
 
 // buildJSON tree takes an input set of modules expressed as a slice of yang.Entry

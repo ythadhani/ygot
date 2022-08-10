@@ -17,7 +17,6 @@
 package testutil
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"sort"
@@ -29,6 +28,7 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 
 	gnmipb "github.com/openconfig/gnmi/proto/gnmi"
+	json "github.com/openconfig/ygot/yjson"
 )
 
 // ComparerOpt is an interface that all comparison options must implement.

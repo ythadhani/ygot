@@ -15,8 +15,9 @@
 package ytypes
 
 import (
-	"encoding/json"
 	"testing"
+
+	json "github.com/openconfig/ygot/yjson"
 
 	"github.com/kylelemons/godebug/pretty"
 	"github.com/openconfig/goyang/pkg/yang"

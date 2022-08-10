@@ -16,10 +16,11 @@ package ytypes
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
+
+	json "github.com/openconfig/ygot/yjson"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/openconfig/gnmi/errdiff"
