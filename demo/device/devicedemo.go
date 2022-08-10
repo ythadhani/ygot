@@ -18,8 +18,9 @@
 package main
 
 import (
-	"json "github.com/openconfig/ygot/yjson""
 	"fmt"
+
+	json "github.com/openconfig/ygot/yjson"
 
 	log "github.com/golang/glog"
 	oc "github.com/openconfig/ygot/exampleoc"
