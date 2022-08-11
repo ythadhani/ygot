@@ -56,7 +56,7 @@ func ShadowSchemaPaths(f reflect.StructField) [][]string {
 
 // RelativeSchemaPath returns a path to the schema for the struct field f.
 // Paths are embedded in the "path" struct tag and can be either simple:
-//   e.g. "path:a"
+//  e.g. "path:a"
 // or composite (if path compression is used) e.g.
 //   e.g. "path:config/a|a"
 // In the latter case, this function returns {"config", "a"}, because only the
