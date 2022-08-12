@@ -58,12 +58,28 @@ jobs:
         run: go build -v ./...
         working-directory: go/src/github.com/openconfig/ygot
 
-      - name: Run Tests
+      - name: Run Tests (encoding/json)
         run: go test -v ./...
         working-directory: go/src/github.com/openconfig/ygot
 
-      - name: Run race tests
+      - name: Run Tests (github.com/goccy/go-json)
+        run: go test -tags go_json -v ./...
+        working-directory: go/src/github.com/openconfig/ygot
+
+      - name: Run Tests (github.com/json-iterator/go)
+        run: go test -tags jsoniter -v ./...
+        working-directory: go/src/github.com/openconfig/ygot
+
+      - name: Run race tests (encoding/json)
         run:  go test -race -v ./...
+        working-directory: go/src/github.com/openconfig/ygot
+
+      - name: Run race tests (github.com/goccy/go-json)
+        run:  go test -tags go_json -race -v ./...
+        working-directory: go/src/github.com/openconfig/ygot
+
+      - name: Run race tests (github.com/json-iterator/go)
+        run:  go test -tags jsoniter -race -v ./...
         working-directory: go/src/github.com/openconfig/ygot
 
       - name: Check that Go integration test files compile
