@@ -507,7 +507,7 @@ var ΓModelData = []*gpb.ModelData{
 // {{ .StructName }} represents the {{ .YANGPath }} YANG schema element.
 type {{ .StructName }} struct {
 {{- range $idx, $field := .Fields }}
-    {{- if $field.Description }}
+	{{- if $field.Description }}
 	/* {{ $field.Description }} */
 	{{- end }}
 	{{- if $field.IsScalarField }}
