@@ -248,6 +248,12 @@ type GoOpts struct {
 	// The extension keyword and argument are comma-separated.
 	// Refer: https://datatracker.ietf.org/doc/html/rfc7950#section-7.19
 	GenerateExtensionTags bool
+	// AddDescriptionsAsComments adds YANG descriptions as comments to generated code. Comments
+	// are added above struct fields and enclosed within opening tag (/*) and closing tag (*/).
+	AddDescriptionsAsComments bool
+	// Only YANG descriptions starting with the string 'Deprecated' are added as comments.
+	// All others are dropped. This is meaningful only when used alongisde AddDescriptionsAsComments.
+	RetainOnlyDeprecationComments bool
 }
 
 // ProtoOpts stores Protobuf specific options for the code generation library.

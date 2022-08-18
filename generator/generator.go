@@ -106,9 +106,11 @@ var (
 	packageSuffix           = flag.String("path_struct_package_suffix", "path", "Suffix to append to generated Go package names, when split_pathstructs_by_module=true.")
 
 	// Nokia-defined flags
-	generateSwaggerCompliantCode = flag.Bool("generate_swagger_compliant_code", false, "Whether to generate tag keys: swaggertype, enums. Also, keyed lists would be modeled as slices.")
-	generateJsonTags             = flag.Bool("generate_json_tags", false, "Whether to generate tag key: json")
-	generateExtensionTags        = flag.Bool("generate_extension_tags", false, "Whether to generate tag key: extensions")
+	generateSwaggerCompliantCode  = flag.Bool("generate_swagger_compliant_code", false, "Whether to generate tag keys: swaggertype, enums. Also, keyed lists would be modeled as slices.")
+	generateJsonTags              = flag.Bool("generate_json_tags", false, "Whether to generate tag key: json")
+	generateExtensionTags         = flag.Bool("generate_extension_tags", false, "Whether to generate tag key: extensions")
+	addDescriptionsAsComments     = flag.Bool("descriptions_as_comments", false, "Add YANG descriptions as comments to generated code. Comments are added above struct fields and enclosed within opening tag (/*) and closing tag (*/).")
+	retainOnlyDeprecationComments = flag.Bool("retain_only_deprecation_comments", false, "Only comments starting with the string 'Deprecated' are retained. All others are dropped. This flag is meaningful only when YANG descriptions are added as comments.")
 )
 
 // writeGoCodeSingleFile takes a ygen.GeneratedGoCode struct and writes the Go code
@@ -365,6 +367,8 @@ func main() {
 				GenerateSwaggerCompliantCode:        *generateSwaggerCompliantCode,
 				GenerateJsonTags:                    *generateJsonTags,
 				GenerateExtensionTags:               *generateExtensionTags,
+				AddDescriptionsAsComments:           *addDescriptionsAsComments,
+				RetainOnlyDeprecationComments:       *retainOnlyDeprecationComments,
 			},
 		})
 
