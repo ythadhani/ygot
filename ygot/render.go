@@ -1184,10 +1184,13 @@ func structJSON(s GoStruct, parentMod string, args jsonOutputConfig) (map[string
 		}
 
 		if extensions, hasExtensions := fType.Tag.Lookup("extensions"); hasExtensions && args.extHandler != nil {
-			value, err = yext.ProcessExtensions(value, extensions, args.extHandler)
-			if err != nil {
-				errs.Add(err)
-				continue
+			supportedExtensions := yext.GetSupportedExtensions(extensions, args.extHandler)
+			if len(supportedExtensions) > 0 {
+				value, err = args.extHandler.Process(supportedExtensions, value)
+				if err != nil {
+					errs.Add(fmt.Errorf("failed to process YANG extensions: %s, error: %s", supportedExtensions, err.Error()))
+					continue
+				}
 			}
 		}
 

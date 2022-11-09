@@ -209,11 +209,12 @@ func unmarshalStruct(schema *yang.Entry, parent interface{}, jsonTree map[string
 			return err
 		}
 
-		if extensions, hasExtensions := ft.Tag.Lookup("extensions"); hasExtensions {
-			if unmarshalConf.extHandler != nil {
-				jsonValue, err = yext.ProcessExtensions(jsonValue, extensions, unmarshalConf.extHandler)
+		if extensions, hasExtensions := ft.Tag.Lookup("extensions"); hasExtensions && unmarshalConf.extHandler != nil {
+			supportedExtensions := yext.GetSupportedExtensions(extensions, unmarshalConf.extHandler)
+			if len(supportedExtensions) > 0 {
+				jsonValue, err = unmarshalConf.extHandler.Process(supportedExtensions, jsonValue)
 				if err != nil {
-					return err
+					return fmt.Errorf("failed to process YANG extensions: %s, error: %s", supportedExtensions, err.Error())
 				}
 			}
 		}
