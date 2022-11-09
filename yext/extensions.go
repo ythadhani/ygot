@@ -12,7 +12,7 @@ type ExtensionParams struct {
 	Keyword, Argument string
 }
 
-func ProcessExtensions(value interface{}, extensions string, extHandler ExtensionHandler) (interface{}, error) {
+func GetSupportedExtensions(extensions string, extHandler ExtensionHandler) []ExtensionParams {
 	extSlice := strings.Split(extensions, ";")
 	var extensionList []ExtensionParams = []ExtensionParams{}
 	for _, ext := range extSlice {
@@ -27,8 +27,5 @@ func ProcessExtensions(value interface{}, extensions string, extHandler Extensio
 			extensionList = append(extensionList, extension)
 		}
 	}
-	if len(extensionList) > 0 {
-		return extHandler.Process(extensionList, value)
-	}
-	return value, nil
+	return extensionList
 }
