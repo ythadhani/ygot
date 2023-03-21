@@ -19,7 +19,6 @@ import (
 	"reflect"
 	"strings"
 
-	log "github.com/golang/glog"
 	"github.com/openconfig/goyang/pkg/yang"
 	"github.com/openconfig/ygot/util"
 	"github.com/openconfig/ygot/yext"
@@ -30,7 +29,7 @@ import (
 
 // validateContainer validates each of the values in the map, keyed by the list
 // Key value, against the given list schema.
-func validateContainer(schema *yang.Entry, value ygot.GoStruct) util.Errors {
+func validateContainer(schema *yang.Entry, value ygot.ValidatedGoStruct) util.Errors {
 	var errors []error
 	if util.IsValueNil(value) {
 		return nil
@@ -158,7 +157,6 @@ func unmarshalStruct(schema *yang.Entry, parent interface{}, jsonTree map[string
 		// Skip annotation fields since they do not have a schema.
 		// TODO(robjs): Implement unmarshalling annotations.
 		if util.IsYgotAnnotation(ft) {
-			log.Infof("ignoring annotation field %s during unmarshalling, unsupported", ft.Name)
 			// We need to find the paths that we should have unmarshalled here to avoid
 			// throwing errors to users whilst there is a TODO above.
 			paths, err := pathTagFromField(ft)
@@ -173,7 +171,11 @@ func unmarshalStruct(schema *yang.Entry, parent interface{}, jsonTree map[string
 			continue
 		}
 
-		cschema, err := util.ChildSchema(schema, ft)
+		childSchemaFn := util.ChildSchema
+		if hasPreferShadowPath(opts) {
+			childSchemaFn = util.ChildSchemaPreferShadow
+		}
+		cschema, err := childSchemaFn(schema, ft)
 		if err != nil {
 			return err
 		}
@@ -204,7 +206,7 @@ func unmarshalStruct(schema *yang.Entry, parent interface{}, jsonTree map[string
 		}
 		allSchemaPaths = append(allSchemaPaths, ssp...)
 
-		jsonValue, err := getJSONTreeValForField(schema, cschema, ft, jsonTree)
+		jsonValue, err := getJSONTreeValForField(schema, cschema, ft, jsonTree, hasPreferShadowPath(opts))
 		if err != nil {
 			return err
 		}

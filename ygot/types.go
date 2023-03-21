@@ -24,15 +24,17 @@ import (
 // the expectations of the interface - such as the fields being tagged with
 // appropriate metadata (tags) that allow mapping of the struct into a YANG
 // schematree.
+//
+// Deprecated: ValidatedGoStruct contains all methods that are supported by all
+// generated GoStructs regardless of generation flags.
 type GoStruct interface {
 	// IsYANGGoStruct is a marker method that indicates that the struct
 	// implements the GoStruct interface.
 	IsYANGGoStruct()
 }
 
-// ValidatedGoStruct is an interface which can be implemented by Go structs
-// that are generated to represent a YANG container or list member that have
-// the corresponding function to be validated against the a YANG schema.
+// ValidatedGoStruct is an interface implemented by all Go structs (YANG
+// container or lists).
 type ValidatedGoStruct interface {
 	// GoStruct ensures that the interface for a standard GoStruct
 	// is embedded.
@@ -40,10 +42,20 @@ type ValidatedGoStruct interface {
 	// Validate compares the contents of the implementing struct against
 	// the YANG schema, and returns an error if the struct's contents
 	// are not valid, or nil if the struct complies with the schema.
-	Validate(...ValidationOption) error
+	ΛValidate(...ValidationOption) error
 	// ΛEnumTypeMap returns the set of enumerated types that are contained
 	// in the generated code.
 	ΛEnumTypeMap() map[string][]reflect.Type
+	// ΛBelongingModule returns the module in which the GoStruct was
+	// defined per https://datatracker.ietf.org/doc/html/rfc7951#section-4.
+	// If the GoStruct is the fakeroot, then the empty string will be
+	// returned.
+	//
+	// Strictly, this value is the name of the module having the same XML
+	// namespace as this node.
+	// For more information on YANG's XML namespaces see
+	// https://datatracker.ietf.org/doc/html/rfc7950#section-5.3
+	ΛBelongingModule() string
 }
 
 // ValidationOption is an interface that is implemented for each struct

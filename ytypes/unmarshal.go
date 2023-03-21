@@ -60,29 +60,28 @@ func (*IgnoreExtraFields) IsExtensionSupported(ext yext.ExtensionParams) bool {
 	return false
 }
 
+// IsUnmarshalOpt marks PreferShadowPath as a valid UnmarshalOpt.
+// See PreferShadowPath's definition in node.go.
+func (*PreferShadowPath) IsUnmarshalOpt() {}
+
+func (*PreferShadowPath) Process(extensions []yext.ExtensionParams, inputData ...interface{}) (interface{}, error) {
+	return nil, nil
+}
+
+func (*PreferShadowPath) IsExtensionHandler() bool {
+	return false
+}
+
+func (*PreferShadowPath) IsExtensionSupported(ext yext.ExtensionParams) bool {
+	return false
+}
+
 // Unmarshal recursively unmarshals JSON data tree in value into the given
 // parent, using the given schema. Any values already in the parent that are
 // not present in value are preserved. If provided schema is a leaf or leaf
 // list, parent must be referencing the parent GoStruct.
 func Unmarshal(schema *yang.Entry, parent interface{}, value interface{}, opts ...UnmarshalOpt) error {
-	var (
-		ignoreExtFields bool
-		extHandler      yext.ExtensionHandler
-	)
-	for _, o := range opts {
-		switch o.(type) {
-		case *IgnoreExtraFields:
-			ignoreExtFields = true
-		default:
-			if isExt := o.IsExtensionHandler(); isExt {
-				extHandler = o
-			}
-		}
-	}
-	return unmarshalGeneric(schema, parent, value, JSONEncoding, unmarshalConfig{
-		ignoreExtFields: ignoreExtFields,
-		extHandler:      extHandler,
-	})
+	return unmarshalGeneric(schema, parent, value, JSONEncoding, opts...)
 }
 
 // Encoding specifies how the value provided to UnmarshalGeneric function is encoded.
@@ -108,7 +107,7 @@ const (
 // encoding type into the parent with the provided schema. When encoding mode
 // is GNMIEncoding, the schema needs to be pointing to a leaf or leaf list
 // schema.
-func unmarshalGeneric(schema *yang.Entry, parent interface{}, value interface{}, enc Encoding, unmarshalConf unmarshalConfig) error {
+func unmarshalGeneric(schema *yang.Entry, parent interface{}, value interface{}, enc Encoding, opts ...UnmarshalOpt) error {
 	util.Indent()
 	defer util.Dedent()
 
@@ -123,15 +122,46 @@ func unmarshalGeneric(schema *yang.Entry, parent interface{}, value interface{},
 
 	switch {
 	case schema.IsLeaf():
-		return unmarshalLeaf(schema, parent, value, enc)
+		return unmarshalLeaf(schema, parent, value, enc, opts...)
 	case schema.IsLeafList():
-		return unmarshalLeafList(schema, parent, value, enc)
+		return unmarshalLeafList(schema, parent, value, enc, opts...)
 	case schema.IsList():
-		return unmarshalList(schema, parent, value, enc, unmarshalConf)
+		return unmarshalList(schema, parent, value, enc, opts...)
 	case schema.IsChoice():
 		return fmt.Errorf("cannot pass choice schema %s to Unmarshal", schema.Name)
 	case schema.IsContainer():
-		return unmarshalContainer(schema, parent, value, enc, unmarshalConf)
+		return unmarshalContainer(schema, parent, value, enc, opts...)
 	}
 	return fmt.Errorf("unknown schema type for type %T, value %v", value, value)
+}
+
+// hasIgnoreExtraFields determines whether the supplied slice of UnmarshalOpts contains
+// the IgnoreExtraFields option.
+func hasIgnoreExtraFields(opts []UnmarshalOpt) bool {
+	for _, o := range opts {
+		if _, ok := o.(*IgnoreExtraFields); ok {
+			return true
+		}
+	}
+	return false
+}
+
+// hasPreferShadowPath determines whether the supplied slice of UnmarshalOpts
+// contains the PreferShadowPath option.
+func hasPreferShadowPath(opts []UnmarshalOpt) bool {
+	for _, o := range opts {
+		if _, ok := o.(*PreferShadowPath); ok {
+			return true
+		}
+	}
+	return false
+}
+
+func getUnmarshalExtensionHandler(opts []UnmarshalOpt) yext.ExtensionHandler {
+	for _, o := range opts {
+		if isExt := o.IsExtensionHandler(); isExt {
+			return o
+		}
+	}
+	return nil
 }

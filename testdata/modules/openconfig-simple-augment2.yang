@@ -1,0 +1,12 @@
+module openconfig-simple-augment2 {
+  prefix "a";
+  namespace "urn:a";
+
+  import openconfig-simple { prefix "t"; }
+  import openconfig-simple-grouping { prefix "g"; }
+
+  augment "/t:parent/child/state" {
+    uses g:stuff;
+  }
+}
+

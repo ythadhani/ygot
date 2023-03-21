@@ -74,10 +74,12 @@ type UnionUnsupported struct {
 
 var (
 	SchemaTree map[string]*yang.Entry
+	ΛEnumTypes map[string][]reflect.Type
 )
 
 func init() {
 	var err error
+	initΛEnumTypes()
 	if SchemaTree, err = UnzipSchema(); err != nil {
 		panic("schema error: " +  err.Error())
 	}
@@ -114,7 +116,7 @@ func UnzipSchema() (map[string]*yang.Entry, error) {
 // unmarshaled. The supplied options (opts) are used to control the behaviour
 // of the unmarshal function - for example, determining whether errors are
 // thrown for unknown fields in the input JSON.
-func Unmarshal(data []byte, destStruct ygot.GoStruct, opts ...ytypes.UnmarshalOpt) error {
+func Unmarshal(data []byte, destStruct ygot.ValidatedGoStruct, opts ...ytypes.UnmarshalOpt) error {
 	tn := reflect.TypeOf(destStruct).Elem().Name()
 	schema, ok := SchemaTree[tn]
 	if !ok {
@@ -138,7 +140,7 @@ type Parent struct {
 func (*Parent) IsYANGGoStruct() {}
 
 // Validate validates s against the YANG schema corresponding to its type.
-func (t *Parent) Validate(opts ...ygot.ValidationOption) error {
+func (t *Parent) ΛValidate(opts ...ygot.ValidationOption) error {
 	if err := ytypes.Validate(SchemaTree["Parent"], t, opts...); err != nil {
 		return err
 	}
@@ -148,6 +150,12 @@ func (t *Parent) Validate(opts ...ygot.ValidationOption) error {
 // ΛEnumTypeMap returns a map, keyed by YANG schema path, of the enumerated types
 // that are included in the generated code.
 func (t *Parent) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumTypes }
+
+// ΛBelongingModule returns the name of the module that defines the namespace
+// of Parent.
+func (*Parent) ΛBelongingModule() string {
+	return "enum-multi-module"
+}
 
 // Parent_Child represents the /enum-multi-module/parent/child YANG schema element.
 type Parent_Child struct {
@@ -161,7 +169,7 @@ type Parent_Child struct {
 func (*Parent_Child) IsYANGGoStruct() {}
 
 // Validate validates s against the YANG schema corresponding to its type.
-func (t *Parent_Child) Validate(opts ...ygot.ValidationOption) error {
+func (t *Parent_Child) ΛValidate(opts ...ygot.ValidationOption) error {
 	if err := ytypes.Validate(SchemaTree["Parent_Child"], t, opts...); err != nil {
 		return err
 	}
@@ -171,6 +179,12 @@ func (t *Parent_Child) Validate(opts ...ygot.ValidationOption) error {
 // ΛEnumTypeMap returns a map, keyed by YANG schema path, of the enumerated types
 // that are included in the generated code.
 func (t *Parent_Child) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumTypes }
+
+// ΛBelongingModule returns the name of the module that defines the namespace
+// of Parent_Child.
+func (*Parent_Child) ΛBelongingModule() string {
+	return "enum-multi-module"
+}
 
 // Parent_Child_InlineMultiValue_Union is an interface that is implemented by valid types for the union
 // for the leaf /enum-multi-module/parent/child/state/inline-multi-value within the YANG schema.
@@ -510,7 +524,8 @@ var (
 // ΛEnumTypes is a map, keyed by a YANG schema path, of the enumerated types that
 // correspond with the leaf. The type is represented as a reflect.Type. The naming
 // of the map ensures that there are no clashes with valid YANG identifiers.
-var ΛEnumTypes = map[string][]reflect.Type{
+func initΛEnumTypes(){
+  ΛEnumTypes = map[string][]reflect.Type{
 	"/parent/child/state/inline-multi-value": []reflect.Type{
 		reflect.TypeOf((E_EnumTypes_Td_Enum)(0)),
 		reflect.TypeOf((E_Child_InlineMultiValue)(0)),
@@ -523,4 +538,5 @@ var ΛEnumTypes = map[string][]reflect.Type{
 		reflect.TypeOf((E_EnumTypes_Td2_Enum)(0)),
 		reflect.TypeOf((E_EnumTypes_TdEnum)(0)),
 	},
+  }
 }

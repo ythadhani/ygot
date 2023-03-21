@@ -631,6 +631,29 @@ func TestUnmarshalKeyedList(t *testing.T) {
 			want:   &ContainerStructPreferConfig{},
 		},
 		{
+			desc:   "success ignoring path with preferShadowPath",
+			json:   `{ "config": { "key-list" : [ { "key" : "forty-two", "leaf-field" : 42} ] } }`,
+			opts:   []UnmarshalOpt{&PreferShadowPath{}},
+			schema: containerWithPreferConfigSchema,
+			parent: &ContainerStructPreferConfig{},
+			want:   &ContainerStructPreferConfig{},
+		},
+		{
+			desc:   "success unmarshalling shadow path",
+			json:   `{ "state": { "key-list" : [ { "key" : "forty-two", "leaf-field" : 42} ] } }`,
+			opts:   []UnmarshalOpt{&PreferShadowPath{}},
+			schema: containerWithPreferConfigSchema,
+			parent: &ContainerStructPreferConfig{},
+			want: &ContainerStructPreferConfig{
+				KeyList: map[string]*ListElemStruct{
+					"forty-two": {
+						Key:       ygot.String("forty-two"),
+						LeafField: ygot.Int32(42),
+					},
+				},
+			},
+		},
+		{
 			desc:    "bad field",
 			json:    `{ "key-list" : [ { "key" : "forty-two", "bad-field" : 42} ] }`,
 			schema:  containerWithLeafListSchema,
@@ -2047,13 +2070,18 @@ type unionKeyTestStruct struct {
 	UnionKey map[testutil.TestUnion]*unionKeyTestStructChild `path:"union-key"`
 }
 
-func (*unionKeyTestStruct) IsYANGGoStruct() {}
+func (*unionKeyTestStruct) IsYANGGoStruct()                          {}
+func (*unionKeyTestStruct) ΛValidate(...ygot.ValidationOption) error { return nil }
+func (*unionKeyTestStruct) ΛEnumTypeMap() map[string][]reflect.Type  { return nil }
+func (*unionKeyTestStruct) ΛBelongingModule() string                 { return "bar" }
 
 type unionKeyTestStructChild struct {
 	Key testutil.TestUnion `path:"key"`
 }
 
-func (*unionKeyTestStructChild) IsYANGGoStruct() {}
+func (*unionKeyTestStructChild) IsYANGGoStruct()                          {}
+func (*unionKeyTestStructChild) ΛValidate(...ygot.ValidationOption) error { return nil }
+func (*unionKeyTestStructChild) ΛBelongingModule() string                 { return "bar" }
 
 func (*unionKeyTestStructChild) ΛEnumTypeMap() map[string][]reflect.Type {
 	return map[string][]reflect.Type{
@@ -2078,13 +2106,18 @@ type unionKeyTestStructSimple struct {
 	UnionKey map[testutil.TestUnion2]*unionKeyTestStructChildSimple `path:"union-key"`
 }
 
-func (*unionKeyTestStructSimple) IsYANGGoStruct() {}
+func (*unionKeyTestStructSimple) IsYANGGoStruct()                          {}
+func (*unionKeyTestStructSimple) ΛValidate(...ygot.ValidationOption) error { return nil }
+func (*unionKeyTestStructSimple) ΛEnumTypeMap() map[string][]reflect.Type  { return nil }
+func (*unionKeyTestStructSimple) ΛBelongingModule() string                 { return "bar" }
 
 type unionKeyTestStructChildSimple struct {
 	Key testutil.TestUnion2 `path:"key"`
 }
 
-func (*unionKeyTestStructChildSimple) IsYANGGoStruct() {}
+func (*unionKeyTestStructChildSimple) IsYANGGoStruct()                          {}
+func (*unionKeyTestStructChildSimple) ΛValidate(...ygot.ValidationOption) error { return nil }
+func (*unionKeyTestStructChildSimple) ΛBelongingModule() string                 { return "bar" }
 
 func (*unionKeyTestStructChildSimple) ΛEnumTypeMap() map[string][]reflect.Type {
 	return map[string][]reflect.Type{
@@ -2188,7 +2221,7 @@ func TestUnmarshalUnionKeyedList(t *testing.T) {
 
 	tests := []struct {
 		name             string
-		inParent         ygot.GoStruct
+		inParent         ygot.ValidatedGoStruct
 		inSchema         *yang.Entry
 		inUnmarshalOpts  []UnmarshalOpt
 		inJSON           string

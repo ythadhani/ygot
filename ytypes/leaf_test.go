@@ -313,7 +313,10 @@ type UnionContainer struct {
 	UnionField testutil.TestUnion `path:"union1"`
 }
 
-func (*UnionContainer) IsYANGGoStruct() {}
+func (*UnionContainer) IsYANGGoStruct()                          {}
+func (*UnionContainer) ΛValidate(...ygot.ValidationOption) error { return nil }
+func (*UnionContainer) ΛEnumTypeMap() map[string][]reflect.Type  { return nil }
+func (*UnionContainer) ΛBelongingModule() string                 { return "bar" }
 
 // IsTestUnion ensures EnumType satisfies the testutil.TestUnion interface.
 func (EnumType) IsTestUnion() {}
@@ -346,13 +349,19 @@ type UnionContainerCompressed struct {
 	UnionField *string `path:"union1"`
 }
 
-func (*UnionContainerCompressed) IsYANGGoStruct() {}
+func (*UnionContainerCompressed) IsYANGGoStruct()                          {}
+func (*UnionContainerCompressed) ΛValidate(...ygot.ValidationOption) error { return nil }
+func (*UnionContainerCompressed) ΛEnumTypeMap() map[string][]reflect.Type  { return nil }
+func (*UnionContainerCompressed) ΛBelongingModule() string                 { return "bar" }
 
 type UnionContainerSingleEnum struct {
 	UnionField EnumType `path:"union1"`
 }
 
-func (*UnionContainerSingleEnum) IsYANGGoStruct() {}
+func (*UnionContainerSingleEnum) IsYANGGoStruct()                          {}
+func (*UnionContainerSingleEnum) ΛValidate(...ygot.ValidationOption) error { return nil }
+func (*UnionContainerSingleEnum) ΛEnumTypeMap() map[string][]reflect.Type  { return nil }
+func (*UnionContainerSingleEnum) ΛBelongingModule() string                 { return "bar" }
 
 func TestValidateLeafUnion(t *testing.T) {
 	unionContainerSchema := &yang.Entry{
@@ -616,7 +625,10 @@ type Leaf1Container struct {
 	Leaf5 *string `path:"leaf5"`
 }
 
-func (*Leaf1Container) IsYANGGoStruct() {}
+func (*Leaf1Container) IsYANGGoStruct()                          {}
+func (*Leaf1Container) ΛValidate(...ygot.ValidationOption) error { return nil }
+func (*Leaf1Container) ΛEnumTypeMap() map[string][]reflect.Type  { return nil }
+func (*Leaf1Container) ΛBelongingModule() string                 { return "bar" }
 
 type PredicateSchema struct {
 	List      map[string]*PredicateSchemaList `path:"list"`
@@ -624,13 +636,19 @@ type PredicateSchema struct {
 	Reference *string                         `path:"reference"`
 }
 
-func (*PredicateSchema) IsYANGGoStruct() {}
+func (*PredicateSchema) IsYANGGoStruct()                          {}
+func (*PredicateSchema) ΛValidate(...ygot.ValidationOption) error { return nil }
+func (*PredicateSchema) ΛEnumTypeMap() map[string][]reflect.Type  { return nil }
+func (*PredicateSchema) ΛBelongingModule() string                 { return "bar" }
 
 type PredicateSchemaList struct {
 	Key *string `path:"key"`
 }
 
-func (*PredicateSchemaList) IsYANGGoStruct() {}
+func (*PredicateSchemaList) IsYANGGoStruct()                          {}
+func (*PredicateSchemaList) ΛValidate(...ygot.ValidationOption) error { return nil }
+func (*PredicateSchemaList) ΛEnumTypeMap() map[string][]reflect.Type  { return nil }
+func (*PredicateSchemaList) ΛBelongingModule() string                 { return "bar" }
 
 func TestValidateLeafRef(t *testing.T) {
 	validDeviceSchema := &yang.Entry{
@@ -1077,10 +1095,12 @@ func (*LeafContainerStruct) To_UnionLeafTypeSimple(i interface{}) (UnionLeafType
 
 func TestUnmarshalLeafJSONEncoding(t *testing.T) {
 	tests := []struct {
-		desc    string
-		json    string
-		want    LeafContainerStruct
-		wantErr string
+		desc              string
+		json              string
+		reverseShadowPath bool
+		opts              []UnmarshalOpt
+		want              LeafContainerStruct
+		wantErr           string
 	}{
 		{
 			desc: "nil success",
@@ -1101,6 +1121,18 @@ func TestUnmarshalLeafJSONEncoding(t *testing.T) {
 			desc: "state int8 success ignoring",
 			json: `{"state" : { "inner-int8-leaf" : -42} }`,
 			want: LeafContainerStruct{},
+		},
+		{
+			desc: "config int8 ignoring path with preferShadowPath",
+			json: `{"config" : { "inner-int8-leaf" : -42} }`,
+			opts: []UnmarshalOpt{&PreferShadowPath{}},
+			want: LeafContainerStruct{},
+		},
+		{
+			desc: "state int8 success with shadow path",
+			json: `{"state" : { "inner-int8-leaf" : -42} }`,
+			opts: []UnmarshalOpt{&PreferShadowPath{}},
+			want: LeafContainerStruct{Int8LeafConfig: ygot.Int8(-42)},
 		},
 		{
 			desc:    "non-existent state fail ignoring",
@@ -1632,7 +1664,7 @@ func TestUnmarshalLeafJSONEncoding(t *testing.T) {
 				t.Fatalf("%s : %s", tt.desc, err)
 			}
 
-			err := Unmarshal(containerSchema, &parent, jsonTree)
+			err := Unmarshal(containerSchema, &parent, jsonTree, tt.opts...)
 			if got, want := errToString(err), tt.wantErr; got != want {
 				t.Errorf("%s (#%d): Unmarshal got error: %v, want error: %v", tt.desc, idx, got, want)
 			}

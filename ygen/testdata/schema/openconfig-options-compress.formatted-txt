@@ -73,10 +73,12 @@ type UnionUnsupported struct {
 
 var (
 	SchemaTree map[string]*yang.Entry
+	ΛEnumTypes map[string][]reflect.Type
 )
 
 func init() {
 	var err error
+	initΛEnumTypes()
 	if SchemaTree, err = UnzipSchema(); err != nil {
 		panic("schema error: " +  err.Error())
 	}
@@ -113,7 +115,7 @@ func UnzipSchema() (map[string]*yang.Entry, error) {
 // unmarshaled. The supplied options (opts) are used to control the behaviour
 // of the unmarshal function - for example, determining whether errors are
 // thrown for unknown fields in the input JSON.
-func Unmarshal(data []byte, destStruct ygot.GoStruct, opts ...ytypes.UnmarshalOpt) error {
+func Unmarshal(data []byte, destStruct ygot.ValidatedGoStruct, opts ...ytypes.UnmarshalOpt) error {
 	tn := reflect.TypeOf(destStruct).Elem().Name()
 	schema, ok := SchemaTree[tn]
 	if !ok {
@@ -164,7 +166,7 @@ func (t *Bgp) NewNeighbor(PeerAddress string) (*Bgp_Neighbor, error){
 }
 
 // Validate validates s against the YANG schema corresponding to its type.
-func (t *Bgp) Validate(opts ...ygot.ValidationOption) error {
+func (t *Bgp) ΛValidate(opts ...ygot.ValidationOption) error {
 	if err := ytypes.Validate(SchemaTree["Bgp"], t, opts...); err != nil {
 		return err
 	}
@@ -174,6 +176,12 @@ func (t *Bgp) Validate(opts ...ygot.ValidationOption) error {
 // ΛEnumTypeMap returns a map, keyed by YANG schema path, of the enumerated types
 // that are included in the generated code.
 func (t *Bgp) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumTypes }
+
+// ΛBelongingModule returns the name of the module that defines the namespace
+// of Bgp.
+func (*Bgp) ΛBelongingModule() string {
+	return "openconfig-options"
+}
 
 // Bgp_Neighbor represents the /openconfig-options/bgp/neighbors/neighbor YANG schema element.
 type Bgp_Neighbor struct {
@@ -200,7 +208,7 @@ func (t *Bgp_Neighbor) ΛListKeyMap() (map[string]interface{}, error) {
 }
 
 // Validate validates s against the YANG schema corresponding to its type.
-func (t *Bgp_Neighbor) Validate(opts ...ygot.ValidationOption) error {
+func (t *Bgp_Neighbor) ΛValidate(opts ...ygot.ValidationOption) error {
 	if err := ytypes.Validate(SchemaTree["Bgp_Neighbor"], t, opts...); err != nil {
 		return err
 	}
@@ -210,6 +218,12 @@ func (t *Bgp_Neighbor) Validate(opts ...ygot.ValidationOption) error {
 // ΛEnumTypeMap returns a map, keyed by YANG schema path, of the enumerated types
 // that are included in the generated code.
 func (t *Bgp_Neighbor) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumTypes }
+
+// ΛBelongingModule returns the name of the module that defines the namespace
+// of Bgp_Neighbor.
+func (*Bgp_Neighbor) ΛBelongingModule() string {
+	return "openconfig-options"
+}
 
 // Bgp_Neighbor_EnabledAddressFamily_Union is an interface that is implemented by valid types for the union
 // for the leaf /openconfig-options/bgp/neighbors/neighbor/state/enabled-address-family within the YANG schema.
@@ -411,11 +425,13 @@ var (
 // ΛEnumTypes is a map, keyed by a YANG schema path, of the enumerated types that
 // correspond with the leaf. The type is represented as a reflect.Type. The naming
 // of the map ensures that there are no clashes with valid YANG identifiers.
-var ΛEnumTypes = map[string][]reflect.Type{
+func initΛEnumTypes(){
+  ΛEnumTypes = map[string][]reflect.Type{
 	"/bgp/neighbors/neighbor/state/enabled-address-family": []reflect.Type{
 		reflect.TypeOf((E_OpenconfigOptions_AFI)(0)),
 	},
 	"/bgp/neighbors/neighbor/state/session-state": []reflect.Type{
 		reflect.TypeOf((E_Neighbor_SessionState)(0)),
 	},
+  }
 }
