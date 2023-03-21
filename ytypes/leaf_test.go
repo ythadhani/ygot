@@ -2269,7 +2269,7 @@ func TestUnmarshalLeafGNMIEncoding(t *testing.T) {
 	}
 	for _, tt := range tests {
 		inParent := &LeafContainerStruct{}
-		err := unmarshalGeneric(tt.inSchema, inParent, tt.inVal, GNMIEncoding, unmarshalConfig{})
+		err := unmarshalGeneric(tt.inSchema, inParent, tt.inVal, GNMIEncoding)
 		if diff := errdiff.Substring(err, tt.wantErr); diff != "" {
 			t.Errorf("%s: unmarshalLeaf(%v, %v, %v, GNMIEncoding): %v", tt.desc, tt.inSchema, inParent, tt.inVal, diff)
 		}

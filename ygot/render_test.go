@@ -747,7 +747,6 @@ func TestSliceToScalarArray(t *testing.T) {
 
 	for _, tt := range tests {
 		got, err := sliceToScalarArray(tt.in)
-
 		if err != nil {
 			if !tt.wantErr {
 				t.Errorf("%s: sliceToScalarArray(%v): got unexpected error: %v", tt.name, tt.in, err)
@@ -1388,7 +1387,7 @@ func TestTogNMINotifications(t *testing.T) {
 				{String("arthur")},
 			},
 		},
-		wantErr: true, //unimplemented.
+		wantErr: true, // unimplemented.
 	}, {
 		name:        "invalid element in leaf-list",
 		inTimestamp: 42,
@@ -1999,13 +1998,6 @@ func (*diffModAtRootElemTwo) IsYANGGoStruct()                         {}
 func (*diffModAtRootElemTwo) ΛValidate(...ValidationOption) error     { return nil }
 func (*diffModAtRootElemTwo) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
 func (*diffModAtRootElemTwo) ΛBelongingModule() string                { return "m1" }
-
-// Type to test YANG container with presence statement
-type routerPresenceExample struct {
-	Bgp *exampleBgp `path:"bgp" presence:"true"`
-}
-
-func (*routerPresenceExample) IsYANGGoStruct() {}
 
 type annotatedJSONTestStruct struct {
 	Field       *string      `path:"field" module:"bar"`
@@ -2694,14 +2686,6 @@ func TestConstructJSON(t *testing.T) {
 				},
 			},
 		},
-	}, {
-		name: "presence container example",
-		in: &routerPresenceExample{
-			Bgp: &exampleBgp{}},
-		wantIETF: map[string]interface{}{
-			"bgp": map[string]interface{}{},
-		},
-		wantSame: true,
 	}, {
 		name: "union leaf-list example",
 		in: &exampleBgpNeighbor{
@@ -3419,7 +3403,6 @@ type uFieldMulti struct {
 func (*uFieldMulti) IsU() {}
 
 func TestUnwrapUnionInterfaceValue(t *testing.T) {
-
 	// This is the only unwrap test that is used by the simple union API
 	// (i.e. unsupported types).
 	testZero := &unionTestOne{
@@ -3892,16 +3875,19 @@ func TestEncodeTypedValue(t *testing.T) {
 	}, {
 		name:  "slice union encoding",
 		inVal: []exampleUnion{testutil.UnionString("hello"), testutil.UnionInt64(42), testutil.UnionFloat64(3.14), testBinary, testutil.UnionBool(true), testutil.YANGEmpty(false)},
-		want: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_LeaflistVal{
-			&gnmipb.ScalarArray{
-				Element: []*gnmipb.TypedValue{
-					{Value: &gnmipb.TypedValue_StringVal{"hello"}},
-					{Value: &gnmipb.TypedValue_IntVal{42}},
-					{Value: &gnmipb.TypedValue_FloatVal{3.14}},
-					{Value: &gnmipb.TypedValue_BytesVal{[]byte(base64testString)}},
-					{Value: &gnmipb.TypedValue_BoolVal{true}},
-					{Value: &gnmipb.TypedValue_BoolVal{false}}},
-			}},
+		want: &gnmipb.TypedValue{
+			Value: &gnmipb.TypedValue_LeaflistVal{
+				&gnmipb.ScalarArray{
+					Element: []*gnmipb.TypedValue{
+						{Value: &gnmipb.TypedValue_StringVal{"hello"}},
+						{Value: &gnmipb.TypedValue_IntVal{42}},
+						{Value: &gnmipb.TypedValue_FloatVal{3.14}},
+						{Value: &gnmipb.TypedValue_BytesVal{[]byte(base64testString)}},
+						{Value: &gnmipb.TypedValue_BoolVal{true}},
+						{Value: &gnmipb.TypedValue_BoolVal{false}},
+					},
+				},
+			},
 		},
 	}, {
 		name: "struct val - ietf json",

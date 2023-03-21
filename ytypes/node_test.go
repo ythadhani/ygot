@@ -2510,7 +2510,7 @@ func TestSetNode(t *testing.T) {
 		{
 			inDesc:     "success setting empty struct field",
 			inSchema:   simpleSchema(),
-			inParent:   &ListElemStruct1{},
+			inParentFn: func() interface{} { return &ListElemStruct1{} },
 			inPath:     mustPath("/key1"),
 			inVal:      &gpb.TypedValue{Value: &gpb.TypedValue_StringVal{StringVal: "hello"}},
 			wantLeaf:   ygot.String("hello"),

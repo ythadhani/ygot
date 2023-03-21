@@ -59,6 +59,8 @@ type IROptions struct {
 	// code, and also appends a suffix to non-typedef union enums.
 	// NOTE: This flag will be removed by v1 release.
 	UseConsistentNamesForProtoUnionEnums bool
+	GenerateSwaggerCompliantCode         bool
+	GenerateExtensionTags                bool
 }
 
 // GenerateIR creates the ygen intermediate representation for a set of

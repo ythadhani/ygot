@@ -19,9 +19,11 @@ package ygen
 // processing goyang Entry elements that helps in the code generation process.
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/openconfig/goyang/pkg/yang"
 	"github.com/openconfig/ygot/genutil"
@@ -254,6 +256,13 @@ func getOrderedDirDetails(langMapper LangMapper, directory map[string]*Directory
 				ShadowMappedPathModules: smm,
 			}
 
+			if opts.GenerateSwaggerCompliantCode {
+				nd.SwaggerTags = generateSwaggerTags(field)
+			}
+			if opts.GenerateExtensionTags {
+				nd.ExtensionTags = generateExtensionTags(field)
+			}
+
 			switch {
 			case field.IsLeaf(), field.IsLeafList():
 				mtype, err := langMapper.LeafType(field, opts)
@@ -294,6 +303,76 @@ func getOrderedDirDetails(langMapper LangMapper, directory map[string]*Directory
 	}
 
 	return dirDets, nil
+}
+
+func generateExtensionTags(field *yang.Entry) string {
+	var (
+		extensions []*yang.Statement = []*yang.Statement{}
+		buf        bytes.Buffer
+	)
+	if len(field.Exts) != 0 {
+		extensions = append(extensions, field.Exts...)
+	}
+	// TODO(ythadhani) For now we only react to Type extensions on Leaf.
+	// Revisit once goyang is updated.
+	if field.IsLeaf() {
+		leafNode := field.Node.(*yang.Leaf)
+		if len(leafNode.Type.Extensions) != 0 {
+			extensions = append(extensions, leafNode.Type.Extensions...)
+		}
+	}
+
+	uniqueExtKeywordArgs := map[uniqueExtParams]struct{}{}
+	if len(extensions) != 0 {
+		buf.WriteString(` extensions:"`)
+		for iter, extension := range extensions {
+			e := uniqueExtParams{keyword: extension.Keyword, argument: extension.Argument}
+			if _, present := uniqueExtKeywordArgs[e]; present {
+				continue
+			}
+			uniqueExtKeywordArgs[e] = struct{}{}
+			buf.WriteString(extension.Keyword)
+			if extension.HasArgument {
+				buf.WriteString(fmt.Sprintf(",%s", extension.Argument))
+			}
+			if iter != len(extensions)-1 {
+				buf.WriteString(";")
+			}
+		}
+		buf.WriteString(`"`)
+	}
+	return buf.String()
+}
+
+func generateSwaggerTags(field *yang.Entry) string {
+	fieldType := field.Type
+	var buf bytes.Buffer
+	if fieldType == nil {
+		return buf.String()
+	}
+
+	switch fieldType.Kind {
+	case yang.Yenum:
+		enumNamesCsv := strings.Join(fieldType.Enum.Names(), ",")
+		if field.IsLeafList() {
+			buf.WriteString(fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, enumNamesCsv))
+		} else if field.IsLeaf() {
+			buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+		}
+	case yang.Yidentityref:
+		enumNames := make([]string, len(fieldType.IdentityBase.Values))
+		for i, val := range fieldType.IdentityBase.Values {
+			enumNames[i] = val.Name
+		}
+		sort.Strings(enumNames)
+		enumNamesCsv := strings.Join(enumNames, ",")
+		if field.IsLeafList() {
+			buf.WriteString(fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, enumNamesCsv))
+		} else if field.IsLeaf() {
+			buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+		}
+	}
+	return buf.String()
 }
 
 // FindSchemaPath finds the relative or absolute schema path of a given field

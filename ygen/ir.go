@@ -78,7 +78,7 @@ type LangMapper interface {
 	// value to a language-safe name for the enumerated value. This function
 	// should ensure that the returned string is sanitised to ensure that
 	// it can be directly output in the generated code.
-	//EnumeratedValueName(string) (string, error)
+	// EnumeratedValueName(string) (string, error)
 
 	// TODO(wenbli): Consider removing this from the IR since the prefix
 	// can depend on the type of the enumeration, so it might make sense to
@@ -87,7 +87,7 @@ type LangMapper interface {
 	// prefix to types that are mapped from the YANG schema. The prefix
 	// is applied only to the type name - and not to the values within
 	// the enumeration.
-	//EnumeratedTypePrefix(EnumeratedValueType) string
+	// EnumeratedTypePrefix(EnumeratedValueType) string
 
 	// SetEnumSet is used to supply a set of enumerated values to the
 	// mapper such that leaves that have enumerated types can be looked up.
@@ -345,6 +345,8 @@ type NodeDetails struct {
 	// Shadow paths are paths that have sibling config/state values
 	// that have been compressed out due to path compression.
 	ShadowMappedPathModules [][]string
+	ExtensionTags           string
+	SwaggerTags             string
 }
 
 // NodeType describes the different types of node that can
@@ -458,7 +460,7 @@ type YANGType struct {
 	// TODO(wenbli): Add this.
 	// Module is the name of the module which defined the type. This is
 	// only applicable if the type were a typedef.
-	//Module string
+	// Module string
 }
 
 // EnumeratedValueType is used to indicate the source YANG type

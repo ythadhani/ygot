@@ -450,7 +450,7 @@ func TestUnmarshalLeafListGNMIEncoding(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			err := unmarshalGeneric(tt.sch, &tt.in, tt.val, GNMIEncoding, unmarshalConfig{})
+			err := unmarshalGeneric(tt.sch, &tt.in, tt.val, GNMIEncoding)
 			if diff := errdiff.Substring(err, tt.wantErr); diff != "" {
 				t.Errorf("unmarshalGeneric(%v, %v, %v): diff(-got,+want):\n%s", tt.sch, tt.in, tt.val, diff)
 			}

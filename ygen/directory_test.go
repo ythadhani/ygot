@@ -15,6 +15,7 @@
 package ygen
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -267,7 +268,6 @@ func compileModules(t *testing.T, inModules map[string]string) *yang.Modules {
 		t.Fatalf("modules processing failed: %v", errs)
 	}
 	return ms
-
 }
 
 // findEntry gets the entry for the module given the path.
@@ -708,6 +708,68 @@ func TestFindMapPaths(t *testing.T) {
 
 			if diff := cmp.Diff(tt.wantModules, gotModules); diff != "" {
 				t.Errorf("%s: YANGCodeGenerator.findMapPaths(%v, %v): compress: %v, shadowSchemaPaths: %v, (-want, +gotModules):\n%s", tt.name, tt.inStruct, tt.inField, tt.inCompressPaths, tt.inShadowSchemaPaths, diff)
+			}
+		})
+	}
+}
+
+func TestGenerateSwaggerTags(t *testing.T) {
+	testEnum := yang.NewEnumType()
+	testEnum.Set("UP", 0)
+	testEnum.Set("DOWN", 1)
+	testEnum.Set("TESTING", 2)
+
+	testEnum2 := yang.NewEnumType()
+	testEnum2.Set("fc0", 0)
+	testEnum2.Set("fc1", 1)
+
+	identityVals := []*yang.Identity{{Name: "tunnel"}, {Name: "dcn"}}
+
+	tests := []struct {
+		name  string
+		field *yang.Entry
+		want  string
+	}{{
+		name: "Tag generation for leaf enum",
+		field: &yang.Entry{
+			Name: "admin-status",
+			Kind: yang.LeafEntry,
+			Type: &yang.YangType{Kind: yang.Yenum, Enum: testEnum},
+		},
+		want: fmt.Sprintf(` swaggertype:"string" enums:"%s"`, "DOWN,TESTING,UP"),
+	}, {
+		name: "Tag generation for leaflist enum",
+		field: &yang.Entry{
+			Name:     "forwarding-class",
+			Kind:     yang.LeafEntry,
+			ListAttr: &yang.ListAttr{},
+			Type:     &yang.YangType{Kind: yang.Yenum, Enum: testEnum2},
+		},
+		want: fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, "fc0,fc1"),
+	}, {
+		name: "Tag generation for leaf identityref",
+		field: &yang.Entry{
+			Name: "type",
+			Kind: yang.LeafEntry,
+			Type: &yang.YangType{Kind: yang.Yidentityref, IdentityBase: &yang.Identity{Values: identityVals}},
+		},
+		want: fmt.Sprintf(` swaggertype:"string" enums:"%s"`, "dcn,tunnel"),
+	}, {
+		name: "Tag generation for leaflist identityref",
+		field: &yang.Entry{
+			Name:     "type",
+			Kind:     yang.LeafEntry,
+			ListAttr: &yang.ListAttr{},
+			Type:     &yang.YangType{Kind: yang.Yidentityref, IdentityBase: &yang.Identity{Values: identityVals}},
+		},
+		want: fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, "dcn,tunnel"),
+	}}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := generateSwaggerTags(tt.field)
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Fatalf("did not get expected swagger tags, (-want, +got):\n%s", diff)
 			}
 		})
 	}

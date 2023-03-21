@@ -455,6 +455,8 @@ func (cg *YANGCodeGenerator) GenerateGoCode(yangFiles, includePaths []string) (*
 		AbsoluteMapPaths:                     false,
 		AppendEnumSuffixForSimpleUnionEnums:  cg.Config.GoOptions.AppendEnumSuffixForSimpleUnionEnums,
 		UseConsistentNamesForProtoUnionEnums: false,
+		GenerateSwaggerCompliantCode:         cg.Config.GoOptions.GenerateSwaggerCompliantCode,
+		GenerateExtensionTags:                cg.Config.GoOptions.GenerateExtensionTags,
 	}
 
 	var codegenErr util.Errors
