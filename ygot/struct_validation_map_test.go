@@ -472,11 +472,12 @@ type mapStructTestOne struct {
 // IsYANGGoStruct makes sure that we implement the GoStruct interface.
 func (*mapStructTestOne) IsYANGGoStruct() {}
 
-func (*mapStructTestOne) Validate(...ValidationOption) error {
+func (*mapStructTestOne) ΛValidate(...ValidationOption) error {
 	return nil
 }
 
 func (*mapStructTestOne) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*mapStructTestOne) ΛBelongingModule() string                { return "" }
 
 // mapStructTestOne_Child is a child structure of the mapStructTestOne test
 // case.
@@ -491,11 +492,12 @@ type mapStructTestOneChild struct {
 // IsYANGGoStruct makes sure that we implement the GoStruct interface.
 func (*mapStructTestOneChild) IsYANGGoStruct() {}
 
-func (*mapStructTestOneChild) Validate(...ValidationOption) error {
+func (*mapStructTestOneChild) ΛValidate(...ValidationOption) error {
 	return nil
 }
 
 func (*mapStructTestOneChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*mapStructTestOneChild) ΛBelongingModule() string                { return "test-one" }
 
 // mapStructTestFour is the top-level container used for the
 // schema-with-list test.
@@ -506,11 +508,12 @@ type mapStructTestFour struct {
 // IsYANGGoStruct makes sure that we implement the GoStruct interface.
 func (*mapStructTestFour) IsYANGGoStruct() {}
 
-func (*mapStructTestFour) Validate(...ValidationOption) error {
+func (*mapStructTestFour) ΛValidate(...ValidationOption) error {
 	return nil
 }
 
 func (*mapStructTestFour) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*mapStructTestFour) ΛBelongingModule() string                { return "" }
 
 // mapStructTestFourC is the "c" container used for the schema-with-list
 // test.
@@ -523,11 +526,12 @@ type mapStructTestFourC struct {
 // IsYANGGoStruct makes sure that we implement the GoStruct interface.
 func (*mapStructTestFourC) IsYANGGoStruct() {}
 
-func (*mapStructTestFourC) Validate(...ValidationOption) error {
+func (*mapStructTestFourC) ΛValidate(...ValidationOption) error {
 	return nil
 }
 
 func (*mapStructTestFourC) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*mapStructTestFourC) ΛBelongingModule() string                { return "" }
 
 // mapStructTestFourCACLSet is the struct which represents each entry in
 // the ACLSet list in the schema-with-list test.
@@ -541,11 +545,12 @@ type mapStructTestFourCACLSet struct {
 // IsYANGGoStruct makes sure that we implement the GoStruct interface.
 func (*mapStructTestFourCACLSet) IsYANGGoStruct() {}
 
-func (*mapStructTestFourCACLSet) Validate(...ValidationOption) error {
+func (*mapStructTestFourCACLSet) ΛValidate(...ValidationOption) error {
 	return nil
 }
 
 func (*mapStructTestFourCACLSet) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*mapStructTestFourCACLSet) ΛBelongingModule() string                { return "" }
 
 // mapStructTestFourOtherSet is a map entry with a
 type mapStructTestFourCOtherSet struct {
@@ -555,11 +560,12 @@ type mapStructTestFourCOtherSet struct {
 // IsYANGGoStruct implements the GoStruct interface.
 func (*mapStructTestFourCOtherSet) IsYANGGoStruct() {}
 
-func (*mapStructTestFourCOtherSet) Validate(...ValidationOption) error {
+func (*mapStructTestFourCOtherSet) ΛValidate(...ValidationOption) error {
 	return nil
 }
 
 func (*mapStructTestFourCOtherSet) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*mapStructTestFourCOtherSet) ΛBelongingModule() string                { return "" }
 
 // ECTest is a synthesised derived type which is used to represent
 // an enumeration in the YANG schema.
@@ -590,7 +596,7 @@ func (e ECTest) String() string {
 	return EnumLogString(e, int64(e), "ECTest")
 }
 
-// mapStructInvalid is a valid GoStruct whose Validate() method always returns
+// mapStructInvalid is a valid GoStruct whose ΛValidate() method always returns
 // an error.
 type mapStructInvalid struct {
 	Name *string `path:"name"`
@@ -600,11 +606,12 @@ type mapStructInvalid struct {
 func (*mapStructInvalid) IsYANGGoStruct() {}
 
 // Validate implements the ValidatedGoStruct interface.
-func (*mapStructInvalid) Validate(...ValidationOption) error {
+func (*mapStructInvalid) ΛValidate(...ValidationOption) error {
 	return fmt.Errorf("invalid")
 }
 
 func (*mapStructInvalid) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*mapStructInvalid) ΛBelongingModule() string                { return "" }
 
 // mapStructNoPaths is a valid GoStruct who does not implement path tags.
 type mapStructNoPaths struct {
@@ -615,8 +622,9 @@ type mapStructNoPaths struct {
 func (*mapStructNoPaths) IsYANGGoStruct() {}
 
 // Validate implements the ValidatedGoStruct interface.
-func (*mapStructNoPaths) Validate(...ValidationOption) error      { return nil }
+func (*mapStructNoPaths) ΛValidate(...ValidationOption) error     { return nil }
 func (*mapStructNoPaths) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*mapStructNoPaths) ΛBelongingModule() string                { return "" }
 
 // TestEmitJSON validates that the EmitJSON function outputs the expected JSON
 // for a set of input structs and schema definitions.
@@ -1193,18 +1201,24 @@ type mergeTest struct {
 	List        map[string]*mergeTestListChild `path:"list" module:"bar"`
 }
 
-func (*mergeTest) IsYANGGoStruct() {}
+func (*mergeTest) IsYANGGoStruct()                         {}
+func (*mergeTest) ΛValidate(...ValidationOption) error     { return nil }
+func (*mergeTest) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*mergeTest) ΛBelongingModule() string                { return "" }
 
 type mergeTestListChild struct {
 	Val *string `path:"val" module:"mod"`
 }
 
-func (*mergeTestListChild) IsYANGGoStruct() {}
+func (*mergeTestListChild) IsYANGGoStruct()                         {}
+func (*mergeTestListChild) ΛValidate(...ValidationOption) error     { return nil }
+func (*mergeTestListChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*mergeTestListChild) ΛBelongingModule() string                { return "bar" }
 
 func TestMergeStructJSON(t *testing.T) {
 	tests := []struct {
 		name     string
-		inStruct GoStruct
+		inStruct ValidatedGoStruct
 		inJSON   map[string]interface{}
 		inOpts   *EmitJSONConfig
 		wantJSON map[string]interface{}
@@ -1390,7 +1404,10 @@ type copyTest struct {
 	StructSlice   []*copyTest
 }
 
-func (*copyTest) IsYANGGoStruct() {}
+func (*copyTest) IsYANGGoStruct()                         {}
+func (*copyTest) ΛValidate(...ValidationOption) error     { return nil }
+func (*copyTest) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*copyTest) ΛBelongingModule() string                { return "" }
 
 type errorCopyTest struct {
 	I interface{}
@@ -1401,7 +1418,10 @@ type errorCopyTest struct {
 	L []*errorCopyTest
 }
 
-func (*errorCopyTest) IsYANGGoStruct() {}
+func (*errorCopyTest) IsYANGGoStruct()                         {}
+func (*errorCopyTest) ΛValidate(...ValidationOption) error     { return nil }
+func (*errorCopyTest) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*errorCopyTest) ΛBelongingModule() string                { return "" }
 
 func TestCopyStructError(t *testing.T) {
 	// Checks specifically for bad reflect.Values being provided.
@@ -1896,26 +1916,29 @@ type validatedMergeTest struct {
 	UnionField  copyUnion
 }
 
-func (*validatedMergeTest) Validate(...ValidationOption) error      { return nil }
+func (*validatedMergeTest) ΛValidate(...ValidationOption) error     { return nil }
 func (*validatedMergeTest) IsYANGGoStruct()                         {}
 func (*validatedMergeTest) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*validatedMergeTest) ΛBelongingModule() string                { return "" }
 
 type validatedMergeTestTwo struct {
 	String *string
 	I      interface{}
 }
 
-func (*validatedMergeTestTwo) Validate(...ValidationOption) error      { return nil }
+func (*validatedMergeTestTwo) ΛValidate(...ValidationOption) error     { return nil }
 func (*validatedMergeTestTwo) IsYANGGoStruct()                         {}
 func (*validatedMergeTestTwo) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*validatedMergeTestTwo) ΛBelongingModule() string                { return "" }
 
 type validatedMergeTestWithSlice struct {
 	SliceField []*validatedMergeTestSliceField
 }
 
-func (*validatedMergeTestWithSlice) Validate(...ValidationOption) error      { return nil }
+func (*validatedMergeTestWithSlice) ΛValidate(...ValidationOption) error     { return nil }
 func (*validatedMergeTestWithSlice) IsYANGGoStruct()                         {}
 func (*validatedMergeTestWithSlice) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*validatedMergeTestWithSlice) ΛBelongingModule() string                { return "" }
 
 type validatedMergeTestSliceField struct {
 	String *string
@@ -1925,9 +1948,10 @@ type validatedMergeTestWithAnnotationSlice struct {
 	SliceField []Annotation `ygotAnnotation:"true"`
 }
 
-func (*validatedMergeTestWithAnnotationSlice) Validate(...ValidationOption) error      { return nil }
+func (*validatedMergeTestWithAnnotationSlice) ΛValidate(...ValidationOption) error     { return nil }
 func (*validatedMergeTestWithAnnotationSlice) IsYANGGoStruct()                         {}
 func (*validatedMergeTestWithAnnotationSlice) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*validatedMergeTestWithAnnotationSlice) ΛBelongingModule() string                { return "" }
 
 // ExampleAnnotation is used to test MergeStructs with Annotation slices.
 type ExampleAnnotation struct {
@@ -2567,9 +2591,10 @@ type buildEmptyTreeMergeTest struct {
 	String   *string
 }
 
-func (*buildEmptyTreeMergeTest) Validate(...ValidationOption) error      { return nil }
+func (*buildEmptyTreeMergeTest) ΛValidate(...ValidationOption) error     { return nil }
 func (*buildEmptyTreeMergeTest) IsYANGGoStruct()                         {}
 func (*buildEmptyTreeMergeTest) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*buildEmptyTreeMergeTest) ΛBelongingModule() string                { return "" }
 
 type buildEmptyTreeMergeTestChild struct {
 	Grandson      *buildEmptyTreeMergeTestGrandchild
@@ -2577,17 +2602,19 @@ type buildEmptyTreeMergeTestChild struct {
 	String        *string
 }
 
-func (*buildEmptyTreeMergeTestChild) Validate(...ValidationOption) error      { return nil }
+func (*buildEmptyTreeMergeTestChild) ΛValidate(...ValidationOption) error     { return nil }
 func (*buildEmptyTreeMergeTestChild) IsYANGGoStruct()                         {}
 func (*buildEmptyTreeMergeTestChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*buildEmptyTreeMergeTestChild) ΛBelongingModule() string                { return "" }
 
 type buildEmptyTreeMergeTestGrandchild struct {
 	String *string
 }
 
-func (*buildEmptyTreeMergeTestGrandchild) Validate(...ValidationOption) error      { return nil }
+func (*buildEmptyTreeMergeTestGrandchild) ΛValidate(...ValidationOption) error     { return nil }
 func (*buildEmptyTreeMergeTestGrandchild) IsYANGGoStruct()                         {}
 func (*buildEmptyTreeMergeTestGrandchild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*buildEmptyTreeMergeTestGrandchild) ΛBelongingModule() string                { return "" }
 
 func TestBuildEmptyTreeMerge(t *testing.T) {
 	tests := []struct {

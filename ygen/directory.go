@@ -19,13 +19,16 @@ package ygen
 // processing goyang Entry elements that helps in the code generation process.
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"sort"
+	"strings"
 
 	"github.com/openconfig/goyang/pkg/yang"
 	"github.com/openconfig/ygot/genutil"
 	"github.com/openconfig/ygot/util"
+	"github.com/openconfig/ygot/ygot"
 )
 
 // Directory stores information needed for outputting a data node of the
@@ -43,11 +46,6 @@ type Directory struct {
 	Path           []string               // Path is a slice of strings indicating the element's path.
 	ListAttr       *YangListAttr          // ListAttr is used to store characteristics of structs that represent YANG lists.
 	IsFakeRoot     bool                   // IsFakeRoot indicates that the struct is a fake root struct, so specific mapping rules should be implemented.
-}
-
-// isList returns true if the Directory describes a list.
-func (y *Directory) isList() bool {
-	return y.ListAttr != nil
 }
 
 // isChildOfModule determines whether the Directory represents a container
@@ -68,10 +66,14 @@ func (y *Directory) isChildOfModule() bool {
 type YangListAttr struct {
 	// keys is a map, keyed by the name of the key leaf, with values of the type
 	// of the key of a YANG list.
-	Keys map[string]*MappedType
+	Keys map[string]*ListKey
 	// keyElems is a slice containing the pointers to yang.Entry structs that
 	// make up the list key.
 	KeyElems []*yang.Entry
+	// ListKeyYANGNames is the ordered list of YANG names specified in the
+	// YANG list per Section 7.8.2 of RFC6020. ygot relies on this ordering
+	// for deterministic ordering in output code and rendering.
+	ListKeyYANGNames []string
 }
 
 // GetOrderedFieldNames returns the field names of a Directory in alphabetical order.
@@ -103,7 +105,6 @@ func GoFieldNameMap(directory *Directory) map[string]string {
 	for _, fieldName := range orderedFieldNames {
 		uniqueNameMap[fieldName] = genutil.MakeNameUnique(genutil.EntryCamelCaseName(directory.Fields[fieldName]), uniqueGenFieldNames)
 	}
-
 	return uniqueNameMap
 }
 
@@ -114,6 +115,11 @@ func GoFieldNameMap(directory *Directory) map[string]string {
 // expected output (i.e., diffs don't appear simply due to reordering of the
 // Directory maps). If the names of the directories are not unique, which is
 // unexpected, an error is returned.
+// TODO(wenbli): Deprecate this after ygot uses the IR for code generation.
+// This function's purpose is to check for name conflicts. This functionality
+// doesn't belong during IR processing but rather with downstream
+// language-specific processing since it's possible that conflicts are allowed
+// (e.g. nested struct definitions).
 func GetOrderedDirectories(directory map[string]*Directory) ([]string, map[string]*Directory, error) {
 	if directory == nil {
 		return nil, nil, fmt.Errorf("directory map null")
@@ -133,11 +139,256 @@ func GetOrderedDirectories(directory map[string]*Directory) ([]string, map[strin
 	return orderedDirNames, dirNameMap, nil
 }
 
+// GetOrderedPathDirectories returns an alphabetically-ordered slice of
+// Directory names and a map of Directories keyed by their paths, so that each
+// directory can be processed in path-alphabetical order. This helps produce
+// deterministic generated code, and minimize diffs when compared with expected
+// output (i.e., diffs don't appear simply due to reordering of the Directory
+// maps).
+func GetOrderedPathDirectories(directory map[string]*Directory) []string {
+	orderedDirPaths := make([]string, 0, len(directory))
+
+	for path := range directory {
+		orderedDirPaths = append(orderedDirPaths, path)
+	}
+	sort.Strings(orderedDirPaths)
+
+	return orderedDirPaths
+}
+
+// getOrderedDirDetails takes in a language-specific LangMapper, a map of
+// Directory objects containing the raw AST information, a schemaTree, and IR
+// generation options, and returns a map of ParsedDirectory objects that form
+// the primary component of ygen's IR output.
+func getOrderedDirDetails(langMapper LangMapper, directory map[string]*Directory, schematree *schemaTree, opts IROptions) (map[string]*ParsedDirectory, error) {
+	dirDets := map[string]*ParsedDirectory{}
+	for _, dirPath := range GetOrderedPathDirectories(directory) {
+		dir := directory[dirPath]
+		packageName, err := langMapper.PackageName(dir.Entry, opts.TransformationOptions.CompressBehaviour, opts.NestedDirectories)
+		if err != nil {
+			return nil, err
+		}
+
+		var belongingModule string
+		var rootModule string
+		if !dir.IsFakeRoot {
+			var err error
+			if belongingModule, err = dir.Entry.InstantiatingModule(); err != nil {
+				return nil, fmt.Errorf("ygen: cannot find instantiating module for Directory %s: %v", dir.Path, err)
+			}
+			rootModule = util.SchemaTreeRoot(dir.Entry).Name
+		}
+		var definingModuleName string
+		if definingModule := yang.RootNode(dir.Entry.Node); definingModule != nil {
+			definingModuleName = definingModule.Name
+		}
+		pd := &ParsedDirectory{
+			Name:              dir.Name,
+			Path:              util.SlicePathToString(dir.Path),
+			PackageName:       packageName,
+			IsFakeRoot:        dir.IsFakeRoot,
+			BelongingModule:   belongingModule,
+			DefiningModule:    definingModuleName,
+			RootElementModule: rootModule,
+		}
+		switch {
+		case dir.Entry.IsList():
+			pd.Type = List
+			if !util.IsUnkeyedList(dir.Entry) {
+				pd.ListKeys = dir.ListAttr.Keys
+				pd.ListKeyYANGNames = dir.ListAttr.ListKeyYANGNames
+			}
+		default:
+			pd.Type = Container
+		}
+
+		pd.Fields = make(map[string]*NodeDetails, len(dir.Fields))
+		for _, fn := range GetOrderedFieldNames(dir) {
+			field := dir.Fields[fn]
+
+			mp, mm, err := findMapPaths(dir, fn, opts.TransformationOptions.CompressBehaviour.CompressEnabled(), false, opts.AbsoluteMapPaths)
+			if err != nil {
+				return nil, err
+			}
+
+			smp, smm, err := findMapPaths(dir, fn, opts.TransformationOptions.CompressBehaviour.CompressEnabled(), true, opts.AbsoluteMapPaths)
+			if err != nil {
+				return nil, err
+			}
+
+			mod, err := field.InstantiatingModule()
+			if err != nil {
+				return nil, err
+			}
+
+			var target *yang.Entry
+			if field.Type != nil && field.Type.Kind == yang.Yleafref {
+				if target, err = schematree.resolveLeafrefTarget(field.Type.Path, field); err != nil {
+					return nil, fmt.Errorf("unable to resolve leafref field: %v", err)
+				}
+			}
+
+			name, err := langMapper.FieldName(field)
+			if err != nil {
+				return nil, err
+			}
+
+			var definingModuleName string
+			if definingModule := yang.RootNode(field.Node); definingModule != nil {
+				definingModuleName = definingModule.Name
+			}
+			nd := &NodeDetails{
+				Name: name,
+				YANGDetails: YANGNodeDetails{
+					Name:              field.Name,
+					Defaults:          field.DefaultValues(),
+					BelongingModule:   mod,
+					RootElementModule: util.SchemaTreeRoot(field).Name,
+					DefiningModule:    definingModuleName,
+					Path:              field.Path(),
+					SchemaPath:        util.SchemaTreePathNoModule(field),
+					LeafrefTargetPath: target.Path(),
+					Description:       field.Description,
+				},
+				MappedPaths:             mp,
+				MappedPathModules:       mm,
+				ShadowMappedPaths:       smp,
+				ShadowMappedPathModules: smm,
+			}
+
+			if opts.GenerateSwaggerCompliantCode {
+				nd.SwaggerTags = generateSwaggerTags(field)
+			}
+			if opts.GenerateExtensionTags {
+				nd.ExtensionTags = generateExtensionTags(field)
+			}
+
+			switch {
+			case field.IsLeaf(), field.IsLeafList():
+				mtype, err := langMapper.LeafType(field, opts)
+				if err != nil {
+					return nil, err
+				}
+				t := LeafNode
+				if field.IsLeafList() {
+					t = LeafListNode
+				}
+
+				nd.Type = t
+				nd.LangType = mtype
+				nd.YANGDetails.Type = &YANGType{
+					Name: field.Type.Name,
+				}
+			case field.IsList():
+				nd.Type = ListNode
+			case util.IsAnydata(field):
+				nd.Type = AnyDataNode
+			default:
+				nd.Type = ContainerNode
+				// TODO(wenovus):
+				// a presence container is an unimplemented keyword in goyang.
+				// if and when this changes, the field lookup below would need to change as well.
+				if len(field.Extra["presence"]) > 0 {
+					if v := field.Extra["presence"][0].(*yang.Value); v != nil {
+						nd.YANGDetails.PresenceStatement = ygot.String(v.Name)
+					} else {
+						return nil, fmt.Errorf("unable to retrieve presence statement, expected non-nil *yang.Value, got %v", dir.Entry.Extra["presence"][0])
+					}
+				}
+			}
+
+			pd.Fields[fn] = nd
+		}
+		dirDets[dir.Entry.Path()] = pd
+	}
+
+	return dirDets, nil
+}
+
+func generateExtensionTags(field *yang.Entry) string {
+	var (
+		extensions []*yang.Statement = []*yang.Statement{}
+		buf        bytes.Buffer
+	)
+	if len(field.Exts) != 0 {
+		extensions = append(extensions, field.Exts...)
+	}
+	// TODO(ythadhani) For now we only react to Type extensions on Leaf.
+	// Revisit once goyang is updated.
+	if field.IsLeaf() {
+		leafNode := field.Node.(*yang.Leaf)
+		if len(leafNode.Type.Extensions) != 0 {
+			extensions = append(extensions, leafNode.Type.Extensions...)
+		}
+	}
+
+	uniqueExtKeywordArgs := map[uniqueExtParams]struct{}{}
+	if len(extensions) != 0 {
+		buf.WriteString(` extensions:"`)
+		for iter, extension := range extensions {
+			e := uniqueExtParams{keyword: extension.Keyword, argument: extension.Argument}
+			if _, present := uniqueExtKeywordArgs[e]; present {
+				continue
+			}
+			uniqueExtKeywordArgs[e] = struct{}{}
+			buf.WriteString(extension.Keyword)
+			if extension.HasArgument {
+				buf.WriteString(fmt.Sprintf(",%s", extension.Argument))
+			}
+			if iter != len(extensions)-1 {
+				buf.WriteString(";")
+			}
+		}
+		buf.WriteString(`"`)
+	}
+	return buf.String()
+}
+
+func generateSwaggerTags(field *yang.Entry) string {
+	fieldType := field.Type
+	var buf bytes.Buffer
+	if fieldType == nil {
+		return buf.String()
+	}
+
+	switch fieldType.Kind {
+	case yang.Yenum:
+		enumNamesCsv := strings.Join(fieldType.Enum.Names(), ",")
+		if field.IsLeafList() {
+			buf.WriteString(fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, enumNamesCsv))
+		} else if field.IsLeaf() {
+			buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+		}
+	case yang.Yidentityref:
+		enumNames := make([]string, len(fieldType.IdentityBase.Values))
+		for i, val := range fieldType.IdentityBase.Values {
+			enumNames[i] = val.Name
+		}
+		sort.Strings(enumNames)
+		enumNamesCsv := strings.Join(enumNames, ",")
+		if field.IsLeafList() {
+			buf.WriteString(fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, enumNamesCsv))
+		} else if field.IsLeaf() {
+			buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+		}
+	}
+	return buf.String()
+}
+
 // FindSchemaPath finds the relative or absolute schema path of a given field
 // of a Directory. The Field is specified as a name in order to guarantee its
 // existence before processing.
 func FindSchemaPath(parent *Directory, fieldName string, absolutePaths bool) ([]string, error) {
 	schemaPaths, _, err := findSchemaPath(parent, fieldName, false, absolutePaths)
+	return schemaPaths, err
+}
+
+// FindShadowSchemaPath finds the relative or absolute schema path of a given field
+// of a Directory with preference to the shadow path. The Field is specified as a name
+// in order to guarantee its  existence before processing.
+// NOTE: No error is returned if fieldName is not found.
+func FindShadowSchemaPath(parent *Directory, fieldName string, absolutePaths bool) ([]string, error) {
+	schemaPaths, _, err := findSchemaPath(parent, fieldName, true, absolutePaths)
 	return schemaPaths, err
 }
 
@@ -190,8 +441,8 @@ func findSchemaPath(parent *Directory, fieldName string, shadowSchemaPaths, abso
 // the input entry is a key to a list, and is of type leafref, then the corresponding target leaf's
 // path is also returned. If shadowSchemaPaths is set, then the path of the
 // field deprioritized via compression is returned instead of the prioritized paths.
-// The first returned path is the path of the direct child, with the shadow
-// child's path afterwards, and the key leafref, if any, last.
+// The first returned path is the path of the direct child, followed by the key
+// leafref path, if any.
 func findMapPaths(parent *Directory, fieldName string, compressPaths, shadowSchemaPaths, absolutePaths bool) ([][]string, [][]string, error) {
 	childPath, childModulePath, err := findSchemaPath(parent, fieldName, shadowSchemaPaths, absolutePaths)
 	if err != nil {

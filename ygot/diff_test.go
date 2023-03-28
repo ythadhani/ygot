@@ -152,7 +152,7 @@ type basicStruct struct {
 	StructValue        *basicStructTwo             `path:"struct-value"`
 	MapValue           map[string]*basicListMember `path:"map-list"`
 	EmptyValue         YANGEmpty                   `path:"empty-value"`
-	PresenceContStruct *basicStructFour            `path:"presence-cont-value" presence:"true"`
+	PresenceContStruct *basicStructFour            `path:"presence-cont-value" yangPresence:"true"`
 }
 
 func (*basicStruct) IsYANGGoStruct() {}
@@ -199,7 +199,10 @@ type basicStructThree struct {
 	StringValue *string `path:"third-string-value|config/third-string-value"`
 }
 
-func (*basicStructFour) IsYANGGoStruct() {}
+func (*basicStructFour) IsYANGGoStruct()                         {}
+func (*basicStructFour) ΛValidate(...ValidationOption) error     { return nil }
+func (*basicStructFour) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*basicStructFour) ΛBelongingModule() string                { return "" }
 
 type basicStructFour struct {
 	StringValue *string `path:"fourth-string-value"`
@@ -1063,17 +1066,20 @@ func TestDiff(t *testing.T) {
 						Name: "union-list-simple",
 					}},
 				},
-				Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_LeaflistVal{
-					&gnmipb.ScalarArray{
-						Element: []*gnmipb.TypedValue{
-							{Value: &gnmipb.TypedValue_StringVal{"hello"}},
-							{Value: &gnmipb.TypedValue_IntVal{42}},
-							{Value: &gnmipb.TypedValue_FloatVal{3.14}},
-							{Value: &gnmipb.TypedValue_StringVal{"VAL_ONE"}},
-							{Value: &gnmipb.TypedValue_BytesVal{[]byte(base64testString)}},
-							{Value: &gnmipb.TypedValue_BoolVal{true}},
-							{Value: &gnmipb.TypedValue_BoolVal{false}}},
-					}},
+				Val: &gnmipb.TypedValue{
+					Value: &gnmipb.TypedValue_LeaflistVal{
+						&gnmipb.ScalarArray{
+							Element: []*gnmipb.TypedValue{
+								{Value: &gnmipb.TypedValue_StringVal{"hello"}},
+								{Value: &gnmipb.TypedValue_IntVal{42}},
+								{Value: &gnmipb.TypedValue_FloatVal{3.14}},
+								{Value: &gnmipb.TypedValue_StringVal{"VAL_ONE"}},
+								{Value: &gnmipb.TypedValue_BytesVal{[]byte(base64testString)}},
+								{Value: &gnmipb.TypedValue_BoolVal{true}},
+								{Value: &gnmipb.TypedValue_BoolVal{false}},
+							},
+						},
+					},
 				},
 			}, {
 				Path: &gnmipb.Path{
@@ -1347,17 +1353,20 @@ func TestDiff(t *testing.T) {
 						Name: "union-list-simple",
 					}},
 				},
-				Val: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_LeaflistVal{
-					&gnmipb.ScalarArray{
-						Element: []*gnmipb.TypedValue{
-							{Value: &gnmipb.TypedValue_StringVal{"world"}},
-							{Value: &gnmipb.TypedValue_IntVal{84}},
-							{Value: &gnmipb.TypedValue_FloatVal{6.28}},
-							{Value: &gnmipb.TypedValue_StringVal{"VAL_TWO"}},
-							{Value: &gnmipb.TypedValue_BytesVal{[]byte("abc")}},
-							{Value: &gnmipb.TypedValue_BoolVal{false}},
-							{Value: &gnmipb.TypedValue_BoolVal{true}}},
-					}},
+				Val: &gnmipb.TypedValue{
+					Value: &gnmipb.TypedValue_LeaflistVal{
+						&gnmipb.ScalarArray{
+							Element: []*gnmipb.TypedValue{
+								{Value: &gnmipb.TypedValue_StringVal{"world"}},
+								{Value: &gnmipb.TypedValue_IntVal{84}},
+								{Value: &gnmipb.TypedValue_FloatVal{6.28}},
+								{Value: &gnmipb.TypedValue_StringVal{"VAL_TWO"}},
+								{Value: &gnmipb.TypedValue_BytesVal{[]byte("abc")}},
+								{Value: &gnmipb.TypedValue_BoolVal{false}},
+								{Value: &gnmipb.TypedValue_BoolVal{true}},
+							},
+						},
+					},
 				},
 			}, {
 				Path: &gnmipb.Path{

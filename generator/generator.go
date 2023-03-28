@@ -86,6 +86,7 @@ var (
 	generateRename          = flag.Bool("generate_rename", false, "If set to true, rename methods are generated for lists within the Go code.")
 	addAnnotations          = flag.Bool("annotations", false, "If set to true, metadata annotations are added within the generated structs.")
 	annotationPrefix        = flag.String("annotation_prefix", ygen.DefaultAnnotationPrefix, "String to be appended to each metadata field within the generated structs if annoations is set to true.")
+	addYangPresence         = flag.Bool("yangpresence", false, "If set to true, a tag will be added to the field of a generated Go struct to indicate when a YANG presence container is being used.")
 	generateAppend          = flag.Bool("generate_append", false, "If set to true, append methods are generated for YANG lists (Go maps) within the Go code.")
 	generateGetters         = flag.Bool("generate_getters", false, "If set to true, getter methdos that retrieve or create an element are generated for YANG container (Go struct pointer) or list (Go map) fields within the generated code.")
 	generateDelete          = flag.Bool("generate_delete", false, "If set to true, delete methods are generated for YANG lists (Go maps) within the Go code.")
@@ -93,6 +94,7 @@ var (
 	generateSimpleUnions    = flag.Bool("generate_simple_unions", false, "If set to true, then generated typedefs will be used to represent union subtypes within Go code instead of wrapper struct types.")
 	includeModelData        = flag.Bool("include_model_data", false, "If set to true, a slice of gNMI ModelData messages are included in the generated Go code containing the details of the input schemas from which the code was generated.")
 	generatePopulateDefault = flag.Bool("generate_populate_defaults", false, "If set to true, a PopulateDefault method will be generated for all GoStructs which recursively populates default values.")
+	generateValidateFnName  = flag.String("validate_fn_name", "Validate", "The Name of the proxy function for the Validate functionality.")
 
 	// Flags used for PathStruct generation only.
 	schemaStructPath        = flag.String("schema_struct_path", "", "The Go import path for the schema structs package. This should be specified if and only if schema structs are not being generated at the same time as path structs.")
@@ -345,6 +347,7 @@ func main() {
 				ShortenEnumLeafNames:                 *shortenEnumLeafNames,
 				EnumOrgPrefixesToTrim:                enumOrgPrefixesToTrim,
 				UseDefiningModuleForTypedefEnumNames: *useDefiningModuleForTypedefEnumNames,
+				EnumerationsUseUnderscores:           true,
 			},
 			PackageName:         *packageName,
 			GenerateJSONSchema:  *generateSchema,
@@ -356,11 +359,13 @@ func main() {
 				GenerateRenameMethod:                *generateRename,
 				AddAnnotationFields:                 *addAnnotations,
 				AnnotationPrefix:                    *annotationPrefix,
+				AddYangPresence:                     *addYangPresence,
 				GenerateGetters:                     *generateGetters,
 				GenerateDeleteMethod:                *generateDelete,
 				GenerateAppendMethod:                *generateAppend,
 				GenerateLeafGetters:                 *generateLeafGetters,
 				GeneratePopulateDefault:             *generatePopulateDefault,
+				ValidateFunctionName:                *generateValidateFnName,
 				GenerateSimpleUnions:                *generateSimpleUnions,
 				IncludeModelData:                    *includeModelData,
 				AppendEnumSuffixForSimpleUnionEnums: *appendEnumSuffixForSimpleUnionEnums,

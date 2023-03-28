@@ -274,7 +274,7 @@ func nameMatchesPath(fieldName string, path []string) (bool, error) {
 //   jsonList is a JSON list
 //   opts... are a set of ytypes.UnmarshalOptionst that are used to control
 //     the behaviour of the unmarshal function.
-func unmarshalList(schema *yang.Entry, parent interface{}, jsonList interface{}, enc Encoding, unmarshalConf unmarshalConfig) error {
+func unmarshalList(schema *yang.Entry, parent interface{}, jsonList interface{}, enc Encoding, opts ...UnmarshalOpt) error {
 	if util.IsValueNil(jsonList) {
 		return nil
 	}
@@ -291,7 +291,7 @@ func unmarshalList(schema *yang.Entry, parent interface{}, jsonList interface{},
 	if util.IsTypeStructPtr(t) {
 		// May be trying to unmarshal a single list element rather than the
 		// whole list.
-		return unmarshalContainerWithListSchema(schema, parent, jsonList, unmarshalConf)
+		return unmarshalContainerWithListSchema(schema, parent, jsonList, opts...)
 	}
 
 	// jsonList represents a JSON array, which is a Go slice.
@@ -321,6 +321,7 @@ func unmarshalList(schema *yang.Entry, parent interface{}, jsonList interface{},
 	// types respectively.
 	// For a keyed list, the value(s) of the key are derived from the key fields
 	// in the new list element.
+	uniqueKeys := map[interface{}]struct{}{}
 	for _, le := range jl {
 		var err error
 		jt, ok := le.(map[string]interface{})
@@ -330,28 +331,23 @@ func unmarshalList(schema *yang.Entry, parent interface{}, jsonList interface{},
 		}
 		newVal := reflect.New(listElementType.Elem())
 		util.DbgPrint("creating a new list element val of type %v", newVal.Type())
-		if err := unmarshalStruct(schema, newVal.Interface(), jt, enc, unmarshalConf); err != nil {
+		if err := unmarshalStruct(schema, newVal.Interface(), jt, enc, opts...); err != nil {
 			return err
 		}
 
 		switch {
 		case util.IsTypeMap(t):
-			var (
-				newKey  reflect.Value
-				present bool
-			)
+			var newKey reflect.Value
 			newKey, err = makeKeyForInsert(schema, parent, newVal)
 			if err != nil {
 				return err
 			}
-			present, err = util.MapContainsKey(parent, newKey.Interface())
-			if err != nil {
-				return err
+			newKeyIntf := newKey.Interface()
+			if _, present := uniqueKeys[newKeyIntf]; present {
+				return fmt.Errorf("duplicate value: '%v' encountered for key(s): '%s' of list: '%s'", newKeyIntf, schema.Key, schema.Name)
 			}
-			if present {
-				return fmt.Errorf("duplicate value: '%v' encountered for key(s): '%s' of list: '%s'", newKey.Interface(), schema.Key, schema.Name)
-			}
-			err = util.InsertIntoMap(parent, newKey.Interface(), newVal.Interface())
+			uniqueKeys[newKeyIntf] = struct{}{}
+			err = util.InsertIntoMap(parent, newKeyIntf, newVal.Interface())
 		case util.IsTypeSlicePtr(t):
 			err = util.InsertIntoSlice(parent, newVal.Interface())
 		default:
@@ -550,7 +546,7 @@ func insertAndGetKey(schema *yang.Entry, root interface{}, keys map[string]strin
 // the whole list, the supplied schema is the same - the only difference is
 // that in the latter case the target is a struct ptr. The supplied opts control
 // the behaviour of the unmarshal function.
-func unmarshalContainerWithListSchema(schema *yang.Entry, parent interface{}, value interface{}, unmarshalConf unmarshalConfig) error {
+func unmarshalContainerWithListSchema(schema *yang.Entry, parent interface{}, value interface{}, opts ...UnmarshalOpt) error {
 	if !util.IsTypeStructPtr(reflect.TypeOf(parent)) {
 		return fmt.Errorf("unmarshalContainerWithListSchema value %v, type %T, into parent type %T, schema name %s: parent must be a struct ptr",
 			value, value, parent, schema.Name)
@@ -559,7 +555,7 @@ func unmarshalContainerWithListSchema(schema *yang.Entry, parent interface{}, va
 	// with ListAttrs unset.
 	newSchema := *schema
 	newSchema.ListAttr = nil
-	return unmarshalGeneric(&newSchema, parent, value, JSONEncoding, unmarshalConf)
+	return unmarshalGeneric(&newSchema, parent, value, JSONEncoding, opts...)
 }
 
 // getKeyValue returns the value from the structVal field whose last path

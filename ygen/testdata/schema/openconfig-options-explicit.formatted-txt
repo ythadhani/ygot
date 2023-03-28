@@ -73,10 +73,12 @@ type UnionUnsupported struct {
 
 var (
 	SchemaTree map[string]*yang.Entry
+	ΛEnumTypes map[string][]reflect.Type
 )
 
 func init() {
 	var err error
+	initΛEnumTypes()
 	if SchemaTree, err = UnzipSchema(); err != nil {
 		panic("schema error: " +  err.Error())
 	}
@@ -113,7 +115,7 @@ func UnzipSchema() (map[string]*yang.Entry, error) {
 // unmarshaled. The supplied options (opts) are used to control the behaviour
 // of the unmarshal function - for example, determining whether errors are
 // thrown for unknown fields in the input JSON.
-func Unmarshal(data []byte, destStruct ygot.GoStruct, opts ...ytypes.UnmarshalOpt) error {
+func Unmarshal(data []byte, destStruct ygot.ValidatedGoStruct, opts ...ytypes.UnmarshalOpt) error {
 	tn := reflect.TypeOf(destStruct).Elem().Name()
 	schema, ok := SchemaTree[tn]
 	if !ok {
@@ -138,7 +140,7 @@ type Fakeroot struct {
 func (*Fakeroot) IsYANGGoStruct() {}
 
 // Validate validates s against the YANG schema corresponding to its type.
-func (t *Fakeroot) Validate(opts ...ygot.ValidationOption) error {
+func (t *Fakeroot) ΛValidate(opts ...ygot.ValidationOption) error {
 	if err := ytypes.Validate(SchemaTree["Fakeroot"], t, opts...); err != nil {
 		return err
 	}
@@ -148,6 +150,12 @@ func (t *Fakeroot) Validate(opts ...ygot.ValidationOption) error {
 // ΛEnumTypeMap returns a map, keyed by YANG schema path, of the enumerated types
 // that are included in the generated code.
 func (t *Fakeroot) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumTypes }
+
+// ΛBelongingModule returns the name of the module that defines the namespace
+// of Fakeroot.
+func (*Fakeroot) ΛBelongingModule() string {
+	return ""
+}
 
 // Parent represents the /openconfig-simple/parent YANG schema element.
 type Parent struct {
@@ -160,7 +168,7 @@ type Parent struct {
 func (*Parent) IsYANGGoStruct() {}
 
 // Validate validates s against the YANG schema corresponding to its type.
-func (t *Parent) Validate(opts ...ygot.ValidationOption) error {
+func (t *Parent) ΛValidate(opts ...ygot.ValidationOption) error {
 	if err := ytypes.Validate(SchemaTree["Parent"], t, opts...); err != nil {
 		return err
 	}
@@ -170,6 +178,12 @@ func (t *Parent) Validate(opts ...ygot.ValidationOption) error {
 // ΛEnumTypeMap returns a map, keyed by YANG schema path, of the enumerated types
 // that are included in the generated code.
 func (t *Parent) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumTypes }
+
+// ΛBelongingModule returns the name of the module that defines the namespace
+// of Parent.
+func (*Parent) ΛBelongingModule() string {
+	return "openconfig-simple"
+}
 
 // Parent_Child represents the /openconfig-simple/parent/child YANG schema element.
 type Parent_Child struct {
@@ -185,7 +199,7 @@ type Parent_Child struct {
 func (*Parent_Child) IsYANGGoStruct() {}
 
 // Validate validates s against the YANG schema corresponding to its type.
-func (t *Parent_Child) Validate(opts ...ygot.ValidationOption) error {
+func (t *Parent_Child) ΛValidate(opts ...ygot.ValidationOption) error {
 	if err := ytypes.Validate(SchemaTree["Parent_Child"], t, opts...); err != nil {
 		return err
 	}
@@ -195,6 +209,12 @@ func (t *Parent_Child) Validate(opts ...ygot.ValidationOption) error {
 // ΛEnumTypeMap returns a map, keyed by YANG schema path, of the enumerated types
 // that are included in the generated code.
 func (t *Parent_Child) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumTypes }
+
+// ΛBelongingModule returns the name of the module that defines the namespace
+// of Parent_Child.
+func (*Parent_Child) ΛBelongingModule() string {
+	return "openconfig-simple"
+}
 
 // RemoteContainer represents the /openconfig-simple/remote-container YANG schema element.
 type RemoteContainer struct {
@@ -207,7 +227,7 @@ type RemoteContainer struct {
 func (*RemoteContainer) IsYANGGoStruct() {}
 
 // Validate validates s against the YANG schema corresponding to its type.
-func (t *RemoteContainer) Validate(opts ...ygot.ValidationOption) error {
+func (t *RemoteContainer) ΛValidate(opts ...ygot.ValidationOption) error {
 	if err := ytypes.Validate(SchemaTree["RemoteContainer"], t, opts...); err != nil {
 		return err
 	}
@@ -217,6 +237,12 @@ func (t *RemoteContainer) Validate(opts ...ygot.ValidationOption) error {
 // ΛEnumTypeMap returns a map, keyed by YANG schema path, of the enumerated types
 // that are included in the generated code.
 func (t *RemoteContainer) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumTypes }
+
+// ΛBelongingModule returns the name of the module that defines the namespace
+// of RemoteContainer.
+func (*RemoteContainer) ΛBelongingModule() string {
+	return "openconfig-simple"
+}
 
 // E_Child_Three is a derived int64 type which is used to represent
 // the enumerated node Child_Three. An additional value named
@@ -322,8 +348,10 @@ var (
 // ΛEnumTypes is a map, keyed by a YANG schema path, of the enumerated types that
 // correspond with the leaf. The type is represented as a reflect.Type. The naming
 // of the map ensures that there are no clashes with valid YANG identifiers.
-var ΛEnumTypes = map[string][]reflect.Type{
+func initΛEnumTypes(){
+  ΛEnumTypes = map[string][]reflect.Type{
 	"/parent/child/config/three": []reflect.Type{
 		reflect.TypeOf((E_Child_Three)(0)),
 	},
+  }
 }

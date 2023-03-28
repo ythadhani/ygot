@@ -17,7 +17,7 @@ package ygen
 import (
 	"bytes"
 	"fmt"
-	"reflect"
+	"io"
 	"sort"
 	"strings"
 	"text/template"
@@ -155,11 +155,6 @@ type GoStructCodeSnippet struct {
 	// used within the generated struct. Used when there are interfaces that
 	// represent multi-type unions generated.
 	Interfaces string
-	// enumTypeMap contains a map, keyed by a schema path (represented as a string)
-	// to the underlying type names selected for that leaf. A slice of strings
-	// is used for the type to handle cases where there is more than one enumerated
-	// type returned for a leaf.
-	enumTypeMap map[string][]string
 }
 
 // String returns the contents of the receiver GoStructCodeSnippet as a string.
@@ -169,24 +164,6 @@ func (g GoStructCodeSnippet) String() string {
 		genutil.WriteIfNotEmpty(&b, s)
 	}
 	return b.String()
-}
-
-// goEnumCodeSnippet is used to store the generated code snippets associated with
-// a particular Go enumerated entity (generated from an identity, typedef referencing
-// an enumerated value or leaf of type enumeration).
-type goEnumCodeSnippet struct {
-	// constDef stores the code snippet for the definition of the derived int64
-	// type, and set of constants corresponding to the enumerated values of the
-	// target YANG node.
-	constDef string
-	// valToString is a map of the int64 value used in the constant definition for
-	// the enumeration to its definition. The definition consists of the string
-	// name of the enumerated value in the YANG schema. In the case of identities
-	// it also stores the module within which the identity was defined. This map
-	// allows mapping of the enumerated value back to its original name.
-	valToString map[int64]ygot.EnumDefinition
-	// name is the name of the enumerated value, used for mapping purposes.
-	name string
 }
 
 // goStructField contains a definition of a field within a Go struct.
@@ -225,9 +202,10 @@ type goUnionInterface struct {
 
 // generatedGoStruct is used to repesent a Go structure to be handed to a template for output.
 type generatedGoStruct struct {
-	StructName string           // StructName is the name of the struct being output.
-	YANGPath   string           // YANGPath is the schema path of the struct being output.
-	Fields     []*goStructField // Fields is the slice of fields of the struct, described as goStructField structs.
+	StructName      string           // StructName is the name of the struct being output.
+	YANGPath        string           // YANGPath is the schema path of the struct being output.
+	Fields          []*goStructField // Fields is the slice of fields of the struct, described as goStructField structs.
+	BelongingModule string           // BelongingModule is the module in which namespace the GoStruct belongs.
 }
 
 // generatedGoMultiKeyListStruct is used to represent a struct used as a key of a YANG list that has multiple
@@ -423,10 +401,12 @@ type UnionUnsupported struct {
 
 var (
 	SchemaTree map[string]*yang.Entry
+	ΛEnumTypes map[string][]reflect.Type
 )
 
 func init() {
 	var err error
+	initΛEnumTypes()
 	if SchemaTree, err = UnzipSchema(); err != nil {
 		panic("schema error: " +  err.Error())
 	}
@@ -463,7 +443,7 @@ func UnzipSchema() (map[string]*yang.Entry, error) {
 // unmarshaled. The supplied options (opts) are used to control the behaviour
 // of the unmarshal function - for example, determining whether errors are
 // thrown for unknown fields in the input JSON.
-func Unmarshal(data []byte, destStruct ygot.GoStruct, opts ...ytypes.UnmarshalOpt) error {
+func Unmarshal(data []byte, destStruct ygot.ValidatedGoStruct, opts ...ytypes.UnmarshalOpt) error {
 	tn := reflect.TypeOf(destStruct).Elem().Name()
 	schema, ok := SchemaTree[tn]
 	if !ok {
@@ -529,11 +509,20 @@ func (*{{ .StructName }}) IsYANGGoStruct() {}
 	// from it.
 	goStructValidatorTemplate = mustMakeTemplate("structValidator", `
 // Validate validates s against the YANG schema corresponding to its type.
-func (t *{{ .StructName }}) Validate(opts ...ygot.ValidationOption) error {
+func (t *{{ .StructName }}) ΛValidate(opts ...ygot.ValidationOption) error {
 	if err := ytypes.Validate(SchemaTree["{{ .StructName }}"], t, opts...); err != nil {
 		return err
 	}
 	return nil
+}
+`)
+
+	// goStructValidatorProxyTemplate creates a proxy for the ΛValidate function with the
+	// user definable name.
+	goStructValidatorProxyTemplate = mustMakeTemplate("structValidatorProxy", `
+// Validate validates s against the YANG schema corresponding to its type.
+func (t *{{ .StructName }}) {{ .ValidateProxyFnName }}(opts ...ygot.ValidationOption) error {
+	return t.ΛValidate(opts...)
 }
 `)
 
@@ -1029,7 +1018,8 @@ var ΛEnum = map[string]map[int64]ygot.EnumDefinition{
 // ΛEnumTypes is a map, keyed by a YANG schema path, of the enumerated types that
 // correspond with the leaf. The type is represented as a reflect.Type. The naming
 // of the map ensures that there are no clashes with valid YANG identifiers.
-var ΛEnumTypes = map[string][]reflect.Type{
+func initΛEnumTypes(){
+  ΛEnumTypes = map[string][]reflect.Type{
   {{- range $schemapath, $types := . }}
 	"{{ $schemapath }}": []reflect.Type{
 		{{- range $i, $t := $types }}
@@ -1037,6 +1027,7 @@ var ΛEnumTypes = map[string][]reflect.Type{
 		{{- end }}
 	},
 	{{- end }}
+  }
 }
 `)
 
@@ -1047,6 +1038,20 @@ var ΛEnumTypes = map[string][]reflect.Type{
 // ΛEnumTypeMap returns a map, keyed by YANG schema path, of the enumerated types
 // that are included in the generated code.
 func (t *{{ .StructName }}) ΛEnumTypeMap() map[string][]reflect.Type { return ΛEnumTypes }
+`)
+
+	// goBelongingModuleTemplate provides a template to output a
+	// function that has a generated struct as receiver, and returns the
+	// name of the module in which namespace the generated struct belongs.
+	// TODO(wenbli): Change the comments to this:
+	// ΛBelongingModule returns the name of the module having the same XML
+	// namespace as {{ .StructName }}.
+	goBelongingModuleTemplate = mustMakeTemplate("belongingModuleMethod", `
+// ΛBelongingModule returns the name of the module that defines the namespace
+// of {{ .StructName }}.
+func (*{{ .StructName }}) ΛBelongingModule() string {
+	return "{{ .BelongingModule }}"
+}
 `)
 
 	// schemaVarTemplate provides a template to output a constant byte
@@ -1294,6 +1299,26 @@ func writeGoHeader(yangFiles, includePaths []string, cfg GeneratorConfig, rootNa
 	return common.String(), oneoff.String(), nil
 }
 
+// isScalarField determines which fields should be converted to pointers when
+// outputting structs; this is done to allow checks against nil.
+func isScalarField(field *NodeDetails) bool {
+	switch {
+	// A non-singleton-leaf always has a generated type for which nil is valid.
+	case field.Type != LeafNode:
+		return false
+	// A union shouldn't be a pointer since its field type is an interface;
+	case len(field.LangType.UnionTypes) >= 2:
+		return false
+	// an enumerated value shouldn't be a pointer either since its has an UNSET value;
+	case field.LangType.IsEnumeratedValue:
+		return false
+	// an unmapped type (interface{}), byte slice, or a leaflist can also use nil already, so they should also not be pointers.
+	case field.LangType.NativeType == ygot.BinaryTypeName, field.LangType.NativeType == ygot.EmptyTypeName, field.LangType.NativeType == "interface{}":
+		return false
+	}
+	return true
+}
+
 // IsScalarField determines which fields should be converted to pointers when
 // outputting structs; this is done to allow checks against nil.
 func IsScalarField(field *yang.Entry, t *MappedType) bool {
@@ -1312,50 +1337,6 @@ func IsScalarField(field *yang.Entry, t *MappedType) bool {
 		return false
 	}
 	return true
-}
-
-// generateGoDefaultValue returns a pointer to a Go literal that represents the
-// default value for the entry. If there is no default value for the field, nil
-// is returned.
-func generateGoDefaultValue(field *yang.Entry, mtype *MappedType, gogen *goGenState, compressPaths, skipEnumDedup, shortenEnumLeafNames, useDefiningModuleForTypedefEnumNames bool, enumOrgPrefixesToTrim []string, simpleUnions bool) (*string, error) {
-	// Set the default type to the mapped Go type.
-	defaultValues := field.DefaultValues()
-	if len(defaultValues) == 0 && mtype.DefaultValue != nil {
-		defaultValues = []string{*mtype.DefaultValue}
-	}
-	for i, defVal := range defaultValues {
-		var err error
-		if defaultValues[i], _, err = gogen.yangDefaultValueToGo(defVal, resolveTypeArgs{yangType: field.Type, contextEntry: field}, len(mtype.UnionTypes) == 1, compressPaths, skipEnumDedup, shortenEnumLeafNames, useDefiningModuleForTypedefEnumNames, enumOrgPrefixesToTrim); err != nil {
-			return nil, err
-		}
-	}
-	// TODO(wenbli): In ygot v1, we should no longer
-	// support the wrapper union generated code, so this if
-	// block would be obsolete.
-	if !simpleUnions {
-		defaultValues = goLeafDefaults(field, mtype)
-		if len(defaultValues) != 0 && len(mtype.UnionTypes) > 1 {
-			// If the default value is applied to a union type, we will generate
-			// non-compilable code when generating wrapper unions, so error out and inform
-			// the user instead of having the user find out that the code doesn't compile.
-			return nil, fmt.Errorf("path %q: default value not supported for wrapper union values, please generate using simplified union leaves", field.Path())
-		}
-	}
-
-	var defaultValue *string
-	if len(defaultValues) > 0 {
-		switch {
-		case field.ListAttr != nil: // field is a leaf-list
-			dv := fmt.Sprintf("[]%s{%s}", mtype.NativeType, strings.Join(defaultValues, ", "))
-			defaultValue = &dv
-		case len(defaultValues) == 1:
-			dv := defaultValues[0]
-			defaultValue = &dv
-		default:
-			return nil, fmt.Errorf("path: %q, unexpected multiple default values %v for a non-leaf-list field", field.Path(), defaultValues)
-		}
-	}
-	return defaultValue, nil
 }
 
 // writeGoStruct generates code snippets for targetStruct. The parameter goStructElements
@@ -1381,14 +1362,19 @@ func generateGoDefaultValue(field *yang.Entry, mtype *MappedType, gogen *goGenSt
 //	   of targetStruct (listKeys).
 //	3. Methods with the struct corresponding to targetStruct as a receiver, e.g., for each
 //	   list a NewListMember() method is generated.
-func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directory, gogen *goGenState, compressPaths, ignoreShadowSchemaPaths, generateJSONSchema, skipEnumDedup, shortenEnumLeafNames, useDefiningModuleForTypedefEnumNames bool, enumOrgPrefixesToTrim []string, goOpts GoOpts) (GoStructCodeSnippet, []error) {
+func writeGoStruct(targetStruct *ParsedDirectory, goStructElements map[string]*ParsedDirectory, generatedUnions map[string]bool, ignoreShadowSchemaPaths bool, goOpts GoOpts, generateJSONSchema bool) (GoStructCodeSnippet, []error) {
+	if targetStruct == nil {
+		return GoStructCodeSnippet{}, []error{fmt.Errorf("cannot create code for nil targetStruct")}
+	}
+
 	var errs []error
 
 	// structDef is used to store the attributes of the structure for which code is being
 	// generated.
 	structDef := generatedGoStruct{
-		StructName: targetStruct.Name,
-		YANGPath:   util.SlicePathToString(targetStruct.Path),
+		StructName:      targetStruct.Name,
+		YANGPath:        targetStruct.Path,
+		BelongingModule: targetStruct.BelongingModule,
 	}
 
 	// associatedListKeyStructs is a slice containing the key structures for any multi-keyed
@@ -1410,14 +1396,8 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 		Receiver: targetStruct.Name,
 	}
 
-	// The Go names of the struct's fields.
-	goFieldNameMap := GoFieldNameMap(targetStruct)
-
 	// definedNameMap defines a map, keyed by YANG identifier to the Go struct field name.
 	definedNameMap := map[string]*yangFieldMap{}
-
-	// enumTypeMap stores a map of schemapath to type name for enumerated types.
-	enumTypeMap := map[string][]string{}
 
 	// genUnions stores the set of multi-type YANG unions that must have
 	// code generated for them.
@@ -1441,8 +1421,9 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 		})
 	}
 
+	uniqueGenFieldNames := make(map[string]bool, len(targetStruct.Fields))
 	// Alphabetically order fields to produce deterministic output.
-	for _, fName := range GetOrderedFieldNames(targetStruct) {
+	for _, fName := range targetStruct.OrderedFieldNames() {
 		// Iterate through the fields of the struct that we are generating code for.
 		// For each field, calculate the name of the field (ensuring that it is unique), and
 		// the corresponding type. fieldDef is used to store the definition of the field (name
@@ -1450,15 +1431,15 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 		var fieldDef *goStructField
 
 		field := targetStruct.Fields[fName]
-		fieldName := goFieldNameMap[fName]
+		fieldName := genutil.MakeNameUnique(field.Name, uniqueGenFieldNames)
 		definedNameMap[fName] = &yangFieldMap{YANGName: fName, GoName: fieldName}
 
-		switch {
-		case field.IsList():
+		switch field.Type {
+		case ListNode:
 			// If the field within the struct is a list, then generate code for this list. This
 			// includes extracting any new types that are required to represent the key of a
 			// list that has multiple keys.
-			fieldType, multiKeyListKey, listMethods, listErr := yangListFieldToGoType(field, fieldName, targetStruct, goStructElements, gogen, goOpts.GenerateSwaggerCompliantCode)
+			fieldType, multiKeyListKey, listMethods, listErr := yangListFieldToGoType(field, fieldName, targetStruct, goStructElements, goOpts.GenerateSwaggerCompliantCode)
 			if listErr != nil {
 				errs = append(errs, listErr)
 			}
@@ -1480,44 +1461,23 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 				associatedListKeyStructs = append(associatedListKeyStructs, multiKeyListKey)
 			}
 
-		case field.IsContainer():
+		case ContainerNode:
 			// This is a YANG container, so it is represented in code using a pointer to the struct type that
 			// is defined for the entity. findMappableEntities has already determined which fields are to
 			// be output, so no filtering of the set of fields is required here.
-			structName, ok := gogen.uniqueDirectoryNames[field.Path()]
+			dir, ok := goStructElements[field.YANGDetails.Path]
 			if !ok {
-				errs = append(errs, fmt.Errorf("could not resolve %s into a defined struct", field.Path()))
+				errs = append(errs, fmt.Errorf("could not resolve %s into a defined struct, %v", field.YANGDetails.Path, goStructElements))
 				continue
 			}
 
 			fieldDef = &goStructField{
 				Name:            fieldName,
-				Type:            fmt.Sprintf("*%s", structName),
+				Type:            fmt.Sprintf("*%s", dir.Name),
 				IsYANGContainer: true,
 			}
 			associatedDefaultMethod.ChildContainerNames = append(associatedDefaultMethod.ChildContainerNames, fieldName)
-		case field.IsLeaf() || field.IsLeafList():
-			// This is a leaf or leaf-list, so we map it into the Go type that corresponds to the
-			// YANG type that the leaf represents.
-			mtype, err := gogen.yangTypeToGoType(resolveTypeArgs{yangType: field.Type, contextEntry: field}, compressPaths, skipEnumDedup, shortenEnumLeafNames, useDefiningModuleForTypedefEnumNames, enumOrgPrefixesToTrim)
-			if err != nil {
-				errs = append(errs, err)
-				continue
-			}
-
-			defaultValue, err := generateGoDefaultValue(field, mtype, gogen, compressPaths, skipEnumDedup, shortenEnumLeafNames, useDefiningModuleForTypedefEnumNames, enumOrgPrefixesToTrim, goOpts.GenerateSimpleUnions)
-			if err != nil {
-				errs = append(errs, err)
-				continue
-			}
-
-			fType := mtype.NativeType
-			schemapath := util.SchemaTreePathNoModule(field)
-			if _, ok := enumTypeMap[schemapath]; ok {
-				errs = append(errs, fmt.Errorf("unexpected error: field %q has identical schemapath with another schema: %q", field.Path(), schemapath))
-				continue
-			}
-			zeroValue := mtype.ZeroValue
+		case LeafNode, LeafListNode:
 			// Only if this union has more than one subtype do we generate the union;
 			// otherwise, we use that subtype directly.
 			// Also, make sure to process a union type once and only once within the struct.
@@ -1530,24 +1490,18 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 			// required to resolve it (e.g. storing the union entry so we make sure the name
 			// is used for the right union entry), we ignore it and allow wrong code to be
 			// generated.
-			if len(mtype.UnionTypes) > 1 && !genUnionSet[mtype.NativeType] {
-				genUnionSet[mtype.NativeType] = true
+			if len(field.LangType.UnionTypes) > 1 && !genUnionSet[field.LangType.NativeType] {
+				genUnionSet[field.LangType.NativeType] = true
 
 				intf := goUnionInterface{
-					Name:           mtype.NativeType,
+					Name:           field.LangType.NativeType,
 					Types:          map[string]string{},
-					LeafPath:       field.Path(),
+					LeafPath:       field.YANGDetails.Path,
 					ParentReceiver: targetStruct.Name,
 				}
 
 				var genTypes []string
-				for t := range mtype.UnionTypes {
-					// If the type within the union is not a builtin type then we store
-					// it within the enumMap, since it is an enumerated type.
-					if _, builtin := validGoBuiltinTypes[t]; !builtin {
-						enumTypeMap[schemapath] = append(enumTypeMap[schemapath], t)
-					}
-
+				for t := range field.LangType.UnionTypes {
 					tn := yang.CamelCase(t)
 					// Ensure that we sanitise the type name to be used in the
 					// output struct.
@@ -1566,10 +1520,6 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 				// Sort the names of the types into deterministic order.
 				sort.Strings(intf.TypeNames)
 				sort.Strings(genTypes)
-				// Sort the enumerated types into schema order.
-				sort.Slice(enumTypeMap[schemapath], func(i, j int) bool {
-					return mtype.UnionTypes[enumTypeMap[schemapath][i]] < mtype.UnionTypes[enumTypeMap[schemapath][j]]
-				})
 				// Populate the union type conversion snippets.
 				for _, t := range intf.TypeNames {
 					if cs, ok := unionConversionSnippets[t]; ok {
@@ -1586,9 +1536,11 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 				genUnions = append(genUnions, intf)
 			}
 
-			if field.ListAttr != nil {
-				// If the field's ListAttr is set, then this indicates that this
-				// element is a leaf-list. We represent a leaf-list in the output
+			fType := field.LangType.NativeType
+			zeroValue := field.LangType.ZeroValue
+
+			if field.Type == LeafListNode {
+				// We represent a leaf-list in the output
 				// code using a slice of the type that the element was mapped to.
 				fType = fmt.Sprintf("[]%s", fType)
 				// Slices have a nil zero value rather than the value of their
@@ -1596,14 +1548,9 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 				zeroValue = "nil"
 			}
 
-			scalarField := IsScalarField(field, mtype)
+			scalarField := isScalarField(field)
 
 			definedNameMap[fName].IsPtr = scalarField
-			if mtype.IsEnumeratedValue {
-				// Any enumerated type is stored in the enumMap to allow for type
-				// resolution from a schema path.
-				enumTypeMap[schemapath] = append(enumTypeMap[schemapath], mtype.NativeType)
-			}
 
 			// If we are generating leaf getters, then append the relevant information
 			// to the associatedLeafGetters slice to be generated along with other
@@ -1614,7 +1561,7 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 				Zero:     zeroValue,
 				IsPtr:    scalarField,
 				Receiver: targetStruct.Name,
-				Default:  defaultValue,
+				Default:  field.LangType.DefaultValue,
 			})
 
 			fieldDef = &goStructField{
@@ -1623,7 +1570,7 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 				IsScalarField: scalarField,
 			}
 		default:
-			errs = append(errs, fmt.Errorf("unknown entity type for mapping to Go: %s, Kind: %v", field.Path(), field.Kind))
+			errs = append(errs, fmt.Errorf("unknown entity type for mapping to Go: %s, Kind: %v", field.YANGDetails.Path, field.Type))
 			continue
 		}
 
@@ -1631,7 +1578,10 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 		// addSchemaPathsToBuffers adds the slice of paths to the tag
 		// and metadata tag buffers.
 		addSchemaPathsToBuffers := func(schemaPaths [][]string, addToMetadata bool) {
-			for i, p := range schemaPaths {
+			for i, path := range schemaPaths {
+				// Copy the path elements to avoid modifying the IR.
+				p := append([]string{}, path...)
+
 				tagBuf.WriteString(util.SlicePathToString(p))
 
 				// Prepend "@" to the last element in the schema path.
@@ -1655,46 +1605,33 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 
 		tagBuf.WriteString(`path:"`)
 		metadataTagBuf.WriteString(`path:"`)
-		// Find the schema paths that the field corresponds to, such that these can
-		// be used as annotations (tags) within the generated struct. Go paths are
-		// always relative.
-		schemaMapPaths, schemaModulePaths, err := findMapPaths(targetStruct, fName, compressPaths, false, false)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-		addSchemaPathsToBuffers(schemaMapPaths, true)
+		addSchemaPathsToBuffers(field.MappedPaths, true)
 
 		// Append a tag indicating the module that instantiates this field.
 		tagBuf.WriteString(` module:"`)
-		addSchemaPathsToBuffers(schemaModulePaths, false)
+		addSchemaPathsToBuffers(field.MappedPathModules, false)
 
 		if ignoreShadowSchemaPaths {
-			shadowSchemaMapPaths, shadowSchemaModulePaths, err := findMapPaths(targetStruct, fName, compressPaths, true, false)
-			if err != nil {
-				errs = append(errs, err)
-				continue
-			}
-			if len(shadowSchemaMapPaths) > 0 {
+			if len(field.ShadowMappedPaths) > 0 {
 				tagBuf.WriteString(` shadow-path:"`)
-				addSchemaPathsToBuffers(shadowSchemaMapPaths, false)
+				addSchemaPathsToBuffers(field.ShadowMappedPaths, false)
 			}
-			if len(shadowSchemaModulePaths) > 0 {
+			if len(field.ShadowMappedPathModules) > 0 {
 				// Append a tag indicating the module that instantiates this field.
 				tagBuf.WriteString(` shadow-module:"`)
-				addSchemaPathsToBuffers(shadowSchemaModulePaths, false)
+				addSchemaPathsToBuffers(field.ShadowMappedPathModules, false)
 			}
 		}
 
 		metadataTagBuf.WriteString(` ygotAnnotation:"true"`)
 
-		if goOpts.GenerateExtensionTags {
-			tagBuf.WriteString(generateExtensionTags(field))
+		if field.ExtensionTags != "" {
+			tagBuf.WriteString(field.ExtensionTags)
 		}
 
-		if fieldDef.IsYANGContainer {
-			if len(field.Extra["presence"]) != 0 && !reflect.ValueOf(field.Extra["presence"][0]).IsNil() {
-				tagBuf.WriteString(` presence:"true"`)
+		if goOpts.AddYangPresence {
+			if field.Type == ContainerNode && field.YANGDetails.PresenceStatement != nil {
+				tagBuf.WriteString(` yangPresence:"true"`)
 			}
 		}
 
@@ -1702,19 +1639,19 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 			tagBuf.WriteString(fmt.Sprintf(` json:"%s"`, fName))
 		}
 
-		if goOpts.GenerateSwaggerCompliantCode {
-			tagBuf.WriteString(generateSwaggerTags(field))
+		if field.SwaggerTags != "" {
+			tagBuf.WriteString(field.SwaggerTags)
 		}
 
 		fieldDef.Tags = tagBuf.String()
 
 		if goOpts.AddDescriptionsAsComments {
 			if goOpts.RetainOnlyDeprecationComments {
-				if strings.HasPrefix(field.Description, deprecationCommentPrefix) {
-					fieldDef.Description = field.Description
+				if strings.HasPrefix(field.YANGDetails.Description, deprecationCommentPrefix) {
+					fieldDef.Description = field.YANGDetails.Description
 				}
 			} else {
-				fieldDef.Description = field.Description
+				fieldDef.Description = field.YANGDetails.Description
 			}
 		}
 
@@ -1814,21 +1751,21 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 	var interfaceBuf bytes.Buffer
 	for _, intf := range genUnions {
 		if goOpts.GenerateSimpleUnions {
-			if _, ok := gogen.generatedUnions[intf.Name]; !ok {
+			if _, ok := generatedUnions[intf.Name]; !ok {
 				if err := unionTypeSimpleTemplate.Execute(&interfaceBuf, intf); err != nil {
 					errs = append(errs, err)
 				}
-				gogen.generatedUnions[intf.Name] = true
+				generatedUnions[intf.Name] = true
 			}
 			if err := unionHelperSimpleTemplate.Execute(&interfaceBuf, intf); err != nil {
 				errs = append(errs, err)
 			}
 		} else {
-			if _, ok := gogen.generatedUnions[intf.Name]; !ok {
+			if _, ok := generatedUnions[intf.Name]; !ok {
 				if err := unionTypeTemplate.Execute(&interfaceBuf, intf); err != nil {
 					errs = append(errs, err)
 				}
-				gogen.generatedUnions[intf.Name] = true
+				generatedUnions[intf.Name] = true
 			}
 			if err := unionHelperTemplate.Execute(&interfaceBuf, intf); err != nil {
 				errs = append(errs, err)
@@ -1837,7 +1774,7 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 	}
 
 	if generateJSONSchema {
-		if err := generateValidator(&methodBuf, structDef); err != nil {
+		if err := generateValidator(&methodBuf, structDef, goOpts.ValidateFunctionName); err != nil {
 			errs = append(errs, err)
 		}
 
@@ -1846,83 +1783,36 @@ func writeGoStruct(targetStruct *Directory, goStructElements map[string]*Directo
 		}
 	}
 
+	if err := generateBelongingModuleFunction(&methodBuf, structDef); err != nil {
+		errs = append(errs, err)
+	}
+
 	return GoStructCodeSnippet{
-		StructName:  structDef.StructName,
-		StructDef:   structBuf.String(),
-		Methods:     methodBuf.String(),
-		ListKeys:    listkeyBuf.String(),
-		Interfaces:  interfaceBuf.String(),
-		enumTypeMap: enumTypeMap,
+		StructName: structDef.StructName,
+		StructDef:  structBuf.String(),
+		Methods:    methodBuf.String(),
+		ListKeys:   listkeyBuf.String(),
+		Interfaces: interfaceBuf.String(),
 	}, errs
 }
 
-func generateExtensionTags(field *yang.Entry) string {
-	var (
-		extensions []*yang.Statement = []*yang.Statement{}
-		buf        bytes.Buffer
-	)
-	if len(field.Exts) != 0 {
-		extensions = append(extensions, field.Exts...)
-	}
-	// TODO(ythadhani) For now we only react to Type extensions on Leaf.
-	// Revisit once goyang is updated.
-	if field.IsLeaf() {
-		leafNode := field.Node.(*yang.Leaf)
-		if len(leafNode.Type.Extensions) != 0 {
-			extensions = append(extensions, leafNode.Type.Extensions...)
-		}
-	}
-
-	uniqueExtKeywordArgs := map[uniqueExtParams]struct{}{}
-	if len(extensions) != 0 {
-		buf.WriteString(` extensions:"`)
-		for iter, extension := range extensions {
-			e := uniqueExtParams{keyword: extension.Keyword, argument: extension.Argument}
-			if _, present := uniqueExtKeywordArgs[e]; present {
-				continue
-			}
-			uniqueExtKeywordArgs[e] = struct{}{}
-			buf.WriteString(extension.Keyword)
-			if extension.HasArgument {
-				buf.WriteString(fmt.Sprintf(",%s", extension.Argument))
-			}
-			if iter != len(extensions)-1 {
-				buf.WriteString(";")
-			}
-		}
-		buf.WriteString(`"`)
-	}
-	return buf.String()
-}
-
-func generateSwaggerTags(field *yang.Entry) string {
-	fieldType := field.Type
+// mappedPathTag returns a generated Go Struct tag containing the stringified
+// input paths separated by '|'. If prefix is supplied, it is prepended to the
+// last element in each path.
+func mappedPathTag(paths [][]string, prefix string) string {
 	var buf bytes.Buffer
-	if fieldType == nil {
-		return buf.String()
-	}
+	buf.WriteString(`path:"`)
+	for i, p := range paths {
+		// Copy the slice so that we don't modify it for future callers.
+		np := append(p[:0:0], p...)
+		np[len(np)-1] = fmt.Sprintf("%s%s", prefix, np[len(np)-1])
+		buf.WriteString(util.SlicePathToString(np))
 
-	switch fieldType.Kind {
-	case yang.Yenum:
-		enumNamesCsv := strings.Join(fieldType.Enum.Names(), ",")
-		if field.IsLeafList() {
-			buf.WriteString(fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, enumNamesCsv))
-		} else if field.IsLeaf() {
-			buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
-		}
-	case yang.Yidentityref:
-		enumNames := make([]string, len(fieldType.IdentityBase.Values))
-		for i, val := range fieldType.IdentityBase.Values {
-			enumNames[i] = val.Name
-		}
-		sort.Strings(enumNames)
-		enumNamesCsv := strings.Join(enumNames, ",")
-		if field.IsLeafList() {
-			buf.WriteString(fmt.Sprintf(` swaggertype:"array,string" enums:"%s"`, enumNamesCsv))
-		} else if field.IsLeaf() {
-			buf.WriteString(fmt.Sprintf(` swaggertype:"string" enums:"%s"`, enumNamesCsv))
+		if i != len(paths)-1 {
+			buf.WriteRune('|')
 		}
 	}
+	buf.WriteString(`"`)
 	return buf.String()
 }
 
@@ -1936,14 +1826,28 @@ func generateSwaggerTags(field *yang.Entry) string {
 //
 // the validation function generated for the struct will be:
 //
-//   func (t *MyStruct) Validate(value interface{}) error {
+//   func (t *MyStruct) ΛValidate(value interface{}) error {
 //     if err := ytypes.Validate(schemaMap["MyStruct"], value); err != nil {
 //       return err
 //     }
 //     return nil
 //   }
-func generateValidator(buf *bytes.Buffer, structDef generatedGoStruct) error {
-	return goStructValidatorTemplate.Execute(buf, structDef)
+func generateValidator(buf *bytes.Buffer, structDef generatedGoStruct, validateProxyFunctionName string) error {
+	var err error
+	if err = goStructValidatorTemplate.Execute(buf, structDef); err != nil {
+		return err
+	}
+	if validateProxyFunctionName != "" {
+		parameters := &struct {
+			ValidateProxyFnName string
+			StructName          string
+		}{
+			ValidateProxyFnName: validateProxyFunctionName,
+			StructName:          structDef.StructName,
+		}
+		err = goStructValidatorProxyTemplate.Execute(buf, parameters)
+	}
+	return err
 }
 
 // goTmplFieldDetails stores a goStructField along with additional details
@@ -2109,8 +2013,8 @@ func generateListAppend(buf *bytes.Buffer, method *generatedGoListMethod) error 
 //	  "baz": *t.Baz,
 //	}
 //  }
-func generateGetListKey(buf *bytes.Buffer, s *Directory, nameMap map[string]*yangFieldMap) error {
-	if !s.isList() {
+func generateGetListKey(buf *bytes.Buffer, s *ParsedDirectory, nameMap map[string]*yangFieldMap) error {
+	if s.ListKeys == nil {
 		return nil
 	}
 
@@ -2119,7 +2023,7 @@ func generateGetListKey(buf *bytes.Buffer, s *Directory, nameMap map[string]*yan
 	}
 
 	kn := []string{}
-	for k := range s.ListAttr.Keys {
+	for k := range s.ListKeys {
 		kn = append(kn, k)
 	}
 	sort.Strings(kn)
@@ -2146,29 +2050,19 @@ func generateGetListKey(buf *bytes.Buffer, s *Directory, nameMap map[string]*yan
 //	  type.
 // In the case that the list has multiple keys, the type generated as the key of the list is returned.
 // If errors are encountered during the type generation for the list, the error is returned.
-func yangListFieldToGoType(listField *yang.Entry, listFieldName string, parent *Directory, goStructElements map[string]*Directory, gogen *goGenState, swaggerCompliance bool) (string, *generatedGoMultiKeyListStruct, *generatedGoListMethod, error) {
+func yangListFieldToGoType(listField *NodeDetails, listFieldName string, parent *ParsedDirectory, goStructElements map[string]*ParsedDirectory, swaggerCompliance bool) (string, *generatedGoMultiKeyListStruct, *generatedGoListMethod, error) {
 	// The list itself, since it is a container, has a struct associated with it. Retrieve
 	// this from the set of Directory structs for which code (a Go struct) will be
 	//  generated such that additional details can be used in the code generation.
-	listElem, ok := goStructElements[listField.Path()]
+	listElem, ok := goStructElements[listField.YANGDetails.Path]
 	if !ok {
-		return "", nil, nil, fmt.Errorf("struct for %s did not exist", listField.Path())
+		return "", nil, nil, fmt.Errorf("struct for %s did not exist", listField.YANGDetails.Path)
 	}
 
-	// Find the name of the struct that refers to the list provided as input. The YANGCodeGenerator
-	// instance stores this information. It is populated by structName which always runs prior to
-	// this function being called (as all mappable entities, which includes lists, have been found.
-	// Thus, in the case that this struct does not have a known name, then code cannot be generated
-	// for it, and hence we skip the element.
-	listName, ok := gogen.uniqueDirectoryNames[listField.Path()]
-	if !ok {
-		return "", nil, nil, fmt.Errorf("list element %s did not have a resolved name", listField.Path())
-	}
-
-	if listElem.ListAttr == nil || len(listElem.ListAttr.Keys) == 0 {
+	if len(listElem.ListKeys) == 0 {
 		// Keyless list therefore represent this as a slice of pointers to
 		// the struct that represents the list element itself.
-		return fmt.Sprintf("[]*%s", listName), nil, nil, nil
+		return fmt.Sprintf("[]*%s", listElem.Name), nil, nil, nil
 	}
 
 	var listType string
@@ -2176,57 +2070,77 @@ func yangListFieldToGoType(listField *yang.Entry, listFieldName string, parent *
 	var listKeys []goStructField
 	var listKeyStructName string
 
-	// Key name elements are ordered per Section 7.8.2 of RFC6020. Rely on this
-	// fact for determisitic ordering in output code and rendering.
-	keyElemNames := strings.Fields(listField.Key)
+	shortestPath := func(ss [][]string) [][]string {
+		var shortest []string
+		for _, s := range ss {
+			if shortest == nil {
+				shortest = s
+				continue
+			}
+			if len(s) < len(shortest) {
+				shortest = s
+			}
+		}
+		return [][]string{shortest}
+	}
 
 	usedKeyElemNames := make(map[string]bool)
-	for _, keName := range keyElemNames {
-		keyField := goStructField{
-			Name: genutil.MakeNameUnique(genutil.EntryCamelCaseName(listField.Dir[keName]), usedKeyElemNames),
-			Type: listElem.ListAttr.Keys[keName].NativeType,
-			Tags: fmt.Sprintf(`path:"%s"`, keName),
+	for _, keName := range listElem.ListKeyYANGNames {
+		keyType, ok := listElem.Fields[keName]
+		if !ok {
+			return "", nil, nil, fmt.Errorf("did not find type for key %s", keName)
 		}
-		keyField.IsScalarField = IsScalarField(listField.Dir[keName], listElem.ListAttr.Keys[keName])
+
+		keyField := goStructField{
+			Name: genutil.MakeNameUnique(listElem.ListKeys[keName].Name, usedKeyElemNames),
+			Type: listElem.ListKeys[keName].LangType.NativeType,
+			// The shortest mapped path for a list key must be the path to the key.
+			Tags: mappedPathTag(shortestPath(keyType.MappedPaths), ""),
+		}
+		keyField.IsScalarField = isScalarField(keyType)
 		listKeys = append(listKeys, keyField)
 	}
 
 	switch {
 	case swaggerCompliance:
-		return fmt.Sprintf("[]*%s", listName), nil, nil, nil
-	case len(listElem.ListAttr.Keys) == 1:
+		return fmt.Sprintf("[]*%s", listElem.Name), nil, nil, nil
+	case len(listElem.ListKeys) == 1:
 		// This is a single keyed list, so we can represent it as a map with
 		// a simple Go type as the key. Note that a leaf-list can never be
 		// a key, so we do not need to handle the case whereby we would have to
 		// have a slice which keys the list.
-		listType = fmt.Sprintf("map[%s]*%s", listKeys[0].Type, listName)
+		listType = fmt.Sprintf("map[%s]*%s", listKeys[0].Type, listElem.Name)
 	default:
 		// This is a list with multiple keys, so we need to generate a new structure
 		// that represents the list key itself - this struct is described in a
 		// generatedGoMultiKeyListStruct struct, which is then expanded by a template to the struct
 		// definition.
-		listKeyStructName = fmt.Sprintf("%s_%s_Key", parent.Name, listFieldName)
-		if gogen.definedGlobals[listKeyStructName] {
+		listKeyStructName = fmt.Sprintf("%s_Key", listElem.Name)
+		names := make(map[string]bool, len(goStructElements))
+		for _, d := range goStructElements {
+			names[d.Name] = true
+		}
+		if names[listKeyStructName] {
 			listKeyStructName = fmt.Sprintf("%s_%s_YANGListKey", parent.Name, listFieldName)
-			if gogen.definedGlobals[listKeyStructName] {
-				return "", nil, nil, fmt.Errorf("unexpected generated list key name conflict for %s", listField.Path())
+			if names[listKeyStructName] {
+				return "", nil, nil, fmt.Errorf("unexpected generated list key name conflict for %s", listField.YANGDetails.Path)
 			}
-			gogen.definedGlobals[listKeyStructName] = true
+			names[listKeyStructName] = true
 		}
 		multiListKey = &generatedGoMultiKeyListStruct{
 			KeyStructName: listKeyStructName,
-			ParentPath:    util.SlicePathToString(parent.Path),
+			ParentPath:    parent.Path,
 			ListName:      listFieldName,
 			Keys:          listKeys,
 		}
-		listType = fmt.Sprintf("map[%s]*%s", listKeyStructName, listName)
+		listType = fmt.Sprintf("map[%s]*%s", listKeyStructName, listElem.Name)
 	}
 
 	// Generate the specification for the methods that should be generated for this
 	// list, such that this can be handed to the relevant templates to generate code.
 	listMethodSpec := &generatedGoListMethod{
 		ListName:  listFieldName,
-		ListType:  listName,
+		ListType:  listElem.Name,
 		KeyStruct: listKeyStructName,
 		Keys:      listKeys,
 		Receiver:  parent.Name,
@@ -2235,85 +2149,32 @@ func yangListFieldToGoType(listField *yang.Entry, listFieldName string, parent *
 	return listType, multiListKey, listMethodSpec, nil
 }
 
-// writeGoEnum takes an input yangEnum, and generates the code corresponding
-// to it. If the enum that is input has multiple enumerated types within it
-// (i.e., is a union) then the relevant enumerated type is output for each
-// included entity. If errors are encountered whilst mapping the enumeration to
+// writeGoEnum takes an input goEnumeratedType, and generates the code corresponding
+// to it. If errors are encountered whilst mapping the enumeration to
 // code, they are returned. The enumDefinition template is used to convert a
 // constructed generatedGoEnumeration struct to code within the function.
-func writeGoEnum(inputEnum *yangEnum) (goEnumCodeSnippet, error) {
-	// initialised to be UNSET, such that it is possible to determine that the enumerated value
-	// was not modified.
-	values := map[int64]string{
-		0: "UNSET",
+func writeGoEnum(inputEnum *goEnumeratedType) (string, error) {
+	var buf strings.Builder
+	if err := goEnumDefinitionTemplate.Execute(&buf, generatedGoEnumeration{
+		EnumerationPrefix: inputEnum.Name,
+		Values:            inputEnum.CodeValues,
+	}); err != nil {
+		return "", err
 	}
-
-	// origValues stores the original set of value names, these are not maintained to be
-	// Go-safe, and are rather used to map back to the original schema values if required.
-	// 0 is not populated within this map, such that the values can be used to check whether
-	// there was a valid entry in the original schema. The value is stored as a ygot
-	// EnumDefinition, which stores the name, and in the case of identity values, the
-	// module within which the identity was defined.
-	origValues := map[int64]ygot.EnumDefinition{}
-
-	switch {
-	case inputEnum.entry.Type.IdentityBase != nil:
-		// The inputEnum corresponds to an identityref - hence the values are defined
-		// based on the values that the identity has. Since there is no explicit ordering
-		// in an identity, then we go through and put the values in alphabetical order in
-		// order to avoid reordering during code generation of the same entity.
-		valNames := []string{}
-		valLookup := map[string]*yang.Identity{}
-		for _, v := range inputEnum.entry.Type.IdentityBase.Values {
-			valNames = append(valNames, v.Name)
-			valLookup[v.Name] = v
-		}
-		sort.Strings(valNames)
-
-		for i, v := range valNames {
-			values[int64(i)+1] = safeGoEnumeratedValueName(v)
-			origValues[int64(i)+1] = ygot.EnumDefinition{
-				Name:           v,
-				DefiningModule: genutil.ParentModuleName(valLookup[v]),
-			}
-		}
-	default:
-		// The remaining enumerated types are all represented as an Enum type within the
-		// Goyang entry construct. The values are accessed in a map keyed by an int64
-		// and with a value of the name of the enumerated value - retrieved via ValueMap().
-		for i, value := range inputEnum.entry.Type.Enum.ValueMap() {
-			values[i+1] = safeGoEnumeratedValueName(value)
-			origValues[i+1] = ygot.EnumDefinition{Name: value}
-		}
-	}
-
-	// Initialise the input to the template, and generate the output.
-	templateInput := generatedGoEnumeration{
-		EnumerationPrefix: inputEnum.name,
-		Values:            values,
-	}
-
-	var buf bytes.Buffer
-	err := goEnumDefinitionTemplate.Execute(&buf, templateInput)
-	return goEnumCodeSnippet{
-		constDef:    buf.String(),
-		valToString: origValues,
-		name:        inputEnum.name,
-	}, err
+	return buf.String(), nil
 }
 
-// generateEnumMap outputs a map from the enumMapTemplate. It takes an input of
-// a map corresponding to the enumerated types that are defined in the input YANG
-// schema, keyed by their generating Go name. The values of the map for each key is
-// a map of a int64 value of the enum, and its string name as represented in the
-// original YANG schema,
-func generateEnumMap(enumValues map[string]map[int64]ygot.EnumDefinition) (string, error) {
-	if len(enumValues) == 0 {
+// writeGoEnumMap takes in a enumerated value map firstly keyed by the name of
+// the enumerated type, then by the enumerated type value. It outputs a piece
+// of generated Go code from which this information can be accessed
+// programmatically.
+func writeGoEnumMap(enums map[string]map[int64]ygot.EnumDefinition) (string, error) {
+	if len(enums) == 0 {
 		return "", nil
 	}
 
 	var buf bytes.Buffer
-	if err := goEnumMapTemplate.Execute(&buf, enumValues); err != nil {
+	if err := goEnumMapTemplate.Execute(&buf, enums); err != nil {
 		return "", err
 	}
 	return buf.String(), nil
@@ -2335,6 +2196,12 @@ func generateEnumTypeMap(enumTypeMap map[string][]string) (string, error) {
 // enumTypeMap for a struct.
 func generateEnumTypeMapAccessor(b *bytes.Buffer, s generatedGoStruct) error {
 	return goEnumTypeMapAccessTemplate.Execute(b, s)
+}
+
+// generateBelongingModuleFunction generates a function which returns the
+// belonging module as a string.
+func generateBelongingModuleFunction(b io.Writer, s generatedGoStruct) error {
+	return goBelongingModuleTemplate.Execute(b, s)
 }
 
 // writeGoSchema generates Go code which serialises the rawSchema byte slice

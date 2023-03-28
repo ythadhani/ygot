@@ -464,7 +464,10 @@ type pathElemMultiKey struct {
 	Y exampleUnion       `path:"y"`
 }
 
-func (*pathElemMultiKey) IsYANGGoStruct() {}
+func (*pathElemMultiKey) IsYANGGoStruct()                         {}
+func (*pathElemMultiKey) ΛValidate(...ValidationOption) error     { return nil }
+func (*pathElemMultiKey) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*pathElemMultiKey) ΛBelongingModule() string                { return "" }
 
 func (e *pathElemMultiKey) ΛListKeyMap() (map[string]interface{}, error) {
 	if e.I == nil || e.J == nil || e.S == nil || e.E == (EnumTest)(0) || e.X == nil || e.Y == nil {
@@ -744,7 +747,6 @@ func TestSliceToScalarArray(t *testing.T) {
 
 	for _, tt := range tests {
 		got, err := sliceToScalarArray(tt.in)
-
 		if err != nil {
 			if !tt.wantErr {
 				t.Errorf("%s: sliceToScalarArray(%v): got unexpected error: %v", tt.name, tt.in, err)
@@ -788,9 +790,12 @@ type renderExample struct {
 	EnumLeafList        []EnumTest                          `path:"enum-leaflist"`
 }
 
-// IsYANGGoStruct ensures that the renderExample type implements the GoStruct
+// IsYANGGoStruct ensures that the renderExample type implements the ValidatedGoStruct
 // interface.
-func (*renderExample) IsYANGGoStruct() {}
+func (*renderExample) IsYANGGoStruct()                         {}
+func (*renderExample) ΛValidate(...ValidationOption) error     { return nil }
+func (*renderExample) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*renderExample) ΛBelongingModule() string                { return "" }
 
 // exampleUnion is an interface that is used to represent a mixed type
 // union.
@@ -843,16 +848,22 @@ type renderExampleChild struct {
 	Empty YANGEmpty `path:"empty"`
 }
 
-// IsYANGGoStruct implements the GoStruct interface.
-func (*renderExampleChild) IsYANGGoStruct() {}
+// IsYANGGoStruct implements the ValidatedGoStruct interface.
+func (*renderExampleChild) IsYANGGoStruct()                         {}
+func (*renderExampleChild) ΛValidate(...ValidationOption) error     { return nil }
+func (*renderExampleChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*renderExampleChild) ΛBelongingModule() string                { return "" }
 
 // renderExampleList is a list entry in the renderExample struct.
 type renderExampleList struct {
 	Val *string `path:"val|state/val"`
 }
 
-// IsYANGGoStruct implements the GoStruct interface.
-func (*renderExampleList) IsYANGGoStruct() {}
+// IsYANGGoStruct implements the ValidatedGoStruct interface.
+func (*renderExampleList) IsYANGGoStruct()                         {}
+func (*renderExampleList) ΛValidate(...ValidationOption) error     { return nil }
+func (*renderExampleList) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*renderExampleList) ΛBelongingModule() string                { return "" }
 
 func (r *renderExampleList) ΛListKeyMap() (map[string]interface{}, error) {
 	return map[string]interface{}{"val": *r.Val}, nil
@@ -864,8 +875,11 @@ type renderExampleEnumList struct {
 	Key EnumTest `path:"config/key|key"`
 }
 
-// IsYANGGoStruct implements the GoStruct interface.
-func (*renderExampleEnumList) IsYANGGoStruct() {}
+// IsYANGGoStruct implements the ValidatedGoStruct interface.
+func (*renderExampleEnumList) IsYANGGoStruct()                         {}
+func (*renderExampleEnumList) ΛValidate(...ValidationOption) error     { return nil }
+func (*renderExampleEnumList) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*renderExampleEnumList) ΛBelongingModule() string                { return "" }
 
 // EnumTest is a synthesised derived type which is used to represent
 // an enumeration in the YANG schema.
@@ -915,7 +929,10 @@ type pathElemExample struct {
 }
 
 // IsYANGGoStruct ensures that pathElemExample implements GoStruct.
-func (*pathElemExample) IsYANGGoStruct() {}
+func (*pathElemExample) IsYANGGoStruct()                         {}
+func (*pathElemExample) ΛValidate(...ValidationOption) error     { return nil }
+func (*pathElemExample) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*pathElemExample) ΛBelongingModule() string                { return "" }
 
 // pathElemExampleChild is an example struct that is used as a list child struct.
 type pathElemExampleChild struct {
@@ -924,7 +941,10 @@ type pathElemExampleChild struct {
 }
 
 // IsYANGGoStruct ensures that pathElemExampleChild implements GoStruct.
-func (*pathElemExampleChild) IsYANGGoStruct() {}
+func (*pathElemExampleChild) IsYANGGoStruct()                         {}
+func (*pathElemExampleChild) ΛValidate(...ValidationOption) error     { return nil }
+func (*pathElemExampleChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*pathElemExampleChild) ΛBelongingModule() string                { return "" }
 
 // ΛListKeyMap ensures that pathElemExampleChild implements the KeyHelperGoStruct
 // helper.
@@ -943,7 +963,10 @@ type pathElemUnserialisable struct {
 }
 
 // IsYANGGoStruct ensures that pathElemUnserialisable implements GoStruct.
-func (*pathElemUnserialisable) IsYANGGoStruct() {}
+func (*pathElemUnserialisable) IsYANGGoStruct()                         {}
+func (*pathElemUnserialisable) ΛValidate(...ValidationOption) error     { return nil }
+func (*pathElemUnserialisable) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*pathElemUnserialisable) ΛBelongingModule() string                { return "" }
 
 // ΛListKeyMap ensures that pathElemUnserialisable implements the KeyHelperGoStruct
 // helper.
@@ -964,9 +987,12 @@ type pathElemExampleMultiKeyChild struct {
 	Baz *uint8  `path:"baz"`
 }
 
-// IsYANGGoStruct ensures that pathElemExampleMultiKeyChild implements the GoStruct
+// IsYANGGoStruct ensures that pathElemExampleMultiKeyChild implements the ValidatedGoStruct
 // interface.
-func (*pathElemExampleMultiKeyChild) IsYANGGoStruct() {}
+func (*pathElemExampleMultiKeyChild) IsYANGGoStruct()                         {}
+func (*pathElemExampleMultiKeyChild) ΛValidate(...ValidationOption) error     { return nil }
+func (*pathElemExampleMultiKeyChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*pathElemExampleMultiKeyChild) ΛBelongingModule() string                { return "" }
 
 // ΛListKeyMap ensurs that pathElemExampleMultiKeyChild implements the KeyHelperGoStruct
 // interface.
@@ -1361,7 +1387,7 @@ func TestTogNMINotifications(t *testing.T) {
 				{String("arthur")},
 			},
 		},
-		wantErr: true, //unimplemented.
+		wantErr: true, // unimplemented.
 	}, {
 		name:        "invalid element in leaf-list",
 		inTimestamp: 42,
@@ -1531,21 +1557,30 @@ type exampleDevice struct {
 	Bgp *exampleBgp `path:""`
 }
 
-func (*exampleDevice) IsYANGGoStruct() {}
+func (*exampleDevice) IsYANGGoStruct()                         {}
+func (*exampleDevice) ΛValidate(...ValidationOption) error     { return nil }
+func (*exampleDevice) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*exampleDevice) ΛBelongingModule() string                { return "" }
 
 type exampleBgp struct {
 	Global   *exampleBgpGlobal              `path:"bgp/global"`
 	Neighbor map[string]*exampleBgpNeighbor `path:"bgp/neighbors/neighbor"`
 }
 
-func (*exampleBgp) IsYANGGoStruct() {}
+func (*exampleBgp) IsYANGGoStruct()                         {}
+func (*exampleBgp) ΛValidate(...ValidationOption) error     { return nil }
+func (*exampleBgp) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*exampleBgp) ΛBelongingModule() string                { return "" }
 
 type exampleBgpGlobal struct {
 	As       *uint32 `path:"config/as"`
 	RouterID *string `path:"config/router-id"`
 }
 
-func (*exampleBgpGlobal) IsYANGGoStruct() {}
+func (*exampleBgpGlobal) IsYANGGoStruct()                         {}
+func (*exampleBgpGlobal) ΛValidate(...ValidationOption) error     { return nil }
+func (*exampleBgpGlobal) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*exampleBgpGlobal) ΛBelongingModule() string                { return "" }
 
 type exampleBgpNeighbor struct {
 	Description                  *string                                         `path:"config/description"`
@@ -1560,7 +1595,10 @@ type exampleBgpNeighbor struct {
 	Updates                      []Binary                                        `path:"state/updates"`
 }
 
-func (*exampleBgpNeighbor) IsYANGGoStruct() {}
+func (*exampleBgpNeighbor) IsYANGGoStruct()                         {}
+func (*exampleBgpNeighbor) ΛValidate(...ValidationOption) error     { return nil }
+func (*exampleBgpNeighbor) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*exampleBgpNeighbor) ΛBelongingModule() string                { return "" }
 
 // exampleBgpNeighborEnabledAddressFamiliesUnion is an interface that is implemented by
 // valid types of the EnabledAddressFamilies field of the exampleBgpNeighbor struct.
@@ -1619,7 +1657,111 @@ type exampleTransportAddressBinary struct {
 
 func (*exampleTransportAddressBinary) IsExampleTransportAddress() {}
 
-// invalidGoStruct explicitly does not implement the GoStruct interface.
+// ucExampleDevice and the following structs are a set of structs used for more
+// complex testing in TestConstructIETFJSON, these structs are used to test for
+// YANG presence containers.
+
+type ucExampleDevice struct {
+	Bgp    *ucExampleBgp    `path:"bgp" yangPresence:"true"`
+	Isis   *ucExampleIsis   `path:"isis"`
+	System *ucExampleSystem `path:"system"`
+}
+
+func (*ucExampleDevice) IsYANGGoStruct()                         {}
+func (*ucExampleDevice) ΛValidate(...ValidationOption) error     { return nil }
+func (*ucExampleDevice) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ucExampleDevice) ΛBelongingModule() string                { return "" }
+
+type ucExampleBgp struct {
+	Global   *ucExampleBgpGlobal              `path:"global"`
+	Neighbor map[string]*ucExampleBgpNeighbor `path:"neighbor"`
+}
+
+func (*ucExampleBgp) IsYANGGoStruct()                         {}
+func (*ucExampleBgp) ΛValidate(...ValidationOption) error     { return nil }
+func (*ucExampleBgp) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ucExampleBgp) ΛBelongingModule() string                { return "" }
+
+type ucExampleIsis struct {
+	Instance map[string]*ucExampleIsisInstance `path:"instance"`
+}
+
+func (*ucExampleIsis) IsYANGGoStruct()                         {}
+func (*ucExampleIsis) ΛValidate(...ValidationOption) error     { return nil }
+func (*ucExampleIsis) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ucExampleIsis) ΛBelongingModule() string                { return "" }
+
+type ucExampleSystem struct {
+	SshServer *ucExampleSystemSshServer `path:"ssh-server" yangPresence:"true"`
+}
+
+func (*ucExampleSystem) IsYANGGoStruct()                         {}
+func (*ucExampleSystem) ΛValidate(...ValidationOption) error     { return nil }
+func (*ucExampleSystem) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ucExampleSystem) ΛBelongingModule() string                { return "" }
+
+type ucExampleBgpGlobal struct {
+	As       *uint32 `path:"as"`
+	RouterID *string `path:"router-id"`
+}
+
+func (*ucExampleBgpGlobal) IsYANGGoStruct()                         {}
+func (*ucExampleBgpGlobal) ΛValidate(...ValidationOption) error     { return nil }
+func (*ucExampleBgpGlobal) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ucExampleBgpGlobal) ΛBelongingModule() string                { return "" }
+
+type ucExampleBgpNeighbor struct {
+	Description     *string `path:"description"`
+	Enabled         *bool   `path:"enabled"`
+	NeighborAddress *string `path:"neighbor-address"`
+	PeerAs          *uint32 `path:"peer-as"`
+}
+
+func (*ucExampleBgpNeighbor) IsYANGGoStruct()                         {}
+func (*ucExampleBgpNeighbor) ΛValidate(...ValidationOption) error     { return nil }
+func (*ucExampleBgpNeighbor) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ucExampleBgpNeighbor) ΛBelongingModule() string                { return "" }
+
+type ucExampleIsisInstance struct {
+	Name     *string                        `path:"name"`
+	Enabled  *bool                          `path:"enabled"`
+	Overload *ucExampleIsisInstanceOverload `path:"overload" yangPresence:"true"`
+}
+
+func (*ucExampleIsisInstance) IsYANGGoStruct()                         {}
+func (*ucExampleIsisInstance) ΛValidate(...ValidationOption) error     { return nil }
+func (*ucExampleIsisInstance) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ucExampleIsisInstance) ΛBelongingModule() string                { return "" }
+
+type ucExampleSystemSshServer struct {
+	Instance map[string]*ucExampleSystemSshServer_Instance `path:"instance"`
+}
+
+func (*ucExampleSystemSshServer) IsYANGGoStruct()                         {}
+func (*ucExampleSystemSshServer) ΛValidate(...ValidationOption) error     { return nil }
+func (*ucExampleSystemSshServer) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ucExampleSystemSshServer) ΛBelongingModule() string                { return "" }
+
+type ucExampleIsisInstanceOverload struct {
+	AdvertiseExternal *bool `path:"advertise-external"`
+	AdvertiseInternal *bool `path:"advertise-internal"`
+}
+
+func (*ucExampleIsisInstanceOverload) IsYANGGoStruct()                         {}
+func (*ucExampleIsisInstanceOverload) ΛValidate(...ValidationOption) error     { return nil }
+func (*ucExampleIsisInstanceOverload) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ucExampleIsisInstanceOverload) ΛBelongingModule() string                { return "" }
+
+type ucExampleSystemSshServer_Instance struct {
+	Name *string `path:"name"`
+}
+
+func (*ucExampleSystemSshServer_Instance) IsYANGGoStruct()                         {}
+func (*ucExampleSystemSshServer_Instance) ΛValidate(...ValidationOption) error     { return nil }
+func (*ucExampleSystemSshServer_Instance) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ucExampleSystemSshServer_Instance) ΛBelongingModule() string                { return "" }
+
+// invalidGoStruct explicitly does not implement the ValidatedGoStruct interface.
 type invalidGoStruct struct {
 	Value *string
 }
@@ -1628,14 +1770,20 @@ type invalidGoStructChild struct {
 	Child *invalidGoStruct `path:"child"`
 }
 
-func (*invalidGoStructChild) IsYANGGoStruct() {}
+func (*invalidGoStructChild) IsYANGGoStruct()                         {}
+func (*invalidGoStructChild) ΛValidate(...ValidationOption) error     { return nil }
+func (*invalidGoStructChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*invalidGoStructChild) ΛBelongingModule() string                { return "" }
 
 type invalidGoStructField struct {
 	// A string is not directly allowed inside a GoStruct
 	Value string `path:"value"`
 }
 
-func (*invalidGoStructField) IsYANGGoStruct() {}
+func (*invalidGoStructField) IsYANGGoStruct()                         {}
+func (*invalidGoStructField) ΛValidate(...ValidationOption) error     { return nil }
+func (*invalidGoStructField) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*invalidGoStructField) ΛBelongingModule() string                { return "" }
 
 // invalidGoStructEntity is a GoStruct that contains invalid path data.
 type invalidGoStructEntity struct {
@@ -1644,56 +1792,83 @@ type invalidGoStructEntity struct {
 	InvalidEnum int64 `path:"an-enum"`
 }
 
-func (*invalidGoStructEntity) IsYANGGoStruct() {}
+func (*invalidGoStructEntity) IsYANGGoStruct()                         {}
+func (*invalidGoStructEntity) ΛValidate(...ValidationOption) error     { return nil }
+func (*invalidGoStructEntity) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*invalidGoStructEntity) ΛBelongingModule() string                { return "" }
 
 type invalidGoStructMapChild struct {
 	InvalidField string
 }
 
-func (*invalidGoStructMapChild) IsYANGGoStruct() {}
+func (*invalidGoStructMapChild) IsYANGGoStruct()                         {}
+func (*invalidGoStructMapChild) ΛValidate(...ValidationOption) error     { return nil }
+func (*invalidGoStructMapChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*invalidGoStructMapChild) ΛBelongingModule() string                { return "" }
 
 type invalidGoStructMap struct {
 	Map    map[string]*invalidGoStructMapChild `path:"foobar"`
 	FooBar map[string]*invalidGoStruct         `path:"baz"`
 }
 
-func (*invalidGoStructMap) IsYANGGoStruct() {}
+func (*invalidGoStructMap) IsYANGGoStruct()                         {}
+func (*invalidGoStructMap) ΛValidate(...ValidationOption) error     { return nil }
+func (*invalidGoStructMap) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*invalidGoStructMap) ΛBelongingModule() string                { return "" }
 
 type structWithMultiKey struct {
 	Map map[mapKey]*structMultiKeyChild `path:"foo" module:"rootmod"`
 }
 
-func (*structWithMultiKey) IsYANGGoStruct() {}
+func (*structWithMultiKey) IsYANGGoStruct()                         {}
+func (*structWithMultiKey) ΛValidate(...ValidationOption) error     { return nil }
+func (*structWithMultiKey) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*structWithMultiKey) ΛBelongingModule() string                { return "" }
 
 type structWithMultiKeyInvalidModuleTag struct {
 	Map map[mapKey]*structMultiKeyChild `path:"foo/bar" module:"rootmod"`
 }
 
-func (*structWithMultiKeyInvalidModuleTag) IsYANGGoStruct() {}
+func (*structWithMultiKeyInvalidModuleTag) IsYANGGoStruct()                         {}
+func (*structWithMultiKeyInvalidModuleTag) ΛValidate(...ValidationOption) error     { return nil }
+func (*structWithMultiKeyInvalidModuleTag) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*structWithMultiKeyInvalidModuleTag) ΛBelongingModule() string                { return "" }
 
 type structWithMultiKeyInvalidModuleTag2 struct {
 	Map map[mapKey]*structMultiKeyChild `path:"foo" module:"rootmod/rootmod"`
 }
 
-func (*structWithMultiKeyInvalidModuleTag2) IsYANGGoStruct() {}
+func (*structWithMultiKeyInvalidModuleTag2) IsYANGGoStruct()                         {}
+func (*structWithMultiKeyInvalidModuleTag2) ΛValidate(...ValidationOption) error     { return nil }
+func (*structWithMultiKeyInvalidModuleTag2) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*structWithMultiKeyInvalidModuleTag2) ΛBelongingModule() string                { return "" }
 
 type structWithMultiKeyInvalidModuleTag3 struct {
 	Map map[mapKey]*structMultiKeyChild `path:"foo/bar" module:"rootmod/rootmod|rootmod"`
 }
 
-func (*structWithMultiKeyInvalidModuleTag3) IsYANGGoStruct() {}
+func (*structWithMultiKeyInvalidModuleTag3) IsYANGGoStruct()                         {}
+func (*structWithMultiKeyInvalidModuleTag3) ΛValidate(...ValidationOption) error     { return nil }
+func (*structWithMultiKeyInvalidModuleTag3) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*structWithMultiKeyInvalidModuleTag3) ΛBelongingModule() string                { return "" }
 
 type structWithMultiKeyInvalidModuleTag4 struct {
 	Map map[mapKey]*structMultiKeyChild `path:"foo/bar" module:""`
 }
 
-func (*structWithMultiKeyInvalidModuleTag4) IsYANGGoStruct() {}
+func (*structWithMultiKeyInvalidModuleTag4) IsYANGGoStruct()                         {}
+func (*structWithMultiKeyInvalidModuleTag4) ΛValidate(...ValidationOption) error     { return nil }
+func (*structWithMultiKeyInvalidModuleTag4) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*structWithMultiKeyInvalidModuleTag4) ΛBelongingModule() string                { return "" }
 
 type structWithMultiKeyInvalidModuleTag5 struct {
 	Map map[mapKey]*structMultiKeyChild `path:"foo/bar" module:"rootmod/rootmod2|rootmod"`
 }
 
-func (*structWithMultiKeyInvalidModuleTag5) IsYANGGoStruct() {}
+func (*structWithMultiKeyInvalidModuleTag5) IsYANGGoStruct()                         {}
+func (*structWithMultiKeyInvalidModuleTag5) ΛValidate(...ValidationOption) error     { return nil }
+func (*structWithMultiKeyInvalidModuleTag5) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*structWithMultiKeyInvalidModuleTag5) ΛBelongingModule() string                { return "" }
 
 type mapKey struct {
 	F1 string `path:"fOne"`
@@ -1705,7 +1880,10 @@ type structMultiKeyChild struct {
 	F2 *string `path:"config/fTwo|fTwo" module:"fmod/f2mod|f2mod" shadow-path:"state/fTwo|fTwo" shadow-module:"fmod/f2mod-shadow|f2mod-shadow"`
 }
 
-func (*structMultiKeyChild) IsYANGGoStruct() {}
+func (*structMultiKeyChild) IsYANGGoStruct()                         {}
+func (*structMultiKeyChild) ΛValidate(...ValidationOption) error     { return nil }
+func (*structMultiKeyChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*structMultiKeyChild) ΛBelongingModule() string                { return "" }
 
 // ietfRenderExampleEnumList is a list entry that is keyed on an enum
 // in ietfRenderExample.
@@ -1713,8 +1891,11 @@ type ietfRenderExampleEnumList struct {
 	Key EnumTest `path:"config/key|key" module:"f1mod/f1mod|f1mod"`
 }
 
-// IsYANGGoStruct implements the GoStruct interface.
-func (*ietfRenderExampleEnumList) IsYANGGoStruct() {}
+// IsYANGGoStruct implements the ValidatedGoStruct interface.
+func (*ietfRenderExampleEnumList) IsYANGGoStruct()                         {}
+func (*ietfRenderExampleEnumList) ΛValidate(...ValidationOption) error     { return nil }
+func (*ietfRenderExampleEnumList) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ietfRenderExampleEnumList) ΛBelongingModule() string                { return "f1mod" }
 
 type ietfRenderExample struct {
 	F1        *string                                 `path:"f1" module:"f1mod"`
@@ -1726,38 +1907,56 @@ type ietfRenderExample struct {
 	EnumList  map[EnumTest]*ietfRenderExampleEnumList `path:"enum-list" module:"f1mod"`
 }
 
-func (*ietfRenderExample) IsYANGGoStruct() {}
+func (*ietfRenderExample) IsYANGGoStruct()                         {}
+func (*ietfRenderExample) ΛValidate(...ValidationOption) error     { return nil }
+func (*ietfRenderExample) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ietfRenderExample) ΛBelongingModule() string                { return "f1mod" }
 
 type ietfRenderExampleChild struct {
 	F4 *string `path:"config/f4" module:"f42mod/f42mod"`
 	F5 *string `path:"f5" module:"f1mod"`
 }
 
-func (*ietfRenderExampleChild) IsYANGGoStruct() {}
+func (*ietfRenderExampleChild) IsYANGGoStruct()                         {}
+func (*ietfRenderExampleChild) ΛValidate(...ValidationOption) error     { return nil }
+func (*ietfRenderExampleChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*ietfRenderExampleChild) ΛBelongingModule() string                { return "" }
 
 type listAtRoot struct {
 	Foo map[string]*listAtRootChild `path:"foo" rootname:"foo" module:"m1"`
 }
 
-func (*listAtRoot) IsYANGGoStruct() {}
+func (*listAtRoot) IsYANGGoStruct()                         {}
+func (*listAtRoot) ΛValidate(...ValidationOption) error     { return nil }
+func (*listAtRoot) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*listAtRoot) ΛBelongingModule() string                { return "" }
 
 type listAtRootChild struct {
 	Bar *string `path:"bar" module:"m1"`
 }
 
-func (*listAtRootChild) IsYANGGoStruct() {}
+func (*listAtRootChild) IsYANGGoStruct()                         {}
+func (*listAtRootChild) ΛValidate(...ValidationOption) error     { return nil }
+func (*listAtRootChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*listAtRootChild) ΛBelongingModule() string                { return "m1" }
 
 type listAtRootEnumKeyed struct {
 	Foo map[EnumTest]*listAtRootChildEnumKeyed `path:"foo" rootname:"foo" module:"m1"`
 }
 
-func (*listAtRootEnumKeyed) IsYANGGoStruct() {}
+func (*listAtRootEnumKeyed) IsYANGGoStruct()                         {}
+func (*listAtRootEnumKeyed) ΛValidate(...ValidationOption) error     { return nil }
+func (*listAtRootEnumKeyed) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*listAtRootEnumKeyed) ΛBelongingModule() string                { return "" }
 
 type listAtRootChildEnumKeyed struct {
 	Bar EnumTest `path:"bar" module:"m1"`
 }
 
-func (*listAtRootChildEnumKeyed) IsYANGGoStruct() {}
+func (*listAtRootChildEnumKeyed) IsYANGGoStruct()                         {}
+func (*listAtRootChildEnumKeyed) ΛValidate(...ValidationOption) error     { return nil }
+func (*listAtRootChildEnumKeyed) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*listAtRootChildEnumKeyed) ΛBelongingModule() string                { return "m1" }
 
 // Types to ensure correct serialisation of elements with different
 // modules at the root.
@@ -1766,7 +1965,10 @@ type diffModAtRoot struct {
 	Elem  *diffModAtRootElem  `path:"" module:"m1"`
 }
 
-func (*diffModAtRoot) IsYANGGoStruct() {}
+func (*diffModAtRoot) IsYANGGoStruct()                         {}
+func (*diffModAtRoot) ΛValidate(...ValidationOption) error     { return nil }
+func (*diffModAtRoot) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*diffModAtRoot) ΛBelongingModule() string                { return "" }
 
 type diffModAtRootChild struct {
 	ValueOne   *string `path:"/foo/value-one" module:"/m1/m2"`
@@ -1774,26 +1976,28 @@ type diffModAtRootChild struct {
 	ValueThree *string `path:"/foo/value-three" module:"/m1/m1"`
 }
 
-func (*diffModAtRootChild) IsYANGGoStruct() {}
+func (*diffModAtRootChild) IsYANGGoStruct()                         {}
+func (*diffModAtRootChild) ΛValidate(...ValidationOption) error     { return nil }
+func (*diffModAtRootChild) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*diffModAtRootChild) ΛBelongingModule() string                { return "m1" }
 
 type diffModAtRootElem struct {
 	C *diffModAtRootElemTwo `path:"/baz/c" module:"/m1/m1"`
 }
 
-func (*diffModAtRootElem) IsYANGGoStruct() {}
+func (*diffModAtRootElem) IsYANGGoStruct()                         {}
+func (*diffModAtRootElem) ΛValidate(...ValidationOption) error     { return nil }
+func (*diffModAtRootElem) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*diffModAtRootElem) ΛBelongingModule() string                { return "m1" }
 
 type diffModAtRootElemTwo struct {
 	Name *string `path:"name" module:"m1"`
 }
 
-func (*diffModAtRootElemTwo) IsYANGGoStruct() {}
-
-// Type to test YANG container with presence statement
-type routerPresenceExample struct {
-	Bgp *exampleBgp `path:"bgp" presence:"true"`
-}
-
-func (*routerPresenceExample) IsYANGGoStruct() {}
+func (*diffModAtRootElemTwo) IsYANGGoStruct()                         {}
+func (*diffModAtRootElemTwo) ΛValidate(...ValidationOption) error     { return nil }
+func (*diffModAtRootElemTwo) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*diffModAtRootElemTwo) ΛBelongingModule() string                { return "m1" }
 
 type annotatedJSONTestStruct struct {
 	Field       *string      `path:"field" module:"bar"`
@@ -1802,7 +2006,10 @@ type annotatedJSONTestStruct struct {
 	ΛFieldThree []Annotation `path:"@one|config/@two" ygotAnnotation:"true"`
 }
 
-func (*annotatedJSONTestStruct) IsYANGGoStruct() {}
+func (*annotatedJSONTestStruct) IsYANGGoStruct()                         {}
+func (*annotatedJSONTestStruct) ΛValidate(...ValidationOption) error     { return nil }
+func (*annotatedJSONTestStruct) ΛEnumTypeMap() map[string][]reflect.Type { return nil }
+func (*annotatedJSONTestStruct) ΛBelongingModule() string                { return "" }
 
 type testAnnotation struct {
 	AnnotationFieldOne string `json:"field"`
@@ -1845,7 +2052,7 @@ func (t *unmarshalableJSON) UnmarshalJSON(d []byte) error {
 func TestConstructJSON(t *testing.T) {
 	tests := []struct {
 		name                     string
-		in                       GoStruct
+		in                       ValidatedGoStruct
 		inAppendMod              bool
 		inPrependModIref         bool
 		inRewriteModuleNameRules map[string]string
@@ -2480,14 +2687,6 @@ func TestConstructJSON(t *testing.T) {
 			},
 		},
 	}, {
-		name: "presence container example",
-		in: &routerPresenceExample{
-			Bgp: &exampleBgp{}},
-		wantIETF: map[string]interface{}{
-			"bgp": map[string]interface{}{},
-		},
-		wantSame: true,
-	}, {
 		name: "union leaf-list example",
 		in: &exampleBgpNeighbor{
 			EnabledAddressFamiliesSimple: []exampleUnion{
@@ -2838,6 +3037,245 @@ func TestConstructJSON(t *testing.T) {
 		wantErr:     true,
 		wantJSONErr: true,
 	}, {
+		name: "uncompressed device example with presence containers with empty value",
+		in: &ucExampleDevice{
+			Bgp: &ucExampleBgp{},
+		},
+		wantIETF: map[string]interface{}{"bgp": map[string]interface{}{}},
+		wantSame: true,
+	}, {
+		name: "uncompressed device example with presence containers with nil value",
+		in: &ucExampleDevice{
+			Bgp: nil,
+		},
+		wantIETF: map[string]interface{}{},
+		wantSame: true,
+	}, {
+		name: "uncompressed device example with presence containers with data in tree",
+		in: &ucExampleDevice{
+			Bgp: &ucExampleBgp{
+				Neighbor: map[string]*ucExampleBgpNeighbor{
+					"192.0.2.1": {
+						Description:     String("a neighbor"),
+						Enabled:         Bool(true),
+						NeighborAddress: String("192.0.2.1"),
+						PeerAs:          Uint32(29636),
+					},
+					"100.64.32.96": {
+						Description:     String("a second neighbor"),
+						Enabled:         Bool(false),
+						NeighborAddress: String("100.64.32.96"),
+						PeerAs:          Uint32(5413),
+					},
+				},
+			},
+		},
+		wantIETF: map[string]interface{}{
+			"bgp": map[string]interface{}{
+				"neighbor": []interface{}{
+					map[string]interface{}{
+						"description":      "a second neighbor",
+						"enabled":          false,
+						"neighbor-address": "100.64.32.96",
+						"peer-as":          5413,
+					},
+					map[string]interface{}{
+						"description":      "a neighbor",
+						"enabled":          true,
+						"neighbor-address": "192.0.2.1",
+						"peer-as":          29636,
+					},
+				},
+			},
+		},
+		wantInternal: map[string]interface{}{
+			"bgp": map[string]interface{}{
+				"neighbor": map[string]interface{}{
+					"192.0.2.1": map[string]interface{}{
+						"description":      "a neighbor",
+						"enabled":          true,
+						"neighbor-address": "192.0.2.1",
+						"peer-as":          29636,
+					},
+					"100.64.32.96": map[string]interface{}{
+						"description":      "a second neighbor",
+						"enabled":          false,
+						"neighbor-address": "100.64.32.96",
+						"peer-as":          5413,
+					},
+				},
+			},
+		},
+	}, {
+		name: "uncompressed device example with presence containers in list with empty and nil value",
+		in: &ucExampleDevice{
+			Isis: &ucExampleIsis{
+				Instance: map[string]*ucExampleIsisInstance{
+					"default": {
+						Name:     String("default"),
+						Enabled:  Bool(true),
+						Overload: &ucExampleIsisInstanceOverload{},
+					},
+					"instance1": {
+						Name:     String("instance1"),
+						Enabled:  Bool(false),
+						Overload: nil,
+					},
+				},
+			},
+		},
+		wantIETF: map[string]interface{}{
+			"isis": map[string]interface{}{
+				"instance": []interface{}{
+					map[string]interface{}{
+						"name":     "default",
+						"enabled":  true,
+						"overload": map[string]interface{}{},
+					},
+					map[string]interface{}{
+						"name":    "instance1",
+						"enabled": false,
+					},
+				},
+			},
+		},
+		wantInternal: map[string]interface{}{
+			"isis": map[string]interface{}{
+				"instance": map[string]interface{}{
+					"default": map[string]interface{}{
+						"name":     "default",
+						"enabled":  true,
+						"overload": map[string]interface{}{},
+					},
+					"instance1": map[string]interface{}{
+						"name":    "instance1",
+						"enabled": false,
+					},
+				},
+			},
+		},
+	}, {
+		name: "uncompressed device example with presence containers in list with data in tree",
+		in: &ucExampleDevice{
+			Isis: &ucExampleIsis{
+				Instance: map[string]*ucExampleIsisInstance{
+					"default": {
+						Name:     String("default"),
+						Enabled:  Bool(true),
+						Overload: &ucExampleIsisInstanceOverload{},
+					},
+					"instance1": {
+						Name:     String("instance1"),
+						Enabled:  Bool(false),
+						Overload: &ucExampleIsisInstanceOverload{AdvertiseExternal: Bool(true), AdvertiseInternal: Bool(false)},
+					},
+				},
+			},
+		},
+		wantIETF: map[string]interface{}{
+			"isis": map[string]interface{}{
+				"instance": []interface{}{
+					map[string]interface{}{
+						"name":     "default",
+						"enabled":  true,
+						"overload": map[string]interface{}{},
+					},
+					map[string]interface{}{
+						"name":    "instance1",
+						"enabled": false,
+						"overload": map[string]interface{}{
+							"advertise-external": true,
+							"advertise-internal": false,
+						},
+					},
+				},
+			},
+		},
+		wantInternal: map[string]interface{}{
+			"isis": map[string]interface{}{
+				"instance": map[string]interface{}{
+					"default": map[string]interface{}{
+						"name":     "default",
+						"enabled":  true,
+						"overload": map[string]interface{}{},
+					},
+					"instance1": map[string]interface{}{
+						"name":    "instance1",
+						"enabled": false,
+						"overload": map[string]interface{}{
+							"advertise-external": true,
+							"advertise-internal": false,
+						},
+					},
+				},
+			},
+		},
+	}, {
+		name: "uncompressed device example with presence container encapsulated in regular container with nil value",
+		in: &ucExampleDevice{
+			Bgp: &ucExampleBgp{},
+			System: &ucExampleSystem{
+				SshServer: nil,
+			},
+		},
+		wantIETF: map[string]interface{}{
+			"bgp": map[string]interface{}{},
+		},
+		wantSame: true,
+	}, {
+		name: "uncompressed device example with presence container encapsulated in regular container with empty value",
+		in: &ucExampleDevice{
+			Bgp: &ucExampleBgp{},
+			System: &ucExampleSystem{
+				SshServer: &ucExampleSystemSshServer{},
+			},
+		},
+		wantIETF: map[string]interface{}{
+			"bgp": map[string]interface{}{},
+			"system": map[string]interface{}{
+				"ssh-server": map[string]interface{}{},
+			},
+		},
+		wantSame: true,
+	}, {
+		name: "uncompressed device example with presence container encapsulated in regular container with data in tree",
+		in: &ucExampleDevice{
+			Bgp: &ucExampleBgp{},
+			System: &ucExampleSystem{
+				SshServer: &ucExampleSystemSshServer{
+					Instance: map[string]*ucExampleSystemSshServer_Instance{
+						"mgmt": {
+							Name: String("system"),
+						},
+					},
+				},
+			},
+		},
+		wantIETF: map[string]interface{}{
+			"bgp": map[string]interface{}{},
+			"system": map[string]interface{}{
+				"ssh-server": map[string]interface{}{
+					"instance": []interface{}{
+						map[string]interface{}{
+							"name": "system",
+						},
+					},
+				},
+			},
+		},
+		wantInternal: map[string]interface{}{
+			"bgp": map[string]interface{}{},
+			"system": map[string]interface{}{
+				"ssh-server": map[string]interface{}{
+					"instance": map[string]interface{}{
+						"mgmt": map[string]interface{}{
+							"name": "system",
+						},
+					},
+				},
+			},
+		},
+	}, {
 		name:     "unset enum",
 		in:       &renderExample{EnumField: EnumTestUNSET},
 		wantIETF: map[string]interface{}{},
@@ -2965,7 +3403,6 @@ type uFieldMulti struct {
 func (*uFieldMulti) IsU() {}
 
 func TestUnwrapUnionInterfaceValue(t *testing.T) {
-
 	// This is the only unwrap test that is used by the simple union API
 	// (i.e. unsupported types).
 	testZero := &unionTestOne{
@@ -3438,16 +3875,19 @@ func TestEncodeTypedValue(t *testing.T) {
 	}, {
 		name:  "slice union encoding",
 		inVal: []exampleUnion{testutil.UnionString("hello"), testutil.UnionInt64(42), testutil.UnionFloat64(3.14), testBinary, testutil.UnionBool(true), testutil.YANGEmpty(false)},
-		want: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_LeaflistVal{
-			&gnmipb.ScalarArray{
-				Element: []*gnmipb.TypedValue{
-					{Value: &gnmipb.TypedValue_StringVal{"hello"}},
-					{Value: &gnmipb.TypedValue_IntVal{42}},
-					{Value: &gnmipb.TypedValue_FloatVal{3.14}},
-					{Value: &gnmipb.TypedValue_BytesVal{[]byte(base64testString)}},
-					{Value: &gnmipb.TypedValue_BoolVal{true}},
-					{Value: &gnmipb.TypedValue_BoolVal{false}}},
-			}},
+		want: &gnmipb.TypedValue{
+			Value: &gnmipb.TypedValue_LeaflistVal{
+				&gnmipb.ScalarArray{
+					Element: []*gnmipb.TypedValue{
+						{Value: &gnmipb.TypedValue_StringVal{"hello"}},
+						{Value: &gnmipb.TypedValue_IntVal{42}},
+						{Value: &gnmipb.TypedValue_FloatVal{3.14}},
+						{Value: &gnmipb.TypedValue_BytesVal{[]byte(base64testString)}},
+						{Value: &gnmipb.TypedValue_BoolVal{true}},
+						{Value: &gnmipb.TypedValue_BoolVal{false}},
+					},
+				},
+			},
 		},
 	}, {
 		name: "struct val - ietf json",
@@ -3457,6 +3897,17 @@ func TestEncodeTypedValue(t *testing.T) {
 		inEnc: gnmipb.Encoding_JSON_IETF,
 		want: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_JsonIetfVal{[]byte(`{
   "f1mod:f1": "hello"
+}`)}},
+	}, {
+		name: "struct val - ietf json different module",
+		inVal: &ietfRenderExample{
+			F2: String("hello"),
+		},
+		inEnc: gnmipb.Encoding_JSON_IETF,
+		want: &gnmipb.TypedValue{Value: &gnmipb.TypedValue_JsonIetfVal{[]byte(`{
+  "f2mod:config": {
+    "f2": "hello"
+  }
 }`)}},
 	}, {
 		name: "struct val - internal json",
@@ -3753,8 +4204,9 @@ func TestMarshal7951(t *testing.T) {
 		},
 		want: `{"f1mod:f1":"hello"}`,
 	}, {
-		desc: "complex children",
+		desc: "complex children with module name prepend request",
 		in: &ietfRenderExample{
+			F2:        String("bar"),
 			MixedList: []interface{}{EnumTestVALONE, "test", 42},
 			EnumList: map[EnumTest]*ietfRenderExampleEnumList{
 				EnumTestVALONE: {Key: EnumTestVALONE},
@@ -3777,11 +4229,15 @@ func TestMarshal7951(t *testing.T) {
     "foo:VAL_ONE",
     "test",
     42
-  ]
+  ],
+  "f2mod:config": {
+    "f2": "bar"
+  }
 }`,
 	}, {
 		desc: "complex children with PrependModuleNameIdentityref=true",
 		in: &ietfRenderExample{
+			F2:        String("bar"),
 			MixedList: []interface{}{EnumTestVALONE, "test", 42},
 			EnumList: map[EnumTest]*ietfRenderExampleEnumList{
 				EnumTestVALONE: {Key: EnumTestVALONE},
@@ -3792,6 +4248,9 @@ func TestMarshal7951(t *testing.T) {
 			JSONIndent("  "),
 		},
 		want: `{
+  "config": {
+    "f2": "bar"
+  },
   "enum-list": [
     {
       "config": {
@@ -3809,6 +4268,7 @@ func TestMarshal7951(t *testing.T) {
 	}, {
 		desc: "complex children with AppendModuleName=true and PrependModuleNameIdentityref=true",
 		in: &ietfRenderExample{
+			F2:        String("bar"),
 			MixedList: []interface{}{EnumTestVALONE, "test", 42},
 			EnumList: map[EnumTest]*ietfRenderExampleEnumList{
 				EnumTestVALONE: {Key: EnumTestVALONE},
@@ -3831,7 +4291,10 @@ func TestMarshal7951(t *testing.T) {
     "foo:VAL_ONE",
     "test",
     42
-  ]
+  ],
+  "f2mod:config": {
+    "f2": "bar"
+  }
 }`,
 	}}
 

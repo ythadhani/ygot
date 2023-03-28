@@ -669,7 +669,7 @@ func leavesToNotifications(leaves map[*path]interface{}, ts int64, pfx *gnmiPath
 // type if the value is a struct.
 func EncodeTypedValue(val interface{}, enc gnmipb.Encoding) (*gnmipb.TypedValue, error) {
 	switch v := val.(type) {
-	case GoStruct:
+	case ValidatedGoStruct:
 		return marshalStruct(v, enc)
 	case GoEnum:
 		en, err := EnumName(v)
@@ -731,7 +731,7 @@ func EncodeTypedValue(val interface{}, enc gnmipb.Encoding) (*gnmipb.TypedValue,
 
 // marshalStruct encodes the struct s according to the encoding specified by enc. It
 // is returned as a TypedValue gNMI message.
-func marshalStruct(s GoStruct, enc gnmipb.Encoding) (*gnmipb.TypedValue, error) {
+func marshalStruct(s ValidatedGoStruct, enc gnmipb.Encoding) (*gnmipb.TypedValue, error) {
 	if reflect.ValueOf(s).IsNil() {
 		return nil, nil
 	}
@@ -962,7 +962,7 @@ func (*RFC7951JSONConfig) IsExtensionSupported(ext yext.ExtensionParams) bool {
 // handing to json.Marshal. It complies with the convention for marshalling
 // to JSON described by RFC7951. The supplied args control options corresponding
 // to the method by which JSON is marshalled.
-func ConstructIETFJSON(s GoStruct, args *RFC7951JSONConfig) (map[string]interface{}, error) {
+func ConstructIETFJSON(s ValidatedGoStruct, args *RFC7951JSONConfig) (map[string]interface{}, error) {
 	return structJSON(s, "", jsonOutputConfig{
 		jType:         RFC7951,
 		rfc7951Config: args,
@@ -1194,10 +1194,8 @@ func structJSON(s GoStruct, parentMod string, args jsonOutputConfig) (map[string
 			}
 		}
 
-		if mp, ok := value.(map[string]interface{}); ok && len(mp) == 0 {
-			if _, isPresenceContainer := fType.Tag.Lookup("presence"); !isPresenceContainer {
-				continue
-			}
+		if mp, ok := value.(map[string]interface{}); ok && len(mp) == 0 && !util.IsYangPresence(fType) {
+			continue
 		}
 
 		if isFakeRoot {
