@@ -230,18 +230,18 @@ func diffMaps(ni *util.NodeInfo, origValue, modValue reflect.Value, notif *gnmip
 }
 
 func diffDefault(ni *util.NodeInfo, origValue, modValue reflect.Value, notif *gnmipb.Notification) error {
-	isOrigUnsetGoEnum := isGoEnumUnset(origValue)
-	isModUnsetGoEnum := isGoEnumUnset(modValue)
-	if isOrigUnsetGoEnum && isModUnsetGoEnum {
+	isOrigUnset := util.IsNilOrInvalidValue(origValue) || util.IsNilOrDefaultValue(origValue) || isGoEnumUnset(origValue)
+	isModUnset := util.IsNilOrInvalidValue(modValue) || util.IsNilOrDefaultValue(modValue) || isGoEnumUnset(modValue)
+	if isOrigUnset && isModUnset {
 		return nil
-	} else if isModUnsetGoEnum {
+	} else if isModUnset {
 		pathSpec, err := generatePathSpec(ni, origValue)
 		if err != nil {
 			return err
 		}
 		notif.Delete = append(notif.Delete, pathSpec.gNMIPaths...)
 		return nil
-	} else if isOrigUnsetGoEnum {
+	} else if isOrigUnset {
 		pathSpec, err := generatePathSpec(ni, modValue)
 		if err != nil {
 			return err
@@ -285,9 +285,6 @@ func generatePathSpec(ni *util.NodeInfo, val reflect.Value) (*pathSpec, error) {
 }
 
 func isGoEnumUnset(fieldValue reflect.Value) bool {
-	if util.IsNilOrInvalidValue(fieldValue) {
-		return true
-	}
 	// If this is an enumerated value in the output structs, then check whether
 	// it is set. Only include values that are set to a non-zero value.
 	ival := fieldValue.Interface()
