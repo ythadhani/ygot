@@ -321,9 +321,11 @@ func TestGenerateIR(t *testing.T) {
 					Kind:     SimpleEnumerationType,
 					TypeName: "enumeration",
 					ValToYANGDetails: []ygot.EnumDefinition{{
-						Name: "ONE",
+						Name:  "ONE",
+						Value: 0,
 					}, {
-						Name: "TWO",
+						Name:  "TWO",
+						Value: 1,
 					}},
 				},
 			},
@@ -610,9 +612,11 @@ func TestGenerateIR(t *testing.T) {
 					Kind:     SimpleEnumerationType,
 					TypeName: "enumeration",
 					ValToYANGDetails: []ygot.EnumDefinition{{
-						Name: "ONE",
+						Name:  "ONE",
+						Value: 0,
 					}, {
-						Name: "TWO",
+						Name:  "TWO",
+						Value: 1,
 					}},
 				},
 			},
@@ -1129,7 +1133,7 @@ func TestGenerateIR(t *testing.T) {
 					Name:             "Simple_Parent_Child_Config_Three",
 					Kind:             1,
 					TypeName:         "enumeration",
-					ValToYANGDetails: []ygot.EnumDefinition{{Name: "ONE"}, {Name: "TWO"}},
+					ValToYANGDetails: []ygot.EnumDefinition{{Name: "ONE", Value: 0}, {Name: "TWO", Value: 1}},
 				},
 			},
 			ModelData: []*gpb.ModelData{{Name: "openconfig-remote"}, {Name: "openconfig-simple"}, {Name: "openconfig-simple-augment2"}, {Name: "openconfig-simple-grouping"}},
@@ -1695,10 +1699,12 @@ func TestGenerateIR(t *testing.T) {
 						{
 							Name:           "NORMAL",
 							DefiningModule: "",
+							Value:          0,
 						},
 						{
 							Name:           "SUPER",
 							DefiningModule: "",
+							Value:          1,
 						},
 					},
 				},
@@ -1726,10 +1732,12 @@ func TestGenerateIR(t *testing.T) {
 						{
 							Name:           "SATURDAY",
 							DefiningModule: "",
+							Value:          0,
 						},
 						{
 							Name:           "SUNDAY",
 							DefiningModule: "",
+							Value:          1,
 						},
 					},
 				},
@@ -1749,14 +1757,17 @@ func TestGenerateIR(t *testing.T) {
 						{
 							Name:           "ONE",
 							DefiningModule: "",
+							Value:          0,
 						},
 						{
 							Name:           "TWO",
 							DefiningModule: "",
+							Value:          1,
 						},
 						{
 							Name:           "THREE",
 							DefiningModule: "",
+							Value:          2,
 						},
 					},
 				},
@@ -1776,14 +1787,17 @@ func TestGenerateIR(t *testing.T) {
 						{
 							Name:           "UN",
 							DefiningModule: "",
+							Value:          0,
 						},
 						{
 							Name:           "DEUX",
 							DefiningModule: "",
+							Value:          1,
 						},
 						{
 							Name:           "TROIS",
 							DefiningModule: "",
+							Value:          2,
 						},
 					},
 				},
