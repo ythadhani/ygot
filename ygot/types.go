@@ -108,6 +108,8 @@ type EnumDefinition struct {
 	// DefiningModule specifies the module within which the enumeration was
 	// defined. Only populated for identity values.
 	DefiningModule string
+	// Value specifies the value of an "enumeration" type.
+	Value int
 }
 
 // Annotation defines an interface that is implemented by optional metadata

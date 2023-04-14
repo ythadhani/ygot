@@ -1914,14 +1914,17 @@ func TestGenGoEnumeratedTypes(t *testing.T) {
 					{
 						Name:           "VALUE_A",
 						DefiningModule: "",
+						Value:          0,
 					},
 					{
 						Name:           "VALUE_B",
 						DefiningModule: "",
+						Value:          1,
 					},
 					{
 						Name:           "VALUE_C",
 						DefiningModule: "",
+						Value:          2,
 					},
 				},
 			},
@@ -1939,14 +1942,17 @@ func TestGenGoEnumeratedTypes(t *testing.T) {
 					1: {
 						Name:           "VALUE_A",
 						DefiningModule: "",
+						Value:          0,
 					},
 					2: {
 						Name:           "VALUE_B",
 						DefiningModule: "",
+						Value:          1,
 					},
 					3: {
 						Name:           "VALUE_C",
 						DefiningModule: "",
+						Value:          2,
 					},
 				},
 			},

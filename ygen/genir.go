@@ -158,10 +158,11 @@ func GenerateIR(yangFiles, includePaths []string, langMapper LangMapper, opts IR
 			}
 			sort.Strings(valNames)
 
-			for _, v := range valNames {
+			for i, v := range valNames {
 				et.ValToYANGDetails = append(et.ValToYANGDetails, ygot.EnumDefinition{
 					Name:           v,
 					DefiningModule: genutil.ParentModuleName(valLookup[v]),
+					Value:          i,
 				})
 			}
 		default:
@@ -175,7 +176,8 @@ func GenerateIR(yangFiles, includePaths []string, langMapper LangMapper, opts IR
 			sort.Ints(values)
 			for _, v := range values {
 				et.ValToYANGDetails = append(et.ValToYANGDetails, ygot.EnumDefinition{
-					Name: enum.entry.Type.Enum.ValueMap()[int64(v)],
+					Name:  enum.entry.Type.Enum.ValueMap()[int64(v)],
+					Value: v,
 				})
 			}
 		}
