@@ -772,6 +772,7 @@ type renderExample struct {
 	IntVal              *int32                              `path:"int-val"`
 	Int64Val            *int64                              `path:"int64-val"`
 	FloatVal            *float32                            `path:"floatval"`
+	BoolVal             *bool                               `path:"boolval"`
 	EnumField           EnumTest                            `path:"enum"`
 	Ch                  *renderExampleChild                 `path:"ch"`
 	LeafList            []string                            `path:"leaf-list"`
