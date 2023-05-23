@@ -38,8 +38,6 @@ func diffField(ni *util.NodeInfo, origValue, modValue reflect.Value, notif *gnmi
 	switch {
 	case util.IsValueStructPtr(nonNilValue):
 		err = diffStructPtr(ni, origValue, modValue, notif)
-	case util.IsValuePtr(nonNilValue):
-		err = diffPtr(ni, origValue, modValue, notif)
 	case util.IsValueStruct(nonNilValue):
 		err = diffStructs(ni, origValue, modValue, notif)
 	case util.IsValueMap(nonNilValue):
@@ -59,31 +57,6 @@ func diffStructPtr(ni *util.NodeInfo, origValue, modValue reflect.Value, notif *
 		newModValue = modValue.Elem()
 	}
 	return diffField(ni, newOrigValue, newModValue, notif)
-}
-
-func diffPtr(ni *util.NodeInfo, origValue, modValue reflect.Value, notif *gnmipb.Notification) error {
-	if util.IsNilOrInvalidValue(origValue) {
-		pathSpec, err := generatePathSpec(ni, modValue)
-		if err != nil {
-			return err
-		}
-		notif.Update, err = appendUpdate(notif.Update, pathSpec, modValue.Interface())
-		if err != nil {
-			return err
-		}
-	} else if util.IsNilOrInvalidValue(modValue) {
-		pathSpec, err := generatePathSpec(ni, origValue)
-		if err != nil {
-			return err
-		}
-		notif.Delete = append(notif.Delete, pathSpec.gNMIPaths...)
-	} else {
-		err := diffField(ni, origValue.Elem(), modValue.Elem(), notif)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func diffStructs(ni *util.NodeInfo, origValue, modValue reflect.Value, notif *gnmipb.Notification) error {
