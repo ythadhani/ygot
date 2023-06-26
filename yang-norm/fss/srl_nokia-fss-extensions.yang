@@ -1,0 +1,27 @@
+module srl_nokia-fss-extensions {
+    yang-version 1;
+    namespace "urn:srl_nokia/fss-extensions";
+    prefix "srl_nokia-fss-extensions";
+
+    description
+      "YANG module detailing FSS extensions";
+
+    revision 2022-04-22 {
+        description
+          "FSS 22.7.1";
+    }
+
+    extension type-conversion {
+        description
+          "Takes as an argument a method-name string. Enables FSS to support SRL YANG type changes across releases by invoking
+           a method indicated by method-name that performs type conversion during normalize and denormalize operations.";
+        argument method-name;
+    }
+
+    extension schema-conversion {
+        description
+          "Takes as an argument a method-name string. Enables FSS to support SRL YANG schema changes across releases by invoking
+           a method indicated by method-name that manipulates the JSON tree during normalize and denormalize operations.";
+        argument method-name;
+    }
+}

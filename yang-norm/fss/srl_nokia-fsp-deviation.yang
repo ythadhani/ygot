@@ -1,0 +1,186 @@
+module srl_nokia-fsp-deviation {
+     yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-deviation";
+    prefix "srl_nokia-fsp-deviation";
+
+    import srl_nokia-fsp {prefix srl-fsp;}
+    import srl_nokia-common {prefix srl-comm;}
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+
+    description "This module defines FSP GNMI notification";
+
+    revision "2020-01-02" {
+        description
+                "Initial revision";
+        reference "TBD";
+    }
+
+    grouping fsp-deviation-update-entry {
+        description
+                "GNMI update entry";
+        container update {
+            list data {
+                description
+                    "GNMI update data";
+
+                key "path";
+
+                leaf path {
+                    type string;
+                    description "path";
+                }
+
+                leaf node-val {
+                    type string;
+                    description "value";
+                }
+
+                leaf intent-val {
+                    type string;
+                    description "value";
+                }
+
+                leaf type {
+                    type string;
+                    description "value type";
+                }
+
+                leaf updatedAt {
+                    type string;
+                    description "Time the entry got updated";
+                }
+            }
+        }
+    }
+
+    grouping fsp-deviation-delete-entry {
+        description
+                "GNMI delete entry";
+        container delete {
+            list data {
+                description
+                    "GNMI delete path";
+
+                key "path";
+
+                leaf path {
+                    type string;
+                    description "path";
+                }
+
+                leaf updatedAt {
+                    type string;
+                    description "Time the entry got updated";
+                }
+            }
+        }
+    }
+
+    grouping fsp-deviation-diff {
+        description "GNMI diff";
+
+        uses fsp-deviation-update-entry;
+        uses fsp-deviation-delete-entry;
+
+        leaf root {
+            type string;
+            description "root of schema";
+        }
+    }
+
+    grouping fsp-deviation-diff-top {
+        description "GNMI deviation top";
+        container diff {
+            uses fsp-deviation-diff;
+        }
+    }
+
+    grouping fsp-deviation-req-update-entry {
+        description
+                "GNMI update entry";
+        container update {
+            list data {
+                description
+                    "GNMI update data";
+
+                key "path";
+
+                leaf path {
+                    type string;
+                    description "path";
+                }
+
+                leaf val {
+                    type string;
+                    description "value";
+                }
+
+                leaf type {
+                    type string;
+                    description "value type";
+                }
+
+                leaf updatedAt {
+                    type string;
+                    description "Time the entry got updated";
+                }
+            }
+        }
+    }
+
+    grouping fsp-deviation-req-delete-entry {
+        description
+                "GNMI delete entry";
+        container delete {
+            list data {
+                description
+                    "GNMI delete path";
+
+                key "path";
+
+                leaf path {
+                    type string;
+                    description "path";
+                }
+
+                leaf updatedAt {
+                    type string;
+                    description "Time the entry got updated";
+                }
+            }
+        }
+    }
+
+    grouping fsp-deviation-req {
+        uses fsp-deviation-req-update-entry;
+        uses fsp-deviation-req-delete-entry;
+
+        leaf root {
+            type string;
+            description "root of schema";
+        }
+    }
+    grouping fsp-deviation-req-list-top {
+        description "GNMI diff";
+
+        container diff-req {
+            list nodeDiff {
+                key "uuid";
+                leaf fabricID {type string;}
+                leaf intentID {type string;}
+                leaf uuid {type string;}
+                list difflist {
+                    key "root";
+                    uses fsp-deviation-req;
+                }
+            }
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-deviation-diff-top;
+        uses fsp-deviation-req-list-top;
+    }
+}

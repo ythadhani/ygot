@@ -1,0 +1,56 @@
+module srl_nokia-fsp-profile-fabricQoS {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-fabricQoS";
+    prefix srl_nokia-fsp-profile-fabricQoS;
+
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+
+    description "This module defines FSP fabricQoS profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping DSCP_TCMappingProfile-entry {
+
+        leaf implemented {
+            type boolean;
+        }
+    }
+
+    grouping ControlPlanePolicingProfile-entry {
+
+        leaf implemented {
+            type boolean;
+        }
+    }
+    
+    grouping FabricQoSProfile-entry {
+
+        leaf numnberOfTrafficClasses {
+            type uint32;
+        }
+        // list dscpTCMapping {
+        //     key name;
+        //     uses DSCP_TCMappingProfile-entry;
+        // }
+        leaf defaultQoSTrustMode {
+            type srl-fsp-common:QoSTrustModeType;
+        }
+        leaf ecn {
+            type srl-fsp-common:ECNOpStateType;
+        }
+        leaf wred {
+            type srl-fsp-common:ECNOpStateType;
+        }
+        // list controlPlanePolicing {
+        //     key name;
+        //     uses ControlPlanePolicingProfile-entry;
+        // }
+    }
+
+    container fsp-profile-fabricQoS {
+        uses FabricQoSProfile-entry;
+    }
+}

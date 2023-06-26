@@ -1,0 +1,25 @@
+module srl_nokia-fsp-intent-common {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-intent-common";
+    prefix srl_nokia-fsp-intent-common;
+
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+
+    description
+      "This module defines FSP intent common struct to use in different intent models";
+
+    revision 2020-01-02 {
+        description
+          "Initial revision";
+    }
+    grouping Fabric-intent-entry {
+        leaf name {
+            type string;
+        }
+        leaf fabricIntentType {
+            type srl-fsp-common:IntentType;
+        }
+    }
+}

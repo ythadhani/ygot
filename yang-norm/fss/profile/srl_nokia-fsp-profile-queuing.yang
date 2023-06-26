@@ -1,0 +1,23 @@
+module srl_nokia-fsp-profile-queuing {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-queuing";
+    prefix srl_nokia-fsp-profile-queuing;
+
+    description "This module defines FSP queuing profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping QueuingProfile-entry {
+
+        leaf implemented {
+            type boolean;
+        }
+    }
+
+    container fsp-profile-queuing {
+        uses QueuingProfile-entry;
+    }
+}

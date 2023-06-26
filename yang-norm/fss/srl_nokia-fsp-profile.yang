@@ -1,0 +1,158 @@
+module srl_nokia-fsp-profile {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-profile";
+    prefix "srl_nokia-fsp-profile";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-common {
+        prefix srl-comm;
+    }
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+    import srl_nokia-fsp-profile-ipPoolConfig {
+        prefix srl-fsp-profile-ipPoolConfig;
+    }
+    import srl_nokia-fsp-profile-rack {
+        prefix srl-fsp-profile-rack;
+    }
+    import srl_nokia-fsp-profile-topology {
+        prefix srl-fsp-profile-topology;
+    }
+    import srl_nokia-fsp-profile-underlay {
+        prefix srl-fsp-profile-underlay;
+    }
+    import srl_nokia-fsp-profile-security {
+        prefix srl-fsp-profile-security;
+    }
+    import srl_nokia-fsp-profile-overlay {
+        prefix srl-fsp-profile-overlay;
+    }
+    import srl_nokia-fsp-profile-mgmtTrafficQoS {
+        prefix srl-fsp-profile-mgmtTrafficQoS;
+    }
+    import srl_nokia-fsp-profile-islCidr {
+        prefix srl-fsp-profile-islCidr;
+    }
+    import srl_nokia-fsp-profile-downlinkCidr {
+        prefix srl-fsp-profile-downlinkCidr;
+    }
+    import srl_nokia-fsp-profile-fabricQoS {
+        prefix srl-fsp-profile-fabricQoS;
+    }
+    import srl_nokia-fsp-profile-routerID {
+        prefix srl-fsp-profile-routerID;
+    }
+    import srl_nokia-fsp-profile-speed {
+        prefix srl-fsp-profile-speed;
+    }
+    import srl_nokia-fsp-profile-layerOneOverSubscription {
+        prefix srl-fsp-profile-layerOneOverSubscription;
+    }
+    import srl_nokia-fsp-profile-layerTwoOverSubscription {
+        prefix srl-fsp-profile-layerTwoOverSubscription;
+    }
+    import srl_nokia-fsp-profile-asn {
+        prefix srl-fsp-profile-asn;
+    }
+    import srl_nokia-fsp-profile-globalCfg {
+        prefix srl-fsp-profile-globalCfg;
+    }
+    import srl_nokia-fsp-profile-overlayService {
+        prefix srl-fsp-profile-overlayService;
+    }
+    import srl_nokia-fsp-profile-queuing {
+        prefix srl-fsp-profile-queuing;
+    }
+    import srl_nokia-fsp-profile-uplink {
+        prefix srl-fsp-profile-uplink;
+    }
+    import srl_nokia-fsp-profile-mgmtcidr {
+        prefix srl-fsp-profile-mgmtcidr;
+    }
+    import srl_nokia-fsp-profile-backBone {
+        prefix srl-fsp-profile-backBone;
+    }
+    import srl_nokia-fsp-profile-vni {
+        prefix srl-fsp-profile-vni;
+    }
+    import srl_nokia-fsp-profile-evi {
+        prefix srl-fsp-profile-evi;
+    }    
+    description
+      "This module defines FSP profile struct";
+
+    revision "2020-01-02" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+
+    grouping Profile-entry {
+        leaf uuid {
+            type string;
+        }
+        leaf name {
+            type string;
+        }
+        leaf description {
+            type string;
+        }
+        container speed {
+            uses srl-fsp-profile-speed:SpeedProfile-entry;
+        }
+        container layerOneOverSubscription {
+            uses srl-fsp-profile-layerOneOverSubscription:layerOneOverSubscriptionProfile-entry;
+        }
+        container layerTwoOverSubscription {
+            uses srl-fsp-profile-layerTwoOverSubscription:layerTwoOverSubscriptionProfile-entry;
+        }
+        container rack {
+            uses srl-fsp-profile-rack:RackProfile-entry;
+        }
+        container globalCfg {
+            uses srl-fsp-profile-globalCfg:GlobalCfg-entry;
+             description  "deprecated";
+        }
+        container backBone {
+            uses srl-fsp-profile-backBone:BackBoneProfile-entry;
+        }
+        container ipPoolConfig {
+            uses srl-fsp-profile-ipPoolConfig:IPPoolConfig-entry;
+        }
+        leaf manualTopoName {
+            type string;
+        }
+        leaf manualTopoUuid {
+            type string;
+        }
+        leaf spineType {
+            type srl-fsp-common:SpineType;
+        }
+        leaf referenceType {
+            type srl-fsp-common:IntentType;
+        }
+        leaf createdAt {
+            type string;
+        }
+        leaf updatedAt {
+            type string;
+        }
+    }
+
+    grouping fsp-profile-top {
+        list Profile {
+            key uuid;
+            uses Profile-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-profile-top;
+    }
+}

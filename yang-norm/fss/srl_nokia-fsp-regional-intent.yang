@@ -1,0 +1,153 @@
+module srl_nokia-fsp-region {
+    yang-version "1";
+
+// namespace
+    namespace "urn:srl_nokia/fsp-region";
+    prefix "srl_nokia-fsp-region";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+    import srl_nokia-fsp-label {
+        prefix srl-fsp-label;
+    }
+    import srl_nokia-common {
+        prefix srl-comm;
+    }
+    import srl_nokia-fsp-global {
+        prefix srl-fsp-global;
+    }
+    import srl_nokia-fsp-profile-mgmtcidr {
+        prefix srl-fsp-profile-mgmtcidr;
+    }
+    import srl_nokia-fsp-profile-islCidr {
+        prefix srl-fsp-profile-islCidr;
+    }
+    import srl_nokia-fsp-profile-rt {
+        prefix srl-fsp-profile-rt;
+    }
+    import srl_nokia-fsp-profile-evpn {
+        prefix srl-fsp-profile-evpn;
+    }
+    import srl_nokia-fsp-profile-protocolAuthentication {
+        prefix srl-fsp-profile-protocolAuthentication;
+    }
+    import srl_nokia-fsp-profile-downlinkCidr {
+        prefix srl-fsp-profile-downlinkCidr;
+    }
+    import srl_nokia-fsp-profile-routerID {
+        prefix srl-fsp-profile-routerID;
+    }
+    import srl_nokia-fsp-profile-asn {
+        prefix srl-fsp-profile-asn;
+    }
+    import srl_nokia-fsp-profile-vni {
+        prefix srl-fsp-profile-vni;
+    }
+    import srl_nokia-fsp-profile-evi {
+        prefix srl-fsp-profile-evi;
+    }        
+    import srl_nokia-fsp-profile-globalCfg {
+        prefix srl-fsp-profile-globalCfg;
+    }
+    description
+      "This module defines FSP Region Object";
+
+    revision "2020-08-15" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+    grouping Region-Profile-entry {
+        container mgmtCidr {
+            uses srl-fsp-profile-mgmtcidr:MgmtCidr-entry;
+        }
+        container asn {
+            uses srl-fsp-profile-asn:ASNProfile-entry;
+        }
+        container routerID {
+            uses srl-fsp-profile-routerID:RouterID-entry;
+        }
+        container islCidr {
+            uses srl-fsp-profile-islCidr:ISLCidr-entry;
+        }
+        container rt {
+            uses srl-fsp-profile-rt:rt-entry;
+        }
+        container vni {
+            uses srl-fsp-profile-vni:VNIProfile-entry;
+        }
+        container evi {
+            uses srl-fsp-profile-evi:EVIProfile-entry;
+        }                 
+        container evpn {
+            uses srl-fsp-profile-evpn:evpn-entry;
+        }
+        container protocolAuthentication {
+            uses srl-fsp-profile-protocolAuthentication:protocolAuthentication-entry;
+        }
+    }
+
+    grouping Region-entry {
+        leaf uuid {
+            type string;
+            config false;
+        }
+        leaf name {
+            type string;
+        }
+        leaf description {
+            type string;
+        }
+        leaf location {
+            type string;
+        }
+        leaf latitude {
+            type string;
+        }
+        leaf longitude {
+            type string;
+        }
+        leaf dsState {
+            type srl-fsp-common:DSStateType;
+            config false;
+        }
+        leaf createdAt {
+            type string;
+            config false;
+        }
+        leaf updatedAt {
+            type string;
+            config false;
+        }
+        list labels {
+            key "name value";
+            uses srl-fsp-label:fsp-label-per-object-entry;
+        }
+        leaf-list fabricIntents {
+            type string;
+            config false;
+        }
+        container profile {
+            uses Region-Profile-entry;
+        }
+        leaf queueLock {
+            type boolean;
+            config false;
+        }
+        uses srl-fsp-common:ExternalID;
+    }
+    grouping fsp-region-top {
+        container region {
+            uses Region-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-region-top;
+    }
+}

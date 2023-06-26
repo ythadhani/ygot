@@ -1,0 +1,34 @@
+module srl_nokia-fsp-profile-speed {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-speed";
+    prefix srl_nokia-fsp-profile-speed;
+
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+
+    description "This module defines FSP speed profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping SpeedProfile-entry {
+
+        leaf downlinkSpeed {
+            type srl-fsp-common:SpeedType;
+        }
+        leaf uplinkSpeed {
+            type srl-fsp-common:SpeedType;
+        }
+        leaf modulation {
+            type srl-fsp-common:LinkModType;
+        }
+        leaf isDownlinkCopper {
+            type boolean;
+        }
+    }
+
+    container fsp-profile-speed {
+        uses SpeedProfile-entry;
+    }
+}

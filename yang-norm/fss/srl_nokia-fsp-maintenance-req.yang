@@ -1,0 +1,197 @@
+module srl_nokia-fsp-maintenance-req {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-maintenance-req";
+
+    import srl_nokia-fsp-label {
+        prefix srl-fsp-label;
+    }
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+
+    import srl_nokia-fsp-maintenance {
+        prefix srl-fsp-maintenance;
+    }
+
+    import srl_nokia-fsp-intent {
+        prefix srl_nokia-fsp-intent;
+    }
+    
+    prefix srl_nokia-fsp-maintenance-req;
+
+    description
+      "This module defines FSP Maintenance Intent request";
+
+    revision 2020-10-01 {
+        description
+          "Initial revision";
+    }
+
+    grouping abstract-intent-req {
+        description "Definition of an abstract Intent request";
+
+        leaf name {
+            type string {
+                length "1..128";
+            }
+            description "Name of the Intent";
+        }
+        leaf description {
+            type string;
+            description "Description";
+        }
+        leaf region {
+            type string;
+            description "UUID of Region";
+        }
+        list labels {
+            key "name value";
+            uses srl-fsp-label:fsp-label-per-object-entry;
+            description "Optional set of labels associated with Intent";
+        }
+    }
+
+    grouping maintenance-group-member-req {
+        description "Maintenance Group member";
+
+        leaf fabricIntentId {
+            type string;
+            description "Fabric Intent UUID";
+        }
+        leaf fabricId {
+            type string;
+            description "Fabric UUID";
+        }       
+        leaf memberId {
+            type string;
+            description "UUID of member (Node/Card)";
+        }       
+    }
+    
+    grouping maintenance-group-req-entry {
+        description "Maintenance Group request";
+
+        leaf name {
+            type string;
+            description "Name of the Maintenance Group";
+        }
+        leaf description {
+            type string;
+            description "Description";
+        }
+        leaf region {
+            type string;
+            description "UUID of the associated Region";
+        }
+        leaf maintenanceMemberType {
+            type srl-fsp-maintenance:MaintenanceGroupMemberType;
+            description "Type of maintenance group member";
+        }
+        list members {
+            uses maintenance-group-member-req;
+            key "memberId";
+            description "List of maintenance group members";
+        }
+    }
+
+    grouping software-update-req-params-entry {
+        leaf targetImageID {
+            type string;
+        }
+
+        leaf preBootTimer {
+            type int32;
+            mandatory true;
+            description "Pre Boot Timer";
+        }
+
+        leaf postBootTimer {
+            type int32;
+            mandatory true;
+            description "Post Boot Timer";
+        }
+    }
+
+    grouping replace-node-req-entry {
+        description "Replace node request. Maintenance Group with all nodes and the Maintenance Intent will be
+                     automatically created";
+
+        leaf maintenance-intent-name {
+            type string;
+            description "Name of maintenance intent that will be automatically created";
+        }
+        leaf maintenance-group-name {
+            type string;
+            description "Name of maintenance group that will be automatically created";
+        }
+        list nodes {
+            uses srl-fsp-maintenance:node-identity-params;
+            key "nodeId";
+        }
+    }
+    
+     grouping replace-node-req-params-entry {
+        description "Replace node request parameters";
+
+        list nodes {
+            uses srl-fsp-maintenance:node-identity-params;
+            key "nodeId";
+        }
+
+        leaf preBootTimer {
+            type int32;
+            mandatory true;
+            description "Pre Boot Timer";
+        }
+
+        leaf postBootTimer {
+            type int32;
+            mandatory true;
+            description "Post Boot Timer";
+        }
+    }
+   
+    grouping maintenance-intent-req-entry {
+        description "Maintenance Intent request";
+
+        uses abstract-intent-req;
+
+        leaf type {
+            type srl-fsp-maintenance:MaintenanceIntentType;
+            description "Type of Maintenance Intent";
+        }
+        leaf repetition {
+            type srl-fsp-maintenance:RepetitionType;
+            description "Repetition type";
+        }
+        leaf schedule {
+            type srl-fsp-maintenance:ScheduleType;
+            description "Schedule";
+        }
+        container softwareUpdateReqParams {
+            uses software-update-req-params-entry;
+            description "Software update request parameters";
+        }
+        container replaceNodeReqParams {
+            uses replace-node-req-params-entry;
+            description "Replace node request parameters";
+        }
+    }
+
+    grouping fsp-maintenance-intent-req-top {
+        container maintenanceIntentReq {
+            uses maintenance-intent-req-entry;
+        }
+        container maintenanceGroupReq {
+            uses maintenance-group-req-entry;
+        }
+        container replace-node-req {
+            uses replace-node-req-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-maintenance-intent-req-top;
+    }
+}

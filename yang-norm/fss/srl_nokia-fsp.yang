@@ -1,0 +1,38 @@
+module srl_nokia-fsp {
+     yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp";
+    prefix "srl_nokia-fsp";
+
+    description
+        "This module defines FSP related data for the particular node";
+
+
+    revision "2019-12-09" {
+        description
+                "Initial revision";
+        reference "TBD";
+    }
+    grouping fsp-top {
+        container fsp {
+            description
+                "Top level container for FSP Data";
+            leaf txnID {
+                type string;
+                description "txnID";
+            }
+            leaf txnState {
+                type int32;
+                default 0;
+                description "transactionState";
+            }
+            leaf statusCode {
+                type int32;
+                default 0;
+                description "statusCode";
+            }
+        }
+    }
+    uses fsp-top;
+}

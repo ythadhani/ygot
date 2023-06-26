@@ -1,0 +1,859 @@
+module srl_nokia-fss-alarm {
+    yang-version 1;
+    namespace "urn:srl_nokia/fss-alarm-policy";
+    prefix "srl_nokia-fss-alarm";
+
+    import srl_nokia-fsp { prefix srl-fsp;}
+    import srl_nokia-common { prefix srl_nokia-comm;}
+    import srl_nokia-fsp-common { prefix srl-fsp-common;}
+    import srl_nokia-fsp-alarmtype { prefix srl-fsp-alarmtype;}
+
+    description
+      "This module defines FSS Alarm Manager";
+
+    revision 2021-08-04 {
+        description
+          "Initial revision";
+    }
+    
+    typedef GroupType {
+        type enumeration {
+            enum Equipment;
+            enum Configuration;
+            enum Environment;
+            enum Communication;
+            enum Operational;
+            enum Fss;
+            enum All;
+        }
+    }
+
+    typedef AlarmSeverity {
+        type enumeration {
+            enum Critical;
+            enum Major;
+            enum Warning;
+            enum Minor;
+        }
+    }
+
+    typedef AlarmActionType {
+        type enumeration {
+            enum GenerateAlarm;
+            enum Email;
+            enum SMS;
+            enum Pager;
+        }
+    }
+
+    typedef AlarmEquipment {
+        type srl-fsp-alarmtype:EquipmentType;
+    }
+
+    typedef AlarmEnvironment {
+        type  srl-fsp-alarmtype:EnvironmentType;
+    }
+
+    typedef AlarmCommunication {
+        type  srl-fsp-alarmtype:CommunicationType;
+    }
+
+    typedef AlarmConfiguration {
+        type  srl-fsp-alarmtype:ConfigurationType;
+    }
+
+    typedef AlarmOperational {
+        type  srl-fsp-alarmtype:OperationalType;
+    }
+
+    typedef AlarmFss {
+        type  srl-fsp-alarmtype:FssType;
+    }
+
+    grouping alarm-policy-data {
+        description "Definition of Alarm policy";
+
+        leaf policyName {
+            type srl-fsp-common:HostName {
+                length "1..63";
+            }
+            description "Unique name of the Alarm Policy";
+        }
+        leaf policyID {
+            type string {
+                length "1..128";
+            }
+            description "Unique identifier of the Alarm Policy";
+        }
+        leaf version {
+            type string {
+                length "1..6";
+            }
+            config false;
+            description "Version number of the Alarm Policy";
+        }
+
+        leaf priority {
+            type int32 {
+                range "0..9";
+            }
+            mandatory true;
+            description "Priority of the Alarm Policy";
+        }
+
+        leaf groupID {
+            type GroupType;
+            mandatory true;
+            description "Unique identifier of the Alarm Policy";
+        }
+
+        leaf severity {
+            type AlarmSeverity;
+            description "Severity to be applied to the alarm";
+        }
+
+        leaf-list actions {
+            type AlarmActionType;
+            description "Actions to be performed to the alarm";
+        }
+        leaf description {
+            type string;
+            description "Description for the the Alarm Policy";
+        }
+
+        leaf suppress {
+            type boolean;
+            description "If set to true alarm will be suppresed";
+        }
+
+        leaf disabled {
+            type boolean;
+            description "If set to true alarm policy will be inactive.";
+        }
+
+        leaf isActive {
+            type boolean;
+            config false;
+            description "Set to true for active policy";
+        }
+        leaf createdTime {
+            config false;
+            type srl_nokia-comm:date-and-time;
+        }
+        leaf updatedTime {
+            config false;
+            type srl_nokia-comm:date-and-time;
+        }
+        leaf startTime {
+            type srl_nokia-comm:date-and-time;
+        }
+        leaf endTime {
+            type srl_nokia-comm:date-and-time;
+        }
+
+        list keyValueMap {
+            key "key";
+            leaf key {
+                type string;
+            }
+            leaf value {
+                type string;
+            }
+        }
+
+        leaf-list environmentList {
+            type AlarmEnvironment;
+        }
+        leaf-list communicationList {
+            type AlarmCommunication;
+        }
+        leaf-list configurationList {            
+            type AlarmConfiguration;
+        }
+        leaf-list equipmentList {            
+            type AlarmEquipment;
+        }
+        leaf-list operationalList {            
+            type AlarmOperational;
+        }
+        leaf-list fssList {
+            type AlarmFss;
+        }
+        leaf isIntentCfgIfOnly {
+            type boolean;
+            description "Is alarm needs to be raised only for interfaces whcih are part of an intent.";
+        }
+    }
+
+    grouping alarm-policy-update-req {
+        description "Definition of Alarm policy update request";
+
+        leaf-list policyIDS {
+            type string {
+                length "1..128";
+            }
+            description "List of policies to be updated";
+        }
+
+        leaf disabled {
+            type boolean;
+            description "If set to true alarm policy will be disabled.";
+        }
+    }
+
+    grouping fss-alarm-policy-top {
+        container alarmPolicyData {
+            description "Data model used for storing data in the database";
+            uses alarm-policy-data;
+        }
+
+        container alarmPolicyUpdateReq {
+            description "Data model used for enabling/disabling alarm policy";
+            uses alarm-policy-update-req;
+        }
+    }
+
+    typedef OperatorState {
+        type enumeration {
+            enum None;
+            enum Ack;
+            enum Closed;
+        }
+    }
+
+    grouping fss-alarm-config {
+        leaf enableIntentConfig {
+            type boolean;
+            description "Enables alarms for intent";
+        }
+    }
+    grouping fss-alarm-config-top {
+        container alarmConfig {
+            description "Data model for Alarm manager configuration";
+            uses fss-alarm-config;
+        }
+    }
+
+    grouping fss-alarm-top {
+        container alarm {
+            description "Data model for resource to represent object on which alarm is raised";
+            uses fsp-alarm;
+        }
+    }
+    grouping fsp-resource {
+        description "resource object on which alarm is raised";
+        leaf regionId {
+            type string;
+            description "region uuid";
+        }
+        leaf regionName {
+            type string;
+            description "region name";
+        }
+        leaf fabricId {
+            type string;
+            description "fabric uuid";
+        }
+        leaf fabricName {
+            type string;
+            description "fabric name";
+        }
+        leaf intentId {
+            type string;
+            description "intent uuid";
+        }
+        leaf intentName {
+            type string;
+            description "intent name";
+        }
+        leaf intentType {
+            type srl-fsp-common:FabricOptions;
+            description "intent type (real or digital sandbox)";
+        }
+        leaf nodeId {
+            type string;
+            description "node uuid";
+        }
+        leaf nodeName {
+            type string;
+            description "node name";
+        }
+        leaf nodeType {
+            type string;
+            description "node type";
+        }
+        // leaf resourceId {
+        //     type string;
+        //     description "Resource identifier present on node object";
+        // }
+        leaf resourceName {
+            type string;
+            description "Resource name present on the node object";
+        }
+    }
+
+    grouping fsp-alarm {
+        description "fsp alarm";
+        container resource {
+            description "Data model for resource to represent object on which alarm is raised";
+            uses fsp-resource;
+        }
+        leaf uuid {
+            type string;
+            description "label comments";
+        }
+        leaf alarmType {
+            type string;
+            description "Defines alarm type";
+        }
+        leaf group {
+            type GroupType;
+            description "Defines alarm group for the corrosponding alarm type";
+        }
+        leaf isCleared {
+            type boolean;
+            description "Indicates whether alarm object is cleared or not";
+        }
+        leaf createdAt {
+            type string;
+            description "Timestamp at which alarm was created";
+        }
+        leaf lastChanged {
+            type string;
+            description "Timestamp at which alarm object was last changed";
+        }
+        leaf lastRaised {
+            type string;
+            description "Timestamp at which alarm was last raised";
+        }
+        leaf isRootCause {
+            type boolean;
+            description "Is alarm root cause of another alarm";
+        }
+        leaf probableCause {
+            type string;
+            description "Probable root cause of raised alarm";
+        }
+        leaf occurrence {
+            type int64;
+            description "Number of times alarm has been raised";
+        }
+        leaf faultCode {
+            type string;
+            description "Fault code of the alarm";
+        }
+        leaf remedialAction {
+            type string;
+            description "Remedial action of the raised alarm";
+        }
+        leaf defaultProbableCause {
+            type string;
+            description "Default probable cause of the raised alarm";
+        }
+        leaf alarmDescription {
+            type string;
+            description "Alarm description";
+        }
+        leaf defaultSeverity {
+            type AlarmSeverity;
+            description "Default severity of the alarm";
+        }
+        leaf isSuppressed {
+            type boolean;
+            config false;
+            description "Indicates alarm events are suppresed or not";
+        }
+        leaf SuppressReason {
+            type string;
+            config false;
+            description "Alarm events are suppression reason";
+        }
+        // list alarmState {
+        //     key "severity fromTimestamp";
+        //     uses fsp-alarm-state-change;
+        // }
+        // list operatorState {
+        //     key "operatorState operatorName fromTimestamp";
+        //     uses fsp-alarm-opertor-state-change;
+        // }
+        container history {
+            description "Represents alarm object state and operator history"; 
+            uses fsp-alarm-history;
+        }
+    }
+
+    grouping fsp-alarm-history {
+        description "Represents alarm state and operator state history";
+        list state-history {
+            key "severity fromTimestamp";
+            uses fsp-alarm-state-change;
+        }
+        list operator-history {
+            key "operatorState operatorName fromTimestamp";
+            uses fsp-alarm-opertor-state-change;
+        }
+
+        leaf currentSeverity  {
+            type AlarmSeverity;
+            description "Current severity of the alarm";
+        }
+        
+        leaf alarmPolicy {
+            type string;
+            description "Alarm policy";
+        }
+    }
+
+    grouping fsp-alarm-state-change {
+        description "fsp alarm state records";
+        leaf severity {
+            type AlarmSeverity;
+            description "Derived severity of the alarm";
+        }
+        leaf alarmText {
+            type string;
+            description "alarm state notes";
+        }
+        leaf alarmPolicy {
+            type string;
+            description "alarm policy applied";
+        }
+        leaf fromTimestamp {
+            type string;
+            description "Effective from timestamp";
+        }
+        leaf toTimestamp {
+            type string;
+            description "End timestamp for alarm state change";
+        }
+     }
+
+     grouping fsp-alarm-opertor-state-change {
+         description "fsp alarm operator state change records";
+         leaf operatorName {
+             type string;
+             description "Operator nanme who has changed the alarm state";
+         }
+         leaf operatorState {
+             type OperatorState;
+             description "Operator state of alarm object";
+         }
+        leaf additionalInfo {
+            type string;
+            description "Addtional information to present the notes by operator.";
+        }
+        leaf fromTimestamp {
+            type string;
+            description "Effective from timestamp for the alarm operator state";
+        }
+        leaf toTimestamp {
+            type string;
+            description "End timestamp for alarm operator state change";
+        }
+        leaf endReason {
+            type string;
+            description "Operator state end reason";
+        }
+    }
+
+     grouping fsp-operator-state-change-request {
+         description "Request object to change alarm operator state";
+         leaf additionalInfo {
+             type string;
+             description "Additional info notes for operator state change";
+         }
+         leaf operatorState {
+             type string;
+             description "Operator state of alarm object";
+         }
+     }
+
+     grouping fsp-alarm-counts {
+         description "Represent alarm count for each severity";
+         leaf critical {
+             type uint32;
+             description "Count of critical alarms";
+         }
+         leaf major {
+             type uint32;
+             description "Count of major alarms";
+         }
+         leaf minor {
+             type uint32;
+             description "Count of minor alarms";
+         }
+         leaf warning {
+             type uint32;
+             description "Count of warning alarms";
+         }
+        //  leaf others {
+        //      type uint32;
+        //      description "Count of others alarms";
+        //  }
+     }
+
+     grouping fsp-alarm-highest-severity {
+         description "Represents highest alarm severity for the object";
+         leaf highestSeverity {
+             type AlarmSeverity;
+             description "Highest severity of alarm raised on the object";
+         }
+         leaf count {
+             type uint32;
+             description "Count of alarms of highest severity";
+         }
+     }
+
+    grouping fsp-alarm-node-severity {
+        description "Represents node along with worst severity alarm count raised on that node";
+        leaf uuid {
+            type string;
+            description "UUID of node.";
+        }
+        // leaf name {
+        //     type string;
+        //     description "Name of node object";
+        // }
+        leaf highestSeverity {
+            type AlarmSeverity;
+            description "Highest severity of alarm raised on the node object";
+        }
+        leaf count {
+            type uint32;
+            description "Count of alarms of highest severity";
+        }
+        container nodeSeverities {
+            description "Count of all severities" ;
+            uses fsp-alarm-counts;
+        } 
+    }
+
+    grouping fsp-alarm-fabric-nodes-severity {
+        description "Represents list of fabric nodes with highest severity and its count.";
+        list node {
+            key "uuid";
+            uses fsp-alarm-node-severity;     
+        }
+    }
+
+    grouping fsp-alarm-fabric-nodes-severity-top {
+        container fabricNodesAlarmSeverity {
+            description "Response object for fabric nodes along with worst severity and count of worst severity alarms";
+            uses fsp-alarm-fabric-nodes-severity;
+         }
+    }
+
+    grouping fsp-alarm-fabric-severity {
+        description "Represent fabric along with worst severity alarm count raised on that fabric object";
+        leaf uuid {
+            type string;
+            description "Uuid of fabric";
+        }
+        leaf name {
+            type string;
+            description "Name of fabric object";
+        }
+        leaf highestSeverity {
+            type AlarmSeverity;
+            description "Highest severity of alarm raised on the fabric object";
+        }
+        leaf count {
+            type uint32;
+            description "Count of alarms of highest severity";
+        }
+        container fabricSeverities {
+            description "Count of all severities" ;
+            uses fsp-alarm-counts;
+        } 
+    }
+
+    grouping fsp-alarm-region-fabrics-severity {
+        description "Represents list of fabrics in the region with highest severity and its count.";
+        list fabric {
+            key "uuid";
+            uses fsp-alarm-fabric-severity;     
+        }
+    }
+
+    grouping fsp-alarm-region-fabrics-severity-top {
+        container regionFabricsAlarmSeverity {
+            description "Resepresents list of fabrics with highest severity and its count";
+            uses fsp-alarm-region-fabrics-severity;
+        }
+    }
+
+    grouping fsp-operator-req-top {
+        container alarmOperatorStateChangeReq {
+            description "Operator state change request object";
+            uses fsp-operator-state-change-request;
+        }
+    }
+
+    grouping fsp-alarm-operator-state-change-top {
+        container alarmOperatorStateChange {
+            description "Operator state change object";
+            uses fsp-alarm-opertor-state-change;
+        }
+    }
+    grouping fsp-alarm-highest-severity-top {
+        container alarmHighestSeverity {
+            description "Response object for worst severity alarm counts";
+            uses fsp-alarm-highest-severity;
+        }
+    }
+
+    grouping alarm-get-input {
+        description "Definition of Alarm get request with pagination";
+
+        leaf order {
+            type string;
+            description "Sort order for the alarms [ASC | DESC]";
+        }
+        leaf sortBy {
+            type string;
+            description "Field on which sorting needs to be performed";
+        }
+        leaf perPage {
+            type int32;
+            mandatory true;
+            description "Number of alarms to be returned in response";
+        }
+        leaf pageNumber {
+            type int32;
+            mandatory true;
+            description "Page number of alarms to be returned in response";
+        }
+        list filterMap {
+            key "key";
+            leaf key {
+                type string;
+            }
+            leaf value {
+                type string;
+            }
+        }
+    }
+
+    grouping alarm-get-output {
+        description "Definition of Alarm response with pagination";
+
+        leaf perPage {
+            type int32;
+            mandatory true;
+            description "Number of alarms to be returned in response";
+        }
+        leaf pageNumber {
+            type int32;
+            mandatory true;
+            description "Page number of alarms returned in the response";
+        }
+        leaf pageCount {
+            type int32;
+            mandatory true;
+            description "Number of pages that matches the filter criteria";
+        }
+        leaf recordsCount {
+            type int32;
+            mandatory true;
+            description "Number of records returned in the response";
+        }
+        leaf totalRecords {
+            type int64;
+            mandatory true;
+            description "Total records that matched the filter criteria";
+        }
+        list alarms {
+            key "uuid";
+            uses fsp-alarm;
+            description "Alarm list";
+        }
+        container severityCount {
+            description "Count of all severities" ;
+            uses fsp-alarm-counts;
+        }
+    }
+
+    typedef comparisonOperatorType {
+        type enumeration {
+            enum EqualTo;
+            enum NotEqualTo;
+            enum Contains;
+            enum NotContains;
+            enum GreaterThan;
+            enum LessThan;
+            enum GreaterThanEqualTo;
+            enum LessThanEqualTo;
+        }
+    }
+
+    typedef logicalOperatorType {
+        type enumeration {
+            enum And;
+            enum Or;
+        }
+    }
+
+    grouping alarm-get-input-subquery {
+        description "Definition of Alarm get request with pagination";
+
+        leaf order {
+            type string;
+            description "Sort order for the alarms [ASC | DESC]";
+        }
+        leaf sortBy {
+            type string;
+            description "Field on which sorting needs to be performed";
+        }
+        leaf perPage {
+            type int32;
+            mandatory true;
+            description "Number of alarms to be returned in response";
+        }
+        leaf pageNumber {
+            type int32;
+            mandatory true;
+            description "Page number of alarms to be returned in response";
+        }
+        list filters {
+            key "groupindex";
+            leaf groupindex {
+                type int32;
+            }
+            leaf key {
+                type string;
+            }
+            leaf logicalOperator {
+                type logicalOperatorType;
+                description "Logical operator to use between comparisons";
+            }
+            list fields {
+                key "index";
+                leaf index {
+                   type int32;
+                }
+                leaf logicalOperator {
+                    type logicalOperatorType;
+                    description "Logical operator to use between comparisons";
+                }
+                leaf comparisonOperator {
+                    type comparisonOperatorType;
+                }
+                leaf value {
+                    type string;
+                }
+            }
+        }
+    }
+
+    grouping fsp-alarm-counts-top {
+        container alarmCounts {
+            description "Response object to list count of alarms based on severity";
+            uses fsp-alarm-counts;
+        }
+    }
+
+    grouping fsp-alarm-req-top {
+        container alarmGetInput {
+            description "Data model used for paginated get request for alarms";
+            uses alarm-get-input ;
+        }
+        container alarmResponse {
+            description "Data model used for paginated response for alarms";
+            uses alarm-get-output ;
+        }
+        container alarmGetInputSubquery {
+            description "Data model used for paginated get request for alarms";
+            uses  alarm-get-input-subquery ;
+        }
+    }
+
+    grouping alarm-data-internal-rest {
+        description "Definition of Alarm data to be used by internal services to raise an alarm";
+
+        leaf severity {
+            type AlarmSeverity;
+            description "severity of the alarm";
+        }
+        leaf isCleared {
+            type boolean;
+            description "Indicates alarm events are suppresed or not";
+        }
+        leaf isBlocked {
+            type boolean;
+            description "Indicates alarm events are suppresed or not";
+        }
+        leaf isDeleted {
+            type boolean;
+            description "Indicates alarm events are suppresed or not";
+        }
+        leaf alarmDescription {
+            type string;
+            description "Field on which sorting needs to be performed";
+        }
+        leaf remedialAction {
+            type string;
+            description "severity of the alarm";
+        }
+        leaf intentID {
+            type string;
+            description "Field on which sorting needs to be performed";
+        }
+        leaf intentName {
+            type string;
+            description "severity of the alarm";
+        }
+        leaf fabricID {
+            type string;
+            description "Field on which sorting needs to be performed";
+        }
+        leaf fabricName {
+            type string;
+            description "severity of the alarm";
+        }
+        leaf reason {
+            type string;
+            description "Field on which sorting needs to be performed";
+        }
+        leaf regionName {
+            type string;
+            description "severity of the alarm";
+        }
+        leaf regionID {
+            type string;
+            description "Field on which sorting needs to be performed";
+        }
+        leaf alarmType {
+            type srl-fsp-alarmtype:FssType;
+            description "Field on which sorting needs to be performed";
+        }
+        leaf moduleName {
+            type string;
+            description "severity of the alarm";
+        }
+        leaf objectNameOrID {
+            type string;
+            description "Field on which sorting needs to be performed";
+        }
+    }
+
+    grouping fsp-alarm-data-internal-rest-top {
+        container alarmDataInternalRest {
+            description "Data model used for paginated get request for alarms";
+            uses alarm-data-internal-rest ;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fss-alarm-policy-top;
+        uses fss-alarm-top;
+        uses fss-alarm-config-top;
+        uses fsp-alarm-req-top;
+        uses fsp-operator-req-top;
+        uses fsp-alarm-operator-state-change-top;
+        uses fsp-alarm-highest-severity-top;
+        uses fsp-alarm-counts-top;
+        uses fsp-alarm-fabric-nodes-severity-top;
+        uses fsp-alarm-region-fabrics-severity-top;
+        uses fsp-alarm-data-internal-rest-top;
+    }
+}

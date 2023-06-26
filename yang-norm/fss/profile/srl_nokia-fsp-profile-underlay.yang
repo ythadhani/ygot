@@ -1,0 +1,25 @@
+module srl_nokia-fsp-profile-underlay {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-underlay";
+    prefix srl_nokia-fsp-profile-underlay;
+
+    description "This module defines FSP underlay profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping UnderlayProfile-entry {
+
+        leaf implemented {
+            type boolean;
+        }
+    }
+
+    container fsp-profile-underlay {
+        uses UnderlayProfile-entry;
+    }
+}
+
+

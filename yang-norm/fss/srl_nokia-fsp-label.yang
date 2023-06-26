@@ -1,0 +1,111 @@
+module srl_nokia-fsp-label {
+     yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-label";
+    prefix "srl_nokia-fsp-label";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    description
+        "This module defines FSP labels";
+
+
+    revision "2020-2-04" {
+        description
+                "Initial revision";
+        reference "TBD";
+    }
+
+    grouping fsp-objects-per-label-entry {
+        description "fsp user label";
+        leaf comments {
+                type string;
+                description "label comments";
+            }
+        leaf labeltype {
+            type enumeration{
+                enum "SystemLabel";
+	            enum "ResourceGroupLabel";
+                enum "DefaultLabel";
+                enum "UserDefinedLabel";
+                enum "HiddenLabel"; 
+            }
+            mandatory true;
+        }
+        list keys {
+            key keystring;
+            leaf keystring {
+                type string;
+                description "object key converted to string";
+            }
+            leaf objkey {
+                type string;
+                description "object key struct";
+            }
+            leaf objkeyname {
+                type string;
+                description "object key struct name";
+            }
+            leaf objname {
+                type string;
+                description "object name";
+            }
+            leaf objtype {
+                type string;
+                description "object type";
+            }
+            leaf resturl {
+                type string;
+                description "ReST URL to retieve object";
+            }
+        }
+    }
+
+    grouping fsp-labels-per-object-entry{
+        description
+            "All labels for a Node";
+        list labels {
+            key keyname;
+            leaf keyname {
+                type string;
+                description "label key name";
+             }
+            leaf name {
+                type string;
+                description "label key";
+             }
+            leaf value {
+                type string;
+                description "label value";
+            }
+        }
+    }
+
+    grouping fsp-label-per-object-entry{
+        description
+            "label for a Node";
+        leaf name {
+            type string;
+        }
+        leaf value {
+            type string;
+        }
+    }
+
+    grouping fsp-label-top {
+        description "Labels for FSP Intent Data";
+        container labels {
+            container labeldata {
+                uses fsp-labels-per-object-entry;
+            }
+            container objdata {
+                uses fsp-objects-per-label-entry;
+            }
+        }
+    }
+    augment "/srl-fsp:fsp" {
+        uses fsp-label-top;
+    }
+}

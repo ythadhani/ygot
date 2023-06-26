@@ -1,0 +1,446 @@
+module srl_nokia-fsp-intent {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-intent";
+    prefix "srl_nokia-fsp-intent";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-fsp-profile-evpn {
+        prefix srl-fsp-profile-evpn;
+    }
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+    import srl_nokia-fsp-profile-gnmi {
+        prefix srl-fsp-profile-gnmi;
+    }
+    import srl_nokia-fsp-profile {
+        prefix srl-fsp-profile;
+    }
+    import srl_nokia-fsp-label {
+        prefix srl-fsp-label;
+    }
+    import srl_nokia-common {
+        prefix srl-comm;
+    }
+    // interface
+    import srl_nokia-interfaces {
+        prefix srl_nokia-interfaces;
+    }
+
+    // network-instance
+    import srl_nokia-network-instance {
+        prefix srl_nokia-network-instance;
+    }
+
+    // system
+    import srl_nokia-aaa {
+        prefix srl_nokia-aaa;
+    }
+    import srl_nokia-app-mgmt {
+        prefix srl_nokia-app-mgmt;
+    }
+    import srl_nokia-boot {
+        prefix srl_nokia-boot;
+    }
+    import srl_nokia-configuration {
+        prefix srl_nokia-configuration;
+    }
+    import srl_nokia-dns {
+        prefix srl_nokia-dns;
+    }
+    import srl_nokia-ftp {
+        prefix srl_nokia-ftp;
+    }
+    import srl_nokia-gnmi-server {
+        prefix srl_nokia-gnmi-server;
+    }
+    import srl_nokia-json-rpc {
+        prefix srl_nokia-json-rpc;
+    }
+    import srl_nokia-lldp {
+        prefix srl_nokia-lldp;
+    }
+    import srl_nokia-load-balancing {
+        prefix srl_nokia-load-balancing;
+    }
+    import srl_nokia-maintenance-mode {
+        prefix srl_nokia-maintenance-mode;
+    }
+    import srl_nokia-mtu {
+        prefix srl_nokia-mtu;
+    }
+    import srl_nokia-ntp {
+        prefix srl_nokia-ntp;
+    }
+    import srl_nokia-snmp {
+        prefix srl_nokia-snmp;
+    }
+    import srl_nokia-ssh {
+        prefix srl_nokia-ssh;
+    }
+    import srl_nokia-system-banner {
+        prefix srl_nokia-system-banner;
+    }
+    import srl_nokia-system-info {
+        prefix srl_nokia-system-info;
+    }
+    import srl_nokia-system-name {
+        prefix srl_nokia-system-name;
+    }
+    import srl_nokia-tls {
+        prefix srl_nokia-tls;
+    }
+
+    import srl_nokia-fsp-intent-common {
+        prefix srl-fsp-intent-common;
+    }
+
+    description
+      "This module defines FSP intent struct";
+
+    revision "2020-01-02" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+
+    grouping SystemName-entry {
+        leaf nodeID {
+            type string;
+        }
+        leaf userDefinedSystemName {
+            type srl-fsp-common:HostName {
+                length "1..63";
+            }
+        }
+        leaf defaultSystemName {
+            type srl-fsp-common:HostName {
+                length "1..63";
+            }
+        }
+    }
+    grouping Fabric-entry {
+        leaf uuid {
+            type string;
+        }
+        leaf name {
+            type string;
+        }
+        leaf version {
+            type string;
+        }
+        leaf description {
+            type string;
+        }
+        leaf isDigitalSandbox {
+            type boolean;
+        }
+        leaf state {
+            type srl-fsp-common:FabricStateType;
+        }
+        container profile {
+            uses srl-fsp-profile:Profile-entry;
+        }
+        list labels {
+            key "name value";
+            uses srl-fsp-label:fsp-label-per-object-entry;
+        }
+        container deployInfo {
+            uses Deploy-entry;
+        }
+        leaf userID {
+            type string;
+            description
+                "userID of the last user who acted on this entry";
+        }
+    }
+    grouping Deploy-entry {
+        leaf timestamp {
+            type string;
+        }
+        leaf transactionId {
+            type string;
+        }
+        leaf isFailed {
+            type boolean;
+        }
+        leaf reason {
+            type string;
+        }
+    }
+    grouping Region-entry {
+        leaf name {
+            type string;
+        }
+        leaf uuid {
+            type string;
+        }
+    }
+    grouping Image-Entry { // should be the same as the shared-common devicevendor
+        container deviceVendor {
+            uses srl-fsp-common:DeviceVendor;
+        }
+        leaf initialImageID {
+            type string;
+        }
+    }
+    grouping leafSpineEntry {
+        leaf uuid {
+            type string;
+        }
+        leaf overSubscription {
+            type string {
+                pattern '[0-9]+:[0-9]+';
+            }
+        }
+        leaf numberOfNodes {
+            type int32;
+        }
+        leaf uplinks {
+            config false;
+            type uint32;
+        }
+        leaf downlinks {
+            config false;
+            type uint32;
+        }
+        leaf SeqNo {
+            config false;
+            type string;
+        }
+        leaf chassisType {
+            type srl-fsp-common:NodeType;
+        }
+    }
+    grouping Intent-entry {
+        container region {
+            uses Region-entry;
+        }
+        leaf uuid {
+            type string;
+        }
+        leaf queueID {
+            type string;
+            config false;
+        }
+        leaf name {
+            type string;
+        }
+        leaf description {
+            type string;
+        }
+        leaf version {
+            type string;
+        }
+        leaf prevVersion {
+            type string;
+            config false;
+        }
+        leaf lastTopoChangeVersion {
+            type string;
+            config false;
+        }
+        leaf invAvDplTriggerPct {
+            type uint16 {
+                range "0..100";
+            }
+            default: 0;
+        }
+        leaf intentApplicabilityNetworkType {
+            type srl-fsp-common:FabricOptions;
+        }
+        leaf isTopoChange {
+            type boolean;
+            config false;
+        }
+        leaf isLagChange {
+            type boolean;
+            config false;
+        }
+        leaf isWatchChange {
+            type boolean;
+            config false;
+        }
+        container gnmi {
+            description "Deprecated in v1. Gnmi of an intent";
+            uses srl-fsp-profile-gnmi:GNMIProfile-entry;
+        }
+        leaf isCandidateMode {
+            type boolean;
+            config false;
+        }
+        leaf staleState {
+            type srl-fsp-common:IntentStaleType;
+        }
+        list staleReason {
+            key "name";
+            leaf name {
+                type string;
+            }
+            leaf reason {
+                type srl-fsp-common:IntentStaleType;
+            }
+        }
+        leaf isBBChange {
+            type boolean;
+            config false;
+        }
+        leaf isDeltaConfigChange {
+            type boolean;
+            config false;
+        }
+        leaf isCurrent {
+            type boolean;
+            config false;
+        }
+        leaf isLockedForMaintenance {
+            type boolean;
+            config false;
+        }
+        leaf isCandidateFlipInProgress {
+            type boolean;
+            config false;
+        }
+        leaf actionType {
+            type srl-fsp-common:ActionType;
+            config false;
+        }
+        leaf versionSourceType {
+            type srl-fsp-common:VersionSourceType;
+            config false;
+        }
+        leaf prefixNaming {
+            type srl-fsp-common:HostName {
+                length "1..32";
+            }
+        }
+        list fabric {
+            key uuid;
+            uses Fabric-entry;
+        }
+        container profile {
+            uses srl-fsp-profile:Profile-entry;
+        }
+        list leafProfileEntry {
+            key uuid;
+            uses  leafSpineEntry;
+        }
+        list spineProfileEntry {
+            key uuid;
+            uses  leafSpineEntry;
+        }
+        container imageInfo {
+            uses Image-Entry;
+        }
+        leaf intentType {
+            type srl-fsp-common:IntentType;
+        }
+        leaf state {
+            type srl-fsp-common:IntentStateType;
+        }
+        leaf prevState {
+            type srl-fsp-common:IntentStateType;
+        }
+        leaf statusReason {
+            type string;
+        }
+        leaf templateName {
+            type string;
+        }
+        leaf addPod {
+            type boolean;
+        }
+        leaf createdAt {
+            type string;
+        }
+        leaf updatedAt {
+            type string;
+        }
+        list labels {
+            key "name value";
+            uses srl-fsp-label:fsp-label-per-object-entry;
+        }
+        container evpn {
+            uses srl-fsp-profile-evpn:evpn-entry;
+            config false;
+        }
+        leaf hasEvpnProfileUpdated {
+            type boolean;
+            config false;
+        }
+        leaf enableVlan {
+            type boolean;
+        }
+        leaf vlanID {
+            type uint16 {
+                range 1..4094;
+            }
+        }
+         leaf hasVlanISLUpdated {
+            type boolean;
+            config false;
+        }
+        leaf enableBgp{
+            type boolean;
+            config false;
+        }
+        leaf hasBgpAuthUpdated {
+            type boolean;
+            config false;
+        }
+        list nodeDeployStatus {
+            key "nodeUuid";
+            leaf nodeUuid {
+                type string;
+                description "uuid of the node";
+            }
+            leaf nodeName {
+                type string;
+                description "name of the node";
+            }            
+            leaf deployed {
+                type boolean;
+                description "deploy status of the node";
+            }
+            leaf version {
+                type string;
+                description "deployed intent version of the node";
+            }
+        }
+        list customSystemNames {
+            key nodeID;
+            uses SystemName-entry;
+        }
+        leaf domainName {
+            type srl-fsp-common:DomainName {
+                length "1..253";
+            }
+        }
+        leaf isMaintenance {
+            type boolean;
+            config false;
+        }
+        leaf wlCount {
+            type uint32;
+            config false;
+        }
+        leaf ipFamily {
+            type srl-fsp-common:ManagementAddrType;
+        }
+        uses srl-fsp-common:ExternalID;
+    }
+    grouping fsp-intent-top {
+        container intent {
+            uses Intent-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-intent-top;
+    }
+}

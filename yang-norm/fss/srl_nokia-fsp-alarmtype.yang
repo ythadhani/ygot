@@ -1,0 +1,63 @@
+module srl_nokia-fsp-alarmtype {
+	yang-version 1;
+	namespace "urn:srl_nokia/fss-alarmtype";
+	prefix srl_nokia-fsp-alarmtype;
+	
+	description
+	  "This module defines FSS alarm type enumarations";
+	
+	revision 2022-03-10 {
+		description
+		  "Initial revision";
+	}
+
+    typedef EquipmentType {
+        type enumeration {
+            enum All;
+            enum FanTrayFault;
+            enum PowerSupplyFault;
+            enum ChassisFault;
+            enum CPMFault;
+            enum SFMFault;
+            enum LineCardFault;
+        }
+    }
+
+    typedef ConfigurationType {
+        type enumeration {
+            enum All;
+        }
+    }
+
+    typedef EnvironmentType {
+        type enumeration {
+            enum All;
+        }
+    }
+
+    typedef OperationalType {
+        type enumeration {
+            enum All;
+            enum GnmiConnectionFault;
+        }
+    }
+
+    typedef CommunicationType {
+        type enumeration {
+            enum All;
+            enum LLDPAdjacencyDown;
+            enum InterfaceDown;
+            enum SubinterfaceDown;
+        }
+    }
+
+    typedef FssType {
+        type enumeration {
+            enum All;
+            enum ConnectFSSConfigurationFailed;
+            enum ConnectFSSWorkloadIntentDeployFailed;
+            enum ConnectFSSAuthenticationFailed;
+            enum IpamIpAddressDepleted;
+        }
+    }
+}

@@ -1,0 +1,36 @@
+module srl_nokia-fsp-profile-gnmi {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-gnmi";
+    prefix srl_nokia-fsp-profile-gnmi;
+
+    description
+      "This module defines FSP gnmi profile struct";
+
+    revision 2020-01-02 {
+        description
+          "Initial revision";
+    }
+    import srl_nokia-extensions {
+        prefix srl-ext;
+    }
+    grouping GNMIProfile-entry {
+        leaf username {
+            description "Deprecated in v1. Gnmi username of an intent";
+            type string;
+        }
+        leaf password {
+            description "Deprecated in v1. Gnmi username of an intent";
+            type string {
+            srl-ext:generated-class-name "SecretKey";
+            }
+        }
+        leaf port {
+            description "Deprecated in v1. Gnmi port of an intent";
+            type uint16;
+        }
+    }
+
+    container fsp-profile-gnmi {
+        uses GNMIProfile-entry;
+    }
+}

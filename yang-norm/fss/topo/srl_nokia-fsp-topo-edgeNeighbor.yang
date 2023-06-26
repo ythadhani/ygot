@@ -1,0 +1,224 @@
+module srl_nokia-fsp-topo-edgeNeighbor {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-topo-edgeNeighbor";
+    prefix "srl_nokia-fsp-topo-edgeNeighbor";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-common {
+        prefix srl_nokia-comm;
+    }
+    description
+      "This module defines FSS Topology Object";
+
+    revision "2022-03-18" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+
+    grouping LLDPEdgeNeighbor{
+        leaf uuid {
+            config false;
+            type string;
+            description "FSS unique identifier of edge neighbor";
+        }   
+        leaf intentId {
+            type string;
+        }    
+        leaf fabricId {
+            type string;
+        }
+        leaf nodeId {
+            mandatory true;
+            type string;
+            description "FSS unique identifier of node";
+        }   
+        leaf regionId {
+            type string;
+        }
+        leaf nodeIP {
+            mandatory true;
+            type string;
+            description "Management IP of node";
+        }
+        leaf interfaceName {
+            mandatory true;
+            type string;
+            description "Local Interface of LLDP neighbor";
+        }
+        leaf neighbor {
+            config false;
+            mandatory true;
+            type string;
+            description "Remote neighbor information";
+        }
+        leaf nodeName{
+            mandatory true;
+            type string;
+            description "System name of the node";
+        }
+        leaf neighborName{
+            mandatory true;
+            type string;
+            description "System name of the neighbor";
+        }
+        leaf neighborInterfaceName{
+            mandatory true;
+            type string;
+            description "Remote end or neighbor interface name";
+        }
+        leaf neighborIP{
+            type string;
+            description "Remote end or neighbor IP";
+        }
+        leaf chassisId{
+            mandatory true;
+            type string;
+            description "Local node chasssis ID";
+        }
+        leaf systemDescription{
+            mandatory true;
+            type string;
+        }
+        leaf portDescription{
+            mandatory true;
+            type string;
+        }
+        leaf chassisIdType{
+            mandatory true;
+            type PortIdAndChassisIDType;
+        }
+        leaf portIdType{
+            mandatory true;
+           type PortIdAndChassisIDType;
+        }
+        leaf createdAt {
+            config false;
+            type string;
+            description "Timestamp at which edge neighbor was created";
+        }
+        leaf isAPIOverride {
+            config false;
+            type boolean;
+            description "Indicates this data is sourced through API";
+        }
+    }
+
+    grouping Key {
+        leaf intentId {
+            type string;
+        }    
+        leaf fabricId {
+            type string;
+        }
+        leaf uuid {
+            mandatory true;
+            type string;
+            description "FSS unique identifier of node";
+        }   
+        leaf regionId {
+            type string;
+        }
+        leaf nodeIP {
+            mandatory true;
+            type string;
+            description "Management IP of node";
+        }
+        leaf interfaceName {
+            mandatory true;
+            type string;
+            description "Local Interface of LLDP neighbor";
+        }
+        leaf neighbor {
+            mandatory true;
+            type string;
+            description "Remote neighbor information";
+        }
+    }
+
+    grouping Neighbor{
+        leaf nodeName{
+            mandatory true;
+            type string;
+            description "System name of the node";
+        }
+        leaf neighborName{
+            mandatory true;
+            type string;
+            description "System name of the neighbor";
+        }
+        leaf neighborInterfaceName{
+            mandatory true;
+            type string;
+            description "Remote end or neighbor interface name";
+        }
+        leaf neighborIP{
+            type string;
+            description "Remote end or neighbor IP";
+        }
+        leaf chassisId{
+            mandatory true;
+            type string;
+            description "Local node chasssis ID";
+        }
+        leaf systemDescription{
+            mandatory true;
+            type string;
+        }
+        leaf portDescription{
+            mandatory true;
+            type string;
+        }
+        leaf chassisIdType{
+            mandatory true;
+            type PortIdAndChassisIDType;
+        }
+        leaf portIdType{
+            mandatory true;
+           type PortIdAndChassisIDType;
+        }
+    }
+
+    typedef PortIdAndChassisIDType {
+        type enumeration {
+            enum INTERFACE_ALIAS; 
+            enum PORT_COMPONENT; 
+            enum CHASSIS_COMPONENT; 
+            enum MAC_ADDRESS; 
+            enum NETWORK_ADDRESS;
+            enum INTERFACE_NAME;
+            enum AGENT_CIRCUIT_ID;
+            enum LOCAL;
+        }
+    }
+
+    grouping EdgeNeighbor{
+        container neighbor {
+            uses Neighbor;
+        }
+        container key {
+            uses Key;
+        }
+    }
+    grouping fsp-edgeNeighbor-top {
+        container edgeNeighbor {
+            description "object used to get edge neighbor data";
+            uses EdgeNeighbor;
+        }
+    }
+    grouping fsp-lldpEdgeNeighbor-top {
+        container lldpEdgeNeighbor {
+            description "object used to get lldp edge neighbor data";
+            uses LLDPEdgeNeighbor;
+        }
+    }
+    augment "/srl-fsp:fsp" {
+        uses fsp-edgeNeighbor-top;
+        uses fsp-lldpEdgeNeighbor-top;
+    }
+}

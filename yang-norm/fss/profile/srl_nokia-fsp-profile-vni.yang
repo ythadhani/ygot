@@ -1,0 +1,55 @@
+module srl_nokia-fsp-profile-vni {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-vni";
+    prefix srl_nokia-fsp-profile-vni;
+
+    description "This module defines FSP vni profile struct";
+
+    revision 2022-05-03 {
+        description
+                "Initial revision";
+    }
+
+    grouping VNIProfile-entry {
+        leaf uuid {
+            description "uuid of vni profile";
+            type string;
+            config false;
+        }
+        leaf name {
+            type string;
+        }
+        leaf descr {
+            type string;
+        }
+        leaf-list labels {
+            type string;
+        }
+        leaf start {
+            type uint32 {
+            range "1..16777215";
+            }
+        }
+        leaf end {
+            type uint32 {
+            range "1..16777215";
+            }
+        }
+        list refCount {
+            config false;
+            key intentID;
+            leaf intentID {
+                type string;
+                description "Fabric Intent Uuid";
+            }
+            leaf inUse {
+                type uint32;
+                description "in use resource count";
+            }
+        }
+    }
+
+    container fsp-profile-vni {
+        uses VNIProfile-entry;
+    }
+}

@@ -1,0 +1,36 @@
+module srl_nokia-fsp-deviation-cnt {
+     yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-deviation-cnt";
+    prefix "srl_nokia-fsp-deviation-cnt";
+
+    import srl_nokia-fsp {prefix srl-fsp;}
+
+    description "This module defines deviation cnt";
+
+    revision "2021-04-15" {
+        description
+                "Initial revision";
+        reference "TBD";
+    }
+
+    grouping fsp-deviation-cnt {
+        description "dev cnt";
+        leaf cnt {
+            type uint32;
+            description "dev cnt";
+        }
+    }
+
+     grouping fsp-deviation-cnt-top {
+        description "dev cnt top";
+        container diff-cnt {
+            uses fsp-deviation-cnt;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-deviation-cnt-top;
+    }
+}

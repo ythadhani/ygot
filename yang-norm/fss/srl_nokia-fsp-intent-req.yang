@@ -1,0 +1,109 @@
+module srl_nokia-fsp-intent-req {
+    yang-version "1";
+
+// namespace
+    namespace "urn:srl_nokia/fsp-intent-req";
+    prefix "srl_nokia-fsp-intent-req";
+    description
+      "This module defines FSP Intent Req";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-fsp-profile-globalCfg {
+        prefix srl-fsp-profile-globalCfg;
+    }
+    import srl_nokia-fsp-profile-gnmi {
+        prefix srl-fsp-profile-gnmi;
+    }
+    import srl_nokia-fsp-profile {
+        prefix srl-fsp-profile;
+    }
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+
+    revision "2019-12-09" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+    grouping Image-Entry {
+        leaf initialImageID {
+            type string;
+        }
+    }
+    grouping Intent-req-entry {
+        leaf regionName {
+            type string;
+        }
+        leaf name {
+            type string {
+                length "1..128";
+            }
+        }
+        leaf description {
+            type string;
+        }
+        leaf intentApplicabilityNetworkType {
+            type srl-fsp-common:FabricOptions;
+        }
+        leaf invAvDplTriggerPct {
+            type uint16 {
+                range "0..100";
+            }
+            default: 0;
+        }
+        container profile {
+            uses srl-fsp-profile:Profile-entry;
+        }
+        container gnmi {
+            description "Deprecated in v1. Gnmi of intent";
+            uses srl-fsp-profile-gnmi:GNMIProfile-entry;
+        }
+        leaf intentType {
+            type srl-fsp-common:IntentType;
+        }
+        container imageInfo {
+            uses Image-Entry;
+        }
+        leaf templateName {
+            type string;
+        }
+        leaf addPod {
+            type boolean;
+        }
+        leaf enableVlan {
+            type boolean;
+        }
+        leaf vlanID {
+            type uint16 {
+                range 1..4094;
+            }
+        }
+        leaf prefixNaming {
+            type srl-fsp-common:HostName {
+                length "1..32";
+            }
+        }
+        leaf domainName {
+            type srl-fsp-common:DomainName {
+                length "1..253";
+            }
+        }
+        leaf ipFamily {
+            type srl-fsp-common:ManagementAddrType;
+        }
+        uses srl-fsp-common:ExternalID;
+    }
+    grouping fsp-intent-req-top {
+        container intent-req {
+            uses Intent-req-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-intent-req-top;
+    }
+}

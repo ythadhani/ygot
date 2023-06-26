@@ -1,0 +1,55 @@
+module srl_nokia-fsp-profile-evi {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-evi";
+    prefix srl_nokia-fsp-profile-evi;
+
+    description "This module defines FSP evi profile struct";
+
+    revision 2022-05-03 {
+        description
+                "Initial revision";
+    }
+
+    grouping EVIProfile-entry {
+        leaf uuid {
+            description "uuid of evi profile";
+            type string;
+            config false;
+        }
+        leaf name {
+            type string;
+        }
+        leaf descr {
+            type string;
+        }
+        leaf-list labels {
+            type string;
+        }
+        leaf start {
+            type uint32 {
+            range "1..65535";
+            }
+        }
+        leaf end {
+            type uint32 {
+            range "1..65535";
+            }
+        }
+        list refCount {
+            config false;
+            key intentID;
+            leaf intentID {
+                type string;
+                description "Fabric Intent Uuid";
+            }
+            leaf inUse {
+                type uint32;
+                description "in use resource count";
+            }
+        }
+    }
+
+    container fsp-profile-evi {
+        uses EVIProfile-entry;
+    }
+}

@@ -1,0 +1,361 @@
+module srl_nokia-fsp-intent-queue {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-intent-queue";
+    prefix "srl_nokia-fsp-intent-queue";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+    import srl_nokia-fsp-label {
+        prefix srl-fsp-label;
+    }
+    import srl_nokia-common {
+        prefix srl_nokia-comm;
+    }
+    import srl_nokia-bgp {
+        prefix srl_nokia-bgp;
+    }
+    description
+      "This module defines FSP Intent Queue(pipeline) Object";
+
+    revision "2020-08-11" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+    grouping DeviceVendor { // should be the same as the shared-common devicevendor
+        leaf vendor {
+            type string;
+        }
+        leaf operatingSystem {
+            type string;
+        }
+        leaf softwareVersion {
+            type string;
+        }
+    }
+    grouping Node {
+        leaf nodeUuid {
+            type string;
+        }        
+        container devVendor {
+            uses DeviceVendor;
+        }
+        leaf isDeleted {
+            type boolean;
+        }
+    }
+    grouping FabricIntentKey {
+        leaf regionId {
+            type string;
+        }
+        leaf intentId {
+            type string;
+        }
+        leaf intentVersion {
+            type string;
+        }
+        leaf fabricId {
+            type string;
+        }
+        leaf intentName {
+            type string;
+        }
+    }
+    grouping FabricIntentStatusKey {
+        leaf regionId {
+            type string;
+        }
+        leaf intentId {
+            type string;
+        }
+        leaf fabricId {
+            type string;
+        }
+        leaf intentVersion {
+            type string;
+        }
+        leaf fabricVersion {
+            type string;
+        }
+        leaf intentName {
+            type string;
+        }
+    }
+    grouping IntentIDVersion {
+        leaf intentId {
+            type string;
+        }
+        leaf intentVersion {
+            type string;
+        }
+    }
+    grouping FabricIntentData {
+        container fabricIntentKey {
+            uses FabricIntentKey;
+        }
+        leaf metaData {
+            type string;
+        }
+        list nodes {
+            key "nodeUuid";
+            uses Node;
+        }
+    }
+    typedef SourceType {
+        type enumeration {
+            enum SourceTypeNone;
+            enum WORKLOAD; // Workload queue items
+            enum MAINTENANCE; // Maintenance queue items
+            enum BACKBONE; // Backbone queue items
+            enum FABRIC; // Underlay fabric manager queue items
+        }
+    }
+    typedef QueueStatusType {
+        type enumeration {
+            enum QueueStatusNone;
+            enum Created; // default status on adding a queue time
+            enum Updated; // Updated
+            enum Deleted; // Deleted
+            enum InProgress; // Queue action in progress
+            enum Deployed; // Queue action completed
+            enum Failed; // Queue Action failed
+            enum ToolsCmdDone; // Tools Cmd done
+            enum ToolsCmdFailed; // Tools Cmd Failed
+            enum Aborted; // Force set status by user action
+        }
+    }
+
+    typedef QueueStatusTriggerType {
+        type enumeration {
+            enum StatusTriggerNone;
+            enum Default; // Normal system processing. Triggered by underlay state transitions
+            enum UserOverRide; // because of user over ride
+            enum PreDeployValidationCheckFailure; // Status failed becuase of pre deploy validation checks
+        }
+    }
+
+    typedef ActionType {
+        type enumeration {
+            enum ActionTypeNone;
+            enum MergeConfig; // Merge delta config with intent config
+            enum ToolsCommand; // Tools command execution
+            enum DownloadIntentConfig; // Push current intent config
+            enum RemoveConfig; // Remove delta config from intent config
+        }
+    }
+    grouping FabricIntentStatus {
+        container fabricIntentStatusKey {
+            uses FabricIntentStatusKey;
+        }
+        leaf intentStatus {
+            type string;
+        }
+        leaf statusReason {
+            type string;
+        }
+    }
+    grouping SourceKey {
+        leaf regionId {
+            type string;
+        }
+        leaf sourceId {
+            type string;
+        }
+        leaf sourceVersion {
+            type string;
+        }
+        leaf sourceName {
+            type string;
+        }
+        leaf sourceType {
+            type string;
+        }
+    }
+    grouping QueueReqKey {
+        container sourceKey {
+            uses SourceKey;
+        }
+    }
+
+    grouping QueueData {
+        leaf sourceUser {
+            type string;
+        }
+        container sourceKey {
+            uses SourceKey;
+        }
+        leaf queueSeqNo {
+            type uint32;
+        }
+        leaf queueUser {
+            type string;
+        }
+        leaf actionType {
+            type string;
+        }
+        leaf pauseGnmiSub {
+            type boolean;
+        }
+        leaf toolsCmd {
+            type string;
+        }
+        list intents {
+            config false;
+            uses FabricIntentData;
+        }
+        leaf statusTrigger {
+            type string;
+        }
+        leaf queueStatus {
+            type string;
+        }
+        list fabricIntentStatuses {
+            config false;
+            uses FabricIntentStatus;
+        }
+        leaf-list statusReason {
+            type string;
+        }
+        leaf autoDeploy {
+            type boolean;
+        }
+        leaf transactionInProgress {
+            type boolean;
+        }
+        leaf configGenDone {
+            type boolean;
+        }
+        leaf canAbort {
+            type boolean;
+        }
+        leaf lastUpdatedTime {
+            type string;
+        }
+    }
+    grouping QueueInfo {
+        container Data {
+            uses QueueData;
+        }
+        leaf queueID {
+            type string;
+        }
+        uses srl-fsp-common:ExternalID;
+    }
+    grouping QueueItemStatusKey { // Queue item status communication
+        container sourcekey {
+            uses SourceKey;
+        }
+        leaf queueId { // Unique id generated as part of adding to the queue
+            type string;
+        }
+    }
+
+    grouping QueueItemStatus { // Queue item status communication
+        container sourceKey {
+            uses SourceKey;
+        }
+        leaf actionType {
+            type string;
+        }
+
+        leaf queueId { // Unique id generated as part of adding to the queue
+            type string;
+        }
+        leaf statusTrigger {
+            type string;
+        }
+        leaf status { // Status of the queue item
+            type string;
+        }
+        list fabricIntentStatuses { // Individual status for fabrics assoicated with this queue item
+            config false;
+            uses FabricIntentStatus;
+        }
+        leaf-list statusReason {
+            type string;
+        }
+        leaf transactionInProgress {
+            type boolean;
+        }
+        leaf configGenDone {
+            type boolean;
+        }
+    }
+    grouping QueueLockUnlockKey {
+        leaf regionId {
+            type string;
+        }
+        leaf sourceId {
+            type string;
+        }
+        leaf sourceVersion {
+            type string;
+        }
+        leaf sourceName {
+            type string;
+        }
+        leaf sourceType {
+            type string;
+        }
+        leaf-list IntentId {
+            type string;
+        }
+    }
+    grouping QueueLockUnlockRequest {
+        container queueLockUnlockKey {
+            uses QueueLockUnlockKey;
+        }
+    }
+    grouping QueueLockUnlockResponse {
+        container queueLockUnlockKey {
+            uses QueueLockUnlockKey;
+        }
+
+        leaf success {
+            type boolean;
+        }
+        leaf statusReason {
+            type string;
+        }
+    }
+    grouping fsp-intent-queue-top {
+        container queue-info {
+            uses QueueInfo;
+        }
+        container queue-item-status {
+            uses QueueItemStatus;
+        }
+        container queue-item-status-key {
+            uses QueueItemStatusKey;
+        }
+        container queue-source-key {
+            uses SourceKey;
+        }
+        container queue-fabric-intent-data {
+            uses FabricIntentData;
+        }
+        container queue-data-node {
+            uses Node;
+        }
+        container queue-fabric-intent-status {
+            uses FabricIntentStatus;
+        }
+        container queue-intentID-version {
+            uses IntentIDVersion;
+        }
+        container queue-request-key {
+            uses QueueReqKey;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-intent-queue-top;
+    }
+}

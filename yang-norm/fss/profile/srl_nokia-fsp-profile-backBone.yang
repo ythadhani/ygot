@@ -1,0 +1,66 @@
+module srl_nokia-fsp-profile-backBone {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-backBone";
+    prefix srl_nokia-fsp-profile-backBone;
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+    description
+      "This module defines FSP back bone profile struct";
+
+    revision 2020-01-02 {
+        description
+          "Initial revision";
+    }
+
+    grouping BackBoneProfile-entry {
+
+        leaf nodeType {
+            type srl-fsp-common:NodeType;
+        }
+        leaf numberOfNodes {
+            type int32;
+            default 0;
+        }
+        leaf-list fabricIntents {
+            type string;
+        }
+         list fabricIntentsSequence {
+            description "List of asscoiated fabrics with sequence";
+            config false;
+            key fabricName;
+            leaf sequence-id {
+                type uint32 {
+                    range "1..65535";
+                }
+                description
+                    "A number to indicate the order of the associated fabric added";
+            }
+            leaf fabricName {
+                type string;
+                description "fabric name string";
+            }
+        }
+        leaf-list delFabricIntents {
+            type string;
+            config false;
+        }
+        leaf isStale {
+            type boolean;
+            config false;
+        }
+        leaf isBorderLeaf {
+            type boolean;
+        }
+        leaf overSubscriptionRatio {
+            type string {
+                pattern
+                  '[0-9]+:[0-9]+';
+            }
+        }
+    }
+
+    container fsp-profile-backBone {
+        uses BackBoneProfile-entry;
+    }
+}

@@ -1,0 +1,23 @@
+module srl_nokia-fsp-profile-overlay {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-overlay";
+    prefix srl_nokia-fsp-profile-overlay;
+
+    description "This module defines FSP overlay profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping OverlayProfile-entry {
+
+        leaf implemented {
+            type boolean;
+        }
+    }
+
+    container fsp-profile-overlay {
+        uses OverlayProfile-entry;
+    }
+}

@@ -1,0 +1,26 @@
+module srl_nokia-fsp-profile-downlinkCidr {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-downlinkCidr";
+    prefix srl_nokia-fsp-profile-downlinkCidr;
+
+    description "This module defines FSP downlinkCidr profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping DownlinkCidr-entry {
+    
+        leaf v4Block {
+            type string;
+        }
+        leaf v6Block {
+            type string;
+        }
+    }
+
+    container fsp-profile-downlinkCidr {
+        uses DownlinkCidr-entry;
+    }
+}

@@ -1,0 +1,57 @@
+module srl_nokia-fsp-profile-mgmtcidr {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-mgmtcidr";
+    prefix srl_nokia-fsp-profile-mgmtcidr;
+
+    description "This module defines FSP management cidr profile struct";
+
+    revision 2020-06-02 {
+        description
+                "Initial revision";
+    }
+
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+
+    grouping MgmtCidr-entry {
+        leaf useInternalDhcp {
+            type boolean;
+        }    
+        container data {
+            uses srl-fsp-common:IPPoolSpec;
+        }
+        list v4Info {
+            key ipBlock;
+            leaf ipBlock {
+                type string;
+            }
+            leaf gateway {
+                type string;
+            }
+            leaf-list reservedIPList {
+                type string;
+            }
+            leaf isManaged {
+                type boolean;
+            }
+        }
+        list v6Info {
+            key ipBlock;
+            leaf ipBlock {
+                type string;
+            }
+            leaf gateway {
+                type string;
+            }
+            leaf-list reservedIPList {
+                type string;
+            }
+            leaf isManaged {
+                type boolean;
+            }
+        }  
+    }
+
+    container fsp-profile-mgmtCidr {
+        uses MgmtCidr-entry;
+    }
+}

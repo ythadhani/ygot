@@ -1,0 +1,344 @@
+module srl_nokia-config-override {
+    yang-version 1.1;
+
+    namespace "urn:srl_nokia/config-override";
+
+    prefix "srl_nokia-config-override";
+
+    import srl_nokia-common { prefix srl_nokia-comm;}
+
+    organization
+      "Nokia";
+
+    description
+      "This module defines configuration override objects.";
+
+    revision 2022-01-31 {
+        description
+          "Support for router type";
+    }
+    revision 2022-12-15 {
+        description
+          "Changes to support System GCO";
+    }
+    revision 2022-09-01 {
+        description
+          "Updates based on CCO design discussion";
+    }
+    revision 2022-06-01 {
+        description
+          "Updates based on PLM review";
+    }
+    revision 2022-05-26 {
+        description
+          "Updates based on screens and internal review";
+    }
+    revision 2022-05-13 {
+        description
+          "Updates based on demo review";
+    }
+    revision 2022-04-29 {
+        description
+          "Initial Version";
+    }
+    
+    grouping data_model_type {
+        leaf operatingSystem {
+            type enumeration {
+                enum SRLinux;
+                enum SROS;
+            }
+            description
+              "Operating System.";
+            mandatory true;
+        }
+        leaf softwareVersion {
+            type string;
+            description
+              "Software Version. Only Major Version. Can be 'ALL' which is reserved for 'everything'.";
+            mandatory true;
+        }
+        leaf dataModel {
+            type enumeration {
+                enum SRLinux;
+            }
+            description
+              "Data Model.";
+            mandatory true;
+        }
+    }
+
+    grouping version_data {
+        leaf version {
+            config true;
+            type natural-uint-32;
+            description
+              "Number version of the data. For simple versioning. Will be generated if not provided.";
+            mandatory true;
+        }
+        leaf modified {
+            config false;
+            type srl_nokia-comm:date-and-time;
+            description
+            "Created/Modified Date and Time";
+            mandatory true;
+        }
+        leaf active {
+            config true;
+            type boolean;
+            description
+              "Whether 'active' version for deployment to node.";
+            mandatory false;
+            default false;
+        }
+    }
+
+    typedef whole-uint-32 {
+      type uint32 {
+        range 0..max;
+      }
+    }
+
+    typedef natural-uint-32 {
+      type uint32 {
+        range 1..max;
+      }
+    }
+
+    typedef ccoType {
+      type enumeration {
+        enum bgp;
+        enum router;
+        enum subinterface;
+        enum gateway;
+      }
+      description
+        "Type of the Contextual Config Override";
+    }
+
+    grouping configoverride_base {
+        leaf configId {
+            type string;
+            description
+              "ID of configuration override.";
+            config false;
+            mandatory true;
+        }
+        leaf associatedRegionId {
+            type string;
+            description
+              "ID of the associated region.";
+            config false;
+            mandatory true;
+        }
+        leaf name {
+            type string;
+            description
+              "Name of the configuration override. Unique.";
+            mandatory true;
+        }
+        leaf description {
+            type string;
+            mandatory false;
+            description
+              "description of the configuration override.";
+        }
+        leaf autoDeploy {
+            type boolean;
+            description
+              "Whether changes to the configuration override should result in auto-deploy to the node.";
+            default false;
+        }
+
+        list configurations {
+            description "The configuration override and the data model for it.";
+            key "operatingSystem softwareVersion dataModel";
+            
+            uses data_model_type {
+              description "The Data Model for the configuration. The combination of operatingSystem, softwareVersion and dataModel has to be unique.";
+            }
+            
+            leaf configuration {
+                type string;
+                description
+                  "Configuration Override Data.";
+                mandatory true;
+            }
+
+            leaf-list deletePaths { 
+              type string;
+              description
+                "A list of delete paths for the configuration override.";
+            }
+        }
+
+        container versionData {
+            description
+              "the version data.";
+            uses version_data;
+        }
+    }
+
+    grouping gco_selector {
+      choice selector {
+        mandatory false;
+        case byLabel {
+          leaf-list nodeLabelSelector {
+            type string;
+            description
+              "A list of associated labels of name 'Node-type'.";
+          }
+        }
+        case byNode {
+          leaf-list nodeSelector {
+            type string;
+            description
+              "A list of associated node uuids.";
+          }
+        }
+      }
+    }
+
+    grouping cco_selector {
+        choice selector {
+          mandatory false;
+          case byLabel {
+            leaf-list typeLabelSelector {
+              type string;
+              description
+                "A list of associated labels based on the type of CCO.";
+            }
+          }
+          case byType {
+            list typeSelector {
+              key "typeID";
+              leaf workloadID {
+                  config true;
+                  type string;
+                  description
+                    "UUID of the workload.";
+              }
+              leaf nodeID {
+                  config true;
+                  type string;
+                  description
+                    "UUID of the node.";
+              }
+              leaf typeID {
+                type string;
+                description
+                  "UUID of the object of given 'type' under the workload.";
+              }
+              leaf typeName {
+                config false;
+                type string;
+                description
+                  "Name of the object of given 'type' under the workload.";
+              }
+              description
+                "List of associated 'Type' info under a workload for a given CCO-type";
+            }
+          }
+        }
+    }
+
+    container globalConfig {
+        uses configoverride_base;
+        uses gco_selector;
+
+        leaf isSystem {
+            type boolean;
+            config false;
+            description
+              "Whether it is a 'system' global configuration override.";
+            default false;
+        }
+
+        leaf-list nodes { 
+          config false;
+          type string;
+          description
+            "A list of associated node uuids derived using the associated nodeLabelSelector or nodeSelector.";
+        }
+
+        leaf executionOrder {
+            type whole-uint-32;
+            description
+              "Execution order of the override. Lower value is applied first. If not specified, a order is generated with some buffer for flexibility. 'Zero' is reserved for System GCO.";
+            mandatory false;
+        }
+
+        description
+          "Global Configuration Override Object";
+    }
+
+    container contextConfig {
+        uses configoverride_base;
+        uses cco_selector;
+
+        leaf-list nodeSelector {
+          type string;
+          description
+            "A list of associated node uuids.";
+        }
+
+        leaf-list nodes {
+          config false;
+          type string;
+          description
+            "A list of associated 'Node' UUIDs derived using 'Type' and 'Node' Selectors.";
+        }
+
+        leaf executionOrder {
+            type natural-uint-32;
+            description
+              "Execution order of the override. Lower value is applied first. If not specified, a order is generated with some buffer for flexibility.";
+            mandatory false;
+        }
+
+        leaf type {
+          type ccoType;
+          description
+            "Type of the Configuration Override";
+          mandatory true;
+        }
+
+        leaf path {
+          type string;
+          description
+            "Path of the Configuration Override. This would depend on the 'type'.";
+          config false;
+          mandatory true;
+        }
+
+        list types {
+          config false;
+          key "typeID";
+          leaf workloadID {
+              type string;
+              description
+                "UUID of the workload.";
+          }
+          leaf nodeID {
+              type string;
+              description
+                "UUID of the node.";
+          }
+          leaf typeID {
+              type string;
+              description
+                "UUID of the object of given 'type' under the workload.";
+          }
+          leaf typeName {
+            type string;
+            description
+              "Name of the object of given 'type' under the workload.";
+          }
+          description
+            "List of associated 'Type' info under a workload derived using 'Type' and 'Node' Selectors.";
+        }
+
+        description
+          "Contextual Configuration Override Object";
+    }
+}

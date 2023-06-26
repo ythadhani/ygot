@@ -1,0 +1,110 @@
+module srl_nokia-fsp-templateProfile {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-templateProfile";
+    prefix "srl_nokia-fsp-templateProfile";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+    import srl_nokia-common {
+        prefix srl-comm;
+    }
+    import srl_nokia-fsp-profile-rack {
+        prefix srl-fsp-profile-rack;
+    }
+    import srl_nokia-fsp-profile-speed {
+        prefix srl-fsp-profile-speed;
+    }
+    import srl_nokia-fsp-profile-layerOneOverSubscription {
+        prefix srl-fsp-profile-layerOneOverSubscription;
+    }
+    import srl_nokia-fsp-profile-layerTwoOverSubscription {
+        prefix srl-fsp-profile-layerTwoOverSubscription;
+    }
+    import srl_nokia-fsp-profile-globalCfg {
+        prefix srl-fsp-profile-globalCfg;
+    }
+    import srl_nokia-fsp-profile-backBone {
+        prefix srl-fsp-profile-backBone;
+    }
+    import srl_nokia-fsp-profile-ipPoolConfig {
+        prefix srl-fsp-profile-ipPoolConfig;
+    }
+
+    description
+      "This module defines FSP templateProfile struct";
+
+    revision "2020-01-02" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+
+    grouping templateProfile-entry {
+        leaf uuid {
+            type string;
+        }
+        leaf name {
+            type string;
+        }
+        leaf description {
+            type string;
+        }
+        container speed {
+            uses srl-fsp-profile-speed:SpeedProfile-entry;
+        }
+        container layerOneOverSubscription {
+            uses srl-fsp-profile-layerOneOverSubscription:layerOneOverSubscriptionProfile-entry;
+        }
+        container layerTwoOverSubscription {
+            uses srl-fsp-profile-layerTwoOverSubscription:layerTwoOverSubscriptionProfile-entry;
+        }
+        container rack {
+            uses srl-fsp-profile-rack:RackProfile-entry;
+        }
+        container ipPoolConfig {
+            uses srl-fsp-profile-ipPoolConfig:IPPoolConfig-entry;
+        }
+        leaf manualTopoName {
+            type string;
+        }
+        leaf manualTopoUuid {
+            type string;
+        }
+        container backBone {
+            uses srl-fsp-profile-backBone:BackBoneProfile-entry;
+        }
+        leaf spineType {
+            type srl-fsp-common:SpineType;
+        }
+        leaf referenceType {
+            type srl-fsp-common:IntentType;
+        }
+        leaf isNokiaDefault {
+            type boolean;
+        }
+        leaf createdAt {
+            type string;
+        }
+        leaf updatedAt {
+            type string;
+        }
+    }
+
+    grouping fsp-templateProfile-top {
+        list templateProfile {
+            key uuid;
+            uses templateProfile-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-templateProfile-top;
+    }
+}

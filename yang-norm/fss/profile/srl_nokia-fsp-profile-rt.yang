@@ -1,0 +1,27 @@
+module srl_nokia-fsp-profile-rt {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-rt";
+    prefix srl_nokia-fsp-profile-rt;
+
+    description
+      "This module defines FSP Route Target profile struct";
+
+    revision 2021-04-15 {
+        description
+          "Initial revision";
+    }
+
+    grouping rt-entry {
+        leaf globalIndex  {
+            type uint16 {
+               range "1..65535";      
+            }
+            description
+                 "Global index per region used to build a route target";
+        }
+    }
+
+    container fsp-profile-rt {
+        uses rt-entry;
+    }
+}

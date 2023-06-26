@@ -1,0 +1,23 @@
+module srl_nokia-fsp-profile-security {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-security";
+    prefix srl_nokia-fsp-profile-security;
+
+    description "This module defines FSP security profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping SecurityProfile-entry {
+
+        leaf implemented {
+            type boolean;
+        }
+    }
+
+    container fsp-profile-security {
+        uses SecurityProfile-entry;
+    }
+}

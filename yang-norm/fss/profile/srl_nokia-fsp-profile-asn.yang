@@ -1,0 +1,69 @@
+module srl_nokia-fsp-profile-asn {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-asn";
+    prefix srl_nokia-fsp-profile-asn;
+
+    description "This module defines FSP asn profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping ASNProfile-entry {
+        leaf uuid {
+            description "uuid of asn profile";
+            type string;
+            config false;
+        }
+        // Deprecated 22.7
+        leaf first {
+            description "Deprecated in v1. First value of asn range";
+            type uint32 {
+            range "1..4294967295";
+            }
+        }
+        leaf last {
+            description "Deprecated in v1. Last value of asn range";
+            type uint32 {
+            range "1..4294967295";
+            }
+        }
+        // New 22.7
+        leaf poolName {
+            type string;
+        }
+        leaf descr {
+            type string;
+        }
+        list blocks {
+            key "start end";
+            leaf start {
+                type uint32 {
+                range "1..4294967295";
+                }
+            }
+            leaf end {
+                type uint32 {
+                range "1..4294967295";
+                }
+            }    
+        }
+        list refCount {
+            config false;
+            key intentID;
+            leaf intentID {
+                type string;
+                description "Fabric Intent Uuid";
+            }
+            leaf inUse {
+                type uint32;
+                description "in use resource count";
+            }
+       }
+    }
+
+    container fsp-profile-asn {
+        uses ASNProfile-entry;
+    }
+}

@@ -1,0 +1,24 @@
+module srl_nokia-fsp-profile-islCidr {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-iSLCidr";
+    prefix srl_nokia-fsp-profile-islCidr;
+
+    description "This module defines FSP islCidr profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+
+    grouping ISLCidr-entry {
+        container data {
+            uses srl-fsp-common:IPPoolSpec;           
+        } 
+    }
+
+    container fsp-profile-islCidr {
+        uses ISLCidr-entry;
+    }
+}

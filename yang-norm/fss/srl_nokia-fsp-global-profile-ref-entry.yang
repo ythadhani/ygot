@@ -1,0 +1,31 @@
+module srl_nokia-fsp-global-profile-ref-entry {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-global-profile-ref-entry";
+    prefix "srl_nokia-fsp-global-profile-ref-entry";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+
+    grouping ref-entry {
+        leaf isCandidate {
+            type boolean;
+        }
+        leaf toBeRemoved {
+            type boolean;
+        }
+    }
+
+    grouping fsp-global-profile-ref-entry-top {
+        container global-profile-ref-entry {
+            uses ref-entry;
+        }
+    }
+
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-global-profile-ref-entry-top;
+    }
+}

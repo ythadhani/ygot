@@ -1,0 +1,43 @@
+module srl_nokia-fsp-profile-evpn {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-evpn";
+    prefix srl_nokia-fsp-profile-evpn;
+    import srl_nokia-common {
+        prefix srl_nokia-comm;
+    }
+    description
+      "This module defines FSP EVPN profile struct";
+
+    revision 2021-07-01 {
+        description
+          "Initial revision";
+    }
+    typedef controlPlaneType {
+        type enumeration {
+            enum none;
+            enum eBGP;
+            enum iBGP;
+        }
+    }
+    grouping evpn-entry {
+        leaf controlPlane {
+            type controlPlaneType;
+            default "none";
+        }
+        leaf clusterID {
+            type srl_nokia-comm:dotted-quad;
+        }
+        leaf localAS {
+            type uint32 {
+                range "1..4294967295";
+            }
+        }
+        leaf-list rrIPList {
+            type srl_nokia-comm:ipv4-address;
+        }
+    }
+
+    container fsp-profile-evpn {
+        uses evpn-entry;
+    }
+}

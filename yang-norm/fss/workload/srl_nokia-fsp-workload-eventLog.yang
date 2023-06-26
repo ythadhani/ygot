@@ -1,0 +1,34 @@
+module srl_nokia-fsp-workload-eventLog {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-workload-eventLog";
+    prefix "srl_nokia-fsp-workload-eventlog";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-fsp-eventlog {
+        prefix srl_nokia-fsp-eventlog;
+    }
+
+    description
+      "This module defines FSP Workload Intent event log Object";
+
+    revision "2020-08-11" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+
+    grouping fsp-workload-eventLog-top {
+        container workloadEventLogData {
+            uses srl_nokia-fsp-eventlog:eventlog-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-workload-eventLog-top;
+    }
+}

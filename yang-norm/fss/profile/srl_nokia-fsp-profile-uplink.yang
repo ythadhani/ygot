@@ -1,0 +1,58 @@
+module srl_nokia-fsp-profile-uplink {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-uplink";
+    prefix srl_nokia-fsp-profile-uplink;
+
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+
+    description "This module defines FSP uplink profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    
+
+    grouping FabricPort-entry {
+        leaf portId {
+            type uint32;
+        }
+        leaf portName {
+            type string;
+        }
+        leaf fabricName {
+            type string;
+        }
+        leaf nodeName {
+            type string;
+        }
+        leaf slotIndex {
+            type uint32;
+        }
+        leaf portIndex {
+            type uint32;
+        }
+    }
+
+    grouping UplinkProfile-entry {
+
+        list portList {
+            key fabricName;
+            uses FabricPort-entry;
+        }
+        leaf uplinkSpeed {
+            type srl-fsp-common:SpeedType;
+        }
+        leaf unicastCp {
+            type srl-fsp-common:UnicastCPType;
+        }
+        leaf multicastCp {
+            type srl-fsp-common:MulticastCPType;
+        }
+    }
+
+    container fsp-profile-uplink {
+        uses UplinkProfile-entry;
+    }
+}

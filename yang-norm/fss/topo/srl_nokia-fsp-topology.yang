@@ -1,0 +1,282 @@
+module srl_nokia-fsp-topology {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-topology";
+    prefix "srl_nokia-fsp-topology";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+    import srl_nokia-common {
+        prefix srl_nokia-comm;
+    }
+    import srl_nokia-fsp-profile-speed {
+        prefix srl-fsp-profile-speed;
+    }
+    description
+      "This module defines FSS Topology Object";
+
+    revision "2022-03-18" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+    grouping Node {
+        leaf uuid {
+            config false;
+            type string;
+        }    
+        leaf sequence {
+            type uint32;
+        }
+        leaf role {
+            mandatory true;
+            type NodeRole;
+        }   
+        container deviceVendor {
+            uses srl-fsp-common:DeviceVendor;
+        }
+        leaf rack {
+            type string;
+        }
+        leaf pod {
+            type string;
+        }
+        leaf systemName {
+            mandatory true;
+            type string {
+            length "1..50";
+            pattern '(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])';
+            }        
+        }
+        leaf deviceProfile{
+            mandatory true;
+            type string;
+        }
+        leaf chassisType {
+            config false;
+            type srl-fsp-common:NodeType;
+        }
+        leaf-list downLinks {
+            config false;
+            type string;
+        }
+        leaf-list upLinks {
+            config false;
+            type string;
+        }
+        leaf-list edgeLinks{
+            config false;
+            type string;
+        }
+        leaf-list loopbacks{
+            config false;
+            type string;
+        }
+        leaf isManaged{
+            type boolean;
+        }
+        list lags{
+            key name;
+            uses Lag;
+        }
+        list interfaceGroups{
+            config false;
+            key "interfaceProfile type";
+            uses InterfaceGroup;
+        }
+    }
+    grouping Lag{
+        leaf name{
+            mandatory true;
+            type string;
+        }
+        leaf localName{
+            mandatory true;
+            type string;
+        }
+        leaf-list ports {
+            type string;
+        }
+        leaf isMultiHome{
+            type boolean;
+        }
+    }
+    grouping DeviceProfile{
+        leaf name{
+            mandatory true;
+            type string;
+        }
+        leaf description{
+            type string;
+        }
+        leaf chassisType {
+            mandatory true;
+            type srl-fsp-common:NodeType;
+        }
+        leaf-list downLinks {
+            config false;
+            type string;
+        }
+        leaf-list upLinks {
+            config false;
+            type string;
+        }
+        leaf-list edgeLinks{
+            type string;
+        }
+        leaf-list loopbacks{
+            type string;
+        }
+        list interfaceGroups{
+            key "interfaceProfile type";
+            uses InterfaceGroup;
+        }
+    }
+    grouping InterfaceGroup{
+        leaf-list interfaces{
+            type string;
+        }
+        leaf interfaceProfile{
+            mandatory true;
+            type string;
+        }
+        leaf type{
+            type srl-fsp-common:InterfaceType;
+        }
+    }
+    grouping InterfaceProfile{
+        leaf name{
+            mandatory true;
+            type string;
+        }
+        container breakout {
+            uses Breakout;
+        }
+        leaf forwardErrorCorrection{
+            type srl-fsp-common:FECType;
+        }
+    }
+    grouping Breakout{
+        leaf numChannels {
+            type uint32;
+        }
+        leaf channelSpeed {
+            type srl-fsp-common:SpeedType;
+        }
+    }
+    grouping Template{
+        leaf uuid {
+            config false;
+            type string;
+        }
+        leaf name {
+            mandatory true;
+            type string {
+                length "1..32";
+            }
+            description "Unique identifier of the topology template";
+        }
+        leaf description {
+            type string {
+                length "1..256";
+            }
+        }
+        leaf nodeCount{
+            config false;
+            type uint32;
+        }
+        leaf createdTime {
+            config false;
+            type srl_nokia-comm:date-and-time;
+        }
+        leaf referenceCount{
+            config false;
+            type uint32;
+        }
+    }
+    grouping Link {   
+        leaf localNode {
+            mandatory true;
+            type string;
+        }
+        leaf localPort {
+            mandatory true;
+            type string;
+        }
+        leaf remoteNode {
+            mandatory true;
+            type string;
+        }
+        leaf remotePort {
+            mandatory true;
+            type string;
+        }
+        leaf role {
+            mandatory true;
+            type LinkRole;
+        }  
+        leaf isActive{
+            type boolean;
+        }
+        leaf speed {
+            type srl-fsp-common:SpeedType;
+        }
+    }
+
+    typedef NodeRole {
+        type enumeration {
+            enum T1_LEAF; // LEAF
+            enum T2_SPINE; // SPINE
+            enum T3; // BBSPINE
+            enum T4; // BB connecting bb's
+            enum T5; // BB connecting T4 bb's
+            enum BORDERLEAF; //Border LEAF
+        }
+    }
+    typedef LinkRole {
+        type enumeration {
+            enum T1_ISL_T2; // T1 to T2 ISL Link
+            enum T2_ISL_T3; // T2 to T3 ISL Link
+            enum T3_ISL_T4; // T3 to T4 ISL Link
+            enum T4_ISL_T5; // T4 to T5 ISL Link
+            enum ISL; //ISL Link
+        }
+    }
+    grouping CableGraph{
+        container template {
+            uses Template;
+        }
+        list nodes {
+            key systemName;
+            uses Node;
+        }
+        list links {
+            key "localNode localPort";
+            uses Link;
+        }
+        list deviceProfiles{
+            key name;
+            uses DeviceProfile;
+        }
+        list interfaceProfiles{
+            key name;
+            uses InterfaceProfile;
+        }
+    }
+    grouping fsp-topology-top {
+        container cableGraph {
+            description "object used to get manual topology data";
+            uses CableGraph;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-topology-top;
+    }
+}

@@ -1,0 +1,25 @@
+module srl_nokia-fsp-profile-layerOneOverSubscription {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-layerOneOverSubscription";
+    prefix srl_nokia-fsp-profile-layerOneOverSubscription;
+
+    description "This module defines FSP layerOneOverSubscription profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping layerOneOverSubscriptionProfile-entry {
+
+        leaf overSubscriptionRatio {
+            type string {
+                pattern '[0-9]+:[0-9]+';
+            }
+        }
+    }
+
+    container fsp-profile-layerOneOverSubscription {
+        uses layerOneOverSubscriptionProfile-entry;
+    }
+}

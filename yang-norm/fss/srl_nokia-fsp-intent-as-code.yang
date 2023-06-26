@@ -1,0 +1,350 @@
+module srl_nokia-fsp-intent-as-code {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-intent-as-code";
+    prefix "srl_nokia-fsp-intent-as-code";
+
+    import srl_nokia-fsp {prefix srl-fsp;}
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+    import srl_nokia-common { prefix srl_nokia-comm; }
+    import srl_nokia-fsp-profile-rack {
+        prefix srl-fsp-profile-rack;
+    }
+    import srl_nokia-fsp-profile-topology {
+        prefix srl-fsp-profile-topology;
+    }
+    import srl_nokia-fsp-profile-underlay {
+        prefix srl-fsp-profile-underlay;
+    }
+    import srl_nokia-fsp-profile-security {
+        prefix srl-fsp-profile-security;
+    }
+    import srl_nokia-fsp-profile-overlay {
+        prefix srl-fsp-profile-overlay;
+    }
+    import srl_nokia-fsp-profile-mgmtTrafficQoS {
+        prefix srl-fsp-profile-mgmtTrafficQoS;
+    }
+    import srl_nokia-fsp-profile-islCidr {
+        prefix srl-fsp-profile-islCidr;
+    }
+    import srl_nokia-fsp-profile-downlinkCidr {
+        prefix srl-fsp-profile-downlinkCidr;
+    }
+    import srl_nokia-fsp-profile-fabricQoS {
+        prefix srl-fsp-profile-fabricQoS;
+    }
+    import srl_nokia-fsp-profile-routerID {
+        prefix srl-fsp-profile-routerID;
+    }
+    import srl_nokia-fsp-profile-speed {
+        prefix srl-fsp-profile-speed;
+    }
+    import srl_nokia-fsp-profile-layerOneOverSubscription {
+        prefix srl-fsp-profile-layerOneOverSubscription;
+    }
+    import srl_nokia-fsp-profile-layerTwoOverSubscription {
+        prefix srl-fsp-profile-layerTwoOverSubscription;
+    }
+    import srl_nokia-fsp-profile-asn {
+        prefix srl-fsp-profile-asn;
+    }
+    import srl_nokia-fsp-profile-globalCfg {
+        prefix srl-fsp-profile-globalCfg;
+    }
+    import srl_nokia-fsp-profile-overlayService {
+        prefix srl-fsp-profile-overlayService;
+    }
+    import srl_nokia-fsp-profile-queuing {
+        prefix srl-fsp-profile-queuing;
+    }
+    import srl_nokia-fsp-profile-uplink {
+        prefix srl-fsp-profile-uplink;
+    }
+    import srl_nokia-fsp-profile-mgmtcidr {
+        prefix srl-fsp-profile-mgmtcidr;
+    }
+    import srl_nokia-fsp-profile-backBone {
+        prefix srl-fsp-profile-backBone;
+    }
+    import srl_nokia-fsp-intent {
+        prefix srl-fsp-intent;
+    }
+
+    description
+      "This module defines FSP intent as code struct";
+
+    revision "2020-11-02" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+
+    grouping namespace-entry {  
+        uses  srl-fsp-profile-asn:ASNProfile-entry;
+        leaf baclbone {
+            type string;
+        }
+        leaf v4block {
+            type srl_nokia-comm:ipv4-address;
+        }
+        leaf v6block {
+            type srl_nokia-comm:ipv6-address;
+        }
+    }
+
+    grouping interface-entry {    
+        leaf name {
+            type string;
+        }
+        leaf ipaddr {
+            type srl_nokia-comm:ipv4-address;
+        }
+    }
+
+    grouping link-info-entry {
+        leaf name {
+            type string;
+        }
+        leaf remoteas {
+            type uint32;
+        }
+        leaf localas {
+            type uint32;
+        }
+        leaf localinterface {
+            type string;
+        }
+        leaf remoteinterface {
+            type string;
+        }
+        leaf LocalNodeSystemName {
+            type string;
+        }
+        leaf RemoteNodeSystemName {
+            type string;
+        }
+        leaf IsActive {
+            type boolean;
+        }
+        leaf localipv4 {
+            type srl_nokia-comm:ipv4-address;
+        }
+        leaf localipv4mask {
+            type string;
+        }
+        leaf localipv6 {
+            type srl_nokia-comm:ipv6-address;
+        }
+        leaf localipv6mask {
+            type string;
+        }
+        leaf remoteipv4 {
+            type srl_nokia-comm:ipv4-address;
+        }
+         leaf remoteipv4mask {
+            type string;
+        }
+        leaf remoteipv6 {
+            type srl_nokia-comm:ipv6-address;
+        }
+        leaf remoteipv6mask {
+            type string;
+        }
+        list labels {
+            key "name";
+            leaf name {
+                type string;
+            }
+            leaf val {
+                type string;
+            }
+        }
+    }
+
+    grouping oversubscription-entry {    
+        list tier {
+            key "name";
+            leaf name {
+                type string;
+            }
+            leaf value {
+                type string;
+            }
+        }
+    }
+
+    grouping node-info-entry {    
+        leaf leafNodeType {
+            type string;
+        }
+        leaf numLeafNodes {
+            type uint32;
+        }
+        leaf spineNodeType {
+            type string;
+        }
+        leaf numSpineNodes {
+            type uint32;
+        }
+    }
+
+    grouping subprofiles-entry {    
+        // uses namespace-entry;
+        // uses srl-fsp-profile-islCidr:ISLCidr-entry;
+        // uses srl-fsp-profile-mgmtcidr:MgmtCidr-entry;
+        // leaf routerIdStart {
+        //     type  srl_nokia-comm:ipv4-address;
+        // }
+        // uses srl-fsp-profile-globalCfg:GlobalCfg-entry;
+        // uses srl-fsp-profile-fabricQoS:FabricQoSProfile-entry;
+        // uses oversubscription-entry;
+        // uses srl-fsp-profile-speed:SpeedProfile-entry;
+        // uses srl-fsp-profile-mgmtTrafficQoS:MgmtTrafficQoSProfile-entry;
+        // uses srl-fsp-profile-rack:RackProfile-entry;
+        
+        // container topologyData {
+        //     leaf nodeName {
+        //         type string;
+        //     }
+        //     leaf nodePlatform {
+        //         type string;
+        //     }
+        //     leaf mgmtIP {
+        //         type  srl_nokia-comm:ipv4-address;
+        //     }
+        //     leaf isCandidate {
+        //         type boolean;
+        //     }
+        //     leaf digitalSandbox {
+        //         type boolean;
+        //     }
+        //     leaf labels {
+        //         type string;
+        //     }
+        // }
+       
+        container intent {
+            uses srl-fsp-intent:Intent-entry;
+        }
+        container loopbackInterfaces {
+            uses interface-entry;
+            list isllinks {
+                key name;
+                uses link-info-entry;
+            }
+       }
+    }
+
+    grouping spec-entry {
+        // leaf fabricName {
+        //     type string;
+        // }
+        // leaf description {
+        //     type string;
+        // }
+        // leaf intentID {
+        //     type string;
+        // }
+        // leaf intentVersion {
+        //     type string;
+        // }
+        // leaf marker {
+        //     type string;
+        // }
+        // leaf prevVersion {
+        //     type string;
+        // }
+        // leaf createDate {
+        //     type srl_nokia-comm:date-and-time-delta;
+        // }
+        // leaf templatename {
+        //     type string;
+        // }
+        // leaf regionID {
+        //     type string;
+        // }
+        // leaf isEor {
+        //     type boolean;
+        // }
+        // leaf dualHoming {
+        //     type boolean;
+        // }
+        // leaf digitalSandbox {
+        //     type boolean;
+        // }
+        // leaf labels {
+        //     type string;
+        // }
+        container intent {
+            uses srl-fsp-intent:Intent-entry;
+        }
+        container loopbackInterfaces {
+            // uses interface-entry;
+            list isllinks {
+                key name;
+                uses link-info-entry;
+            }
+       }
+        container status {
+            leaf deploymentStatus {
+                type string;
+            }
+            leaf deploymentTime {
+                type srl_nokia-comm:date-and-time-delta;
+            }
+            leaf lastUpdateTime {
+                type srl_nokia-comm:date-and-time-delta;
+            }
+            leaf lastUpdateUser {
+                type string;
+            }
+            leaf transactionId {
+                type string;
+            }
+            leaf intentDeviations {
+                type string;
+            }
+            leaf availableNodes {
+                type string;
+            }
+            leaf deploymentErrors {
+                type string;
+            }
+            leaf faults {
+                type string;
+            }
+            leaf alerts {
+                type string;
+            }
+        }
+    }
+
+    grouping fsp-intent-as-code-top {
+        container fabric-info {
+            // leaf apiVersion {
+            //     type string;
+            // }
+            // leaf kind {
+            //     type string;
+            // }
+            // leaf namespace {
+            //     type string;
+            // }
+            // container metadata {
+            //     leaf name {
+            //         type string;
+            //     }
+            // }
+            container spec {
+                uses spec-entry;
+            }
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-intent-as-code-top;
+    }
+}

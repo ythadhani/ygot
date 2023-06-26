@@ -1,0 +1,36 @@
+module srl_nokia-fsp-profile-ipPoolConfig {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-ipPoolConfig";
+    prefix srl_nokia-fsp-profile-ipPoolConfig;
+
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+
+    description "This module defines FSP IP pool configuration profile struct";
+
+    revision 2022-02-02 {
+        description
+            "Initial revision";
+    }
+
+    grouping IPPoolConfig-entry {
+        list configOptions {
+            key poolType;
+            leaf poolType {
+                type enumeration {
+                    enum IslPool;
+                    enum MgmtPool;
+                    enum SystemPool;
+                    enum AsnPool;
+                }
+            }            
+            leaf poolName {
+                type string;
+                default "default";
+            }            
+        }
+    }
+
+    container fsp-profile-ipPoolConfig {
+        uses IPPoolConfig-entry;
+    }
+}

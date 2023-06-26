@@ -1,0 +1,25 @@
+module srl_nokia-fsp-profile-protocolAuthentication {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-protocolAuthentication";
+    prefix srl_nokia-fsp-profile-protocolAuthentication;
+    import srl_nokia-common {
+        prefix srl_nokia-comm;
+    }
+    description
+      "This module defines FSP Protocol authentication struct";
+
+    revision 2022-18-01 {
+        description
+          "Initial revision";
+    }
+
+    grouping protocolAuthentication-entry {
+        leaf enableBgp {
+           type boolean;
+        }
+    }
+
+    container fsp-profile-protocolAuthentication{
+        uses protocolAuthentication-entry;
+    }
+}

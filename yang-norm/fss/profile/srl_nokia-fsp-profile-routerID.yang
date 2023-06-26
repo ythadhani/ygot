@@ -1,0 +1,24 @@
+module srl_nokia-fsp-profile-routerID {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-routerID";
+    prefix srl_nokia-fsp-profile-routerID;
+
+    description "This module defines FSP routerID profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+
+    grouping RouterID-entry {
+        container data {
+            uses srl-fsp-common:IPPoolSpec;           
+        }
+    }
+
+    container fsp-profile-routerID {
+        uses RouterID-entry;
+    }
+}

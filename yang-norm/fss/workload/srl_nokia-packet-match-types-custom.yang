@@ -1,0 +1,97 @@
+module srl_nokia-packet-match-types-custom {
+  yang-version 1.1;
+
+  // namespace
+  namespace "urn:srl_nokia/packet-match-types-custom";
+
+  prefix "srl_nokia-pkt-match-types-custom";
+  organization "Nokia";
+
+  // import some basic types
+
+  description
+    "This module defines common types for use in models requiring
+    data definitions related to packet matches.";
+
+  // extension statements
+
+  // feature statements
+
+  // identity statements
+
+  // typedef statements
+
+  /*
+   * Typedefs
+   */
+
+  revision 2021-03-31 {
+    description
+      "SRLinux 21.3.1";
+  }
+  revision 2019-11-30 {
+    description
+      "SRLinux 19.11.1";
+  }
+
+  typedef operator {
+    type enumeration {
+      enum le {
+        description
+          "Less than or equal.";
+      }
+      enum ge {
+        description
+          "Greater than or equal.";
+      }
+      enum eq {
+        description
+          "Equal to.";
+      }
+    }
+    description
+      "The source and destination port range definitions
+       can be further qualified using an operator. An
+       operator is needed only if lower-port is specified
+       and upper-port is not specified. The operator
+       therefore further qualifies lower-port only.";
+  }
+
+  typedef ip-protocol-type {
+    type union {
+      type uint8 {
+        range 0..255;
+      }
+    }
+    description
+      "The IP protocol number or next-header value.";
+  }
+
+  typedef l4-port-type {
+    type union {
+      type uint16 {
+        range 0..65535;
+      }
+    }
+    description
+      "The IP protocol number may be expressed as a valid protocol
+      number (integer) or using a protocol type defined by the
+      IP_PROTOCOL identity";
+  }
+
+  typedef icmp-type {
+    type union {
+      type uint8 {
+        range 0..255;
+      }
+    }
+  }
+
+  typedef icmp6-type {
+    type union {
+      type uint8 {
+        range 0..255;
+      }
+    }
+  }
+}

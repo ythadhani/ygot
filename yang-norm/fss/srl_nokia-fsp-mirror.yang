@@ -1,0 +1,292 @@
+module srl_nokia-fss-mirror {
+    yang-version 1;
+    namespace "urn:srl_nokia/fss-mirror";
+    prefix "srl_nokia-fss-mirror";
+
+    import srl_nokia-mirroring {prefix srl-mirroring;}
+    import srl_nokia-fsp { prefix srl-fsp;}
+    import srl_nokia-common { prefix srl_nokia-comm;}
+    import srl_nokia-fsp-common { prefix srl-fsp-common;}
+    import srl_nokia-fsp-label {
+        prefix srl-fsp-label;
+    }
+
+    description
+      "This module defines FSS Mirroring";
+
+    revision 2022-11-28 {
+        description
+          "Initial version";
+    }
+    
+    typedef SourceType {
+        type enumeration {
+            enum Interface;
+            enum Sub-Interface;
+        }
+    }
+
+    typedef DestinationType{
+        type enumeration {
+            enum Local;
+            enum Remote;
+        }
+    }
+
+    typedef EncapsulationType{
+        type enumeration {
+            enum l2oGRE;
+        }
+    }
+
+    grouping source-type-interface {
+        description "Definition of source of type interface";
+        leaf-list nodeID {
+            type string;
+            description "selects the node";
+        }
+        container nodeLabel {
+            uses srl-fsp-label:fsp-label-per-object-entry;
+            must "not(../nodeID)" {
+              error-message "node selector can have either nodeID or label not both";
+            }
+        }
+        leaf-list ifID {
+            type string;
+        }
+        container interfaceLabel {
+            uses srl-fsp-label:fsp-label-per-object-entry;
+            must "not(../ifID)" {
+              error-message "interface selector can have either ifID or label not both";
+            }
+        }
+        leaf trafficDirection {
+            type srl-mirroring:direction;
+            default srl-mirroring:egress-only;
+            mandatory true;
+            description "Traffic Direction";
+        }
+    }
+
+    grouping source-type-subinterface {
+        description "Definition of source of type sub-interface";
+        leaf-list nodeID {
+            type string;
+            description "selects the node";
+        }
+        container nodeLabel {
+            uses srl-fsp-label:fsp-label-per-object-entry;
+            must "not(../nodeID)" {
+              error-message "node selector can have either nodeID or label not both";
+            }
+        }
+        leaf-list subifID {
+            type string;
+            description "selects the sub-interface";
+        }
+        container subifLabel{
+            uses srl-fsp-label:fsp-label-per-object-entry;
+            must "not(../subifID)" {
+              error-message "sub-interface selector can have either subifID or label not both";
+            }
+        }
+        leaf trafficDirection {
+            type srl-mirroring:direction;
+            default srl-mirroring:egress-only;
+            mandatory true;
+            description "Traffic Direction";
+        }
+    }
+
+    grouping destination-type-remote {
+        leaf destinationIP{
+            mandatory true;
+            type srl_nokia-comm:ip-address; 
+            description "destination of the mirror tunneled traffic"; 
+        }
+        leaf sourceIP {
+            type srl_nokia-comm:ip-address; 
+            description "source IP for the mirrored traffic";
+        }
+        leaf encapsulation {
+            type EncapsulationType;
+            description "encapsulation type";
+        }
+    }
+
+    grouping destination-type-local {
+        leaf interface {
+            type string;
+            mandatory true;
+            description "an interface on which to mirror the traffic";
+        }
+        leaf vlanID {
+            type uint16 {
+                range 1..4094;
+            }
+            mandatory true;
+            description
+                "VLAN to use for sub-interface creation to send the mirrored traffic";
+        } 
+    }
+
+    grouping fss-mirror-src {
+        leaf name {
+            type string;
+            mandatory true;
+        }
+        leaf sourceDescription {
+            type string;
+        }
+        leaf uuid {
+            type string;
+            config false;
+        }
+        leaf sourceType {
+            type SourceType;
+            description "Type of source";
+        }
+        container intfSrc {
+            uses source-type-interface;
+            presence;
+        }
+        container subifSrc {
+            uses source-type-subinterface;
+            presence;
+        }
+        list labels {
+            key "keyname";
+            leaf keyname {
+                type string;
+            }
+            leaf name {
+                type string;
+            }
+            leaf value {
+                type string;
+            }
+        }
+    }
+
+    grouping fss-mirror-dst{
+        leaf name {
+            type string;
+            mandatory true;
+        }
+        leaf uuid {
+            type string;
+            config false;
+        }
+        leaf destinationDescription {
+            type string;
+        }
+        leaf destType {
+            type DestinationType;
+            description "Type of destination";
+        }
+        container localDestination {
+            uses destination-type-local;
+            /*
+            must "(../destType = DestinationType.Local)" {
+              error-message "mirror destination can be either local or remote within the same mirror-instance";
+            }
+            */
+            presence;
+        }
+        container remoteDestination {
+            uses destination-type-remote;
+            /*
+            must "(../destType = DestinationType.Remote)" {
+              error-message "mirror destination must be remote when type is Remote";
+            }
+            */
+            presence;
+        }
+        list labels {
+            key "keyname";
+            leaf keyname {
+                type string;
+            }
+            leaf name {
+                type string;
+            }
+            leaf value {
+                type string;
+            }
+        }
+    }
+
+    grouping fss-mirror-src-top {
+        container mirrorSrc {
+            uses fss-mirror-src;
+        }
+    }
+
+    grouping fss-mirror-dst-top {
+        container mirrorDst {
+            uses fss-mirror-dst;
+        }
+    }
+
+    grouping fss-mirror-object-top {
+        container mirrorObj {
+            uses fss-mirroring-top;
+        }
+    }
+
+    grouping fss-mirroring-top {
+        leaf name {
+            type string;
+            mandatory true;
+        }
+        leaf mirrorDescription {
+            type string;
+        }
+        leaf autoDeploy {
+            type boolean;
+            mandatory true;
+        }
+        leaf-list mirrorSource {
+            type string;
+            description "List of Mirror Sources";
+        }
+        leaf mirrorDest {
+            type string;
+            description "Mirror Destination";
+        }
+        leaf uuid {
+            type string;
+            config false;
+        }
+        leaf active {
+            type boolean;
+            mandatory true;
+            // config false;
+        }
+        leaf-list activeNodes {
+            type string;
+            description "list of nodes on which the mirror is active";
+            config false;
+        }
+        list labels {
+            key "keyname";
+            leaf keyname {
+                type string;
+            }
+            leaf name {
+                type string;
+            }
+            leaf value {
+                type string;
+            }
+        }
+    }
+
+
+    //uses fss-mirror-object-top;
+    augment "/srl-fsp:fsp" {
+        uses fss-mirror-object-top;
+        uses fss-mirror-src-top;
+        uses fss-mirror-dst-top;
+    }
+}

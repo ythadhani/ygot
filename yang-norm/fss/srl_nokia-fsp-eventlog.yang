@@ -1,0 +1,48 @@
+module srl_nokia-fsp-eventlog {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-eventlog";
+    prefix "srl_nokia-fsp-eventlog";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+
+    description
+      "This module defines FSP eventlog struct";
+
+    revision "2020-01-02" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+
+    grouping eventlog-entry {
+        leaf sequenceNumber {
+            type uint32;
+        }
+        leaf message {
+            type string;
+        }
+        leaf state {
+            type string;
+        }
+        leaf timestamp {
+            type string;
+        }
+        leaf queueID {
+            type string;
+        }
+    }
+    grouping fsp-eventlog-top {
+        container eventlogData {
+            uses eventlog-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-eventlog-top;
+    }
+}

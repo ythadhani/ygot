@@ -1,0 +1,37 @@
+module srl_nokia-fsp-profile-topology {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-topology";
+    prefix srl_nokia-fsp-profile-topology;
+
+    description "This module defines FSP topology profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping PhyTopologyProfile-entry {
+
+        leaf localPort {
+            type string;
+        }
+        leaf remotePort {
+            type string;
+        }
+     }
+
+    grouping TopologyProfile-entry {
+
+        leaf numberOfPaths {
+            type uint32;
+        }
+        // list phyTopologyTree {
+        //     key name;
+        //     uses PhyTopologyProfile-entry;
+        // }
+    }
+
+    container fsp-profile-topology {
+        uses TopologyProfile-entry;
+    }
+}

@@ -1,0 +1,50 @@
+module srl_nokia-fsp-profile-rack {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-rack";
+    prefix srl_nokia-fsp-profile-rack;
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+    description "This module defines FSP rack profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping RackProfile-entry {
+
+        leaf serversPerRack {
+            type int32;
+            default 0;
+        }
+        leaf numberOfRacks {
+            type int32;
+            default 0;
+        }
+        leaf dualHoming {
+            type boolean;
+            default false;
+        }
+        leaf spineNodeType {
+            type srl-fsp-common:NodeType;
+        }
+        leaf leafNodeType {
+            type srl-fsp-common:NodeType;
+        }
+        leaf numberOfLeafNodes {
+            type int32;
+            default 0;
+        }
+        leaf numberOfSpineNodes {
+            type int32;
+            default 0;
+        }
+        leaf isEOR {
+            type boolean;
+            default false;
+        }
+    }
+
+    container fsp-profile-rack {
+        uses RackProfile-entry;
+    }
+}

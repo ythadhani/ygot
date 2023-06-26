@@ -1,0 +1,1242 @@
+module srl_nokia-fsp-workload-intent {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-workload-intent";
+    prefix "srl_nokia-fsp-workload-intent";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+    import srl_nokia-fsp-label {
+        prefix srl-fsp-label;
+    }
+    import srl_nokia-common {
+        prefix srl_nokia-comm;
+    }
+    import srl_nokia-bgp {
+        prefix srl_nokia-bgp;
+    }
+    import srl_nokia-policy-types {
+      prefix srl_nokia-pol-types;
+    }
+    description
+      "This module defines FSP Workload Intent Object";
+
+    revision "2020-08-11" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+    typedef ProvisionType {
+        type enumeration {
+            enum Auto ;
+            enum Manual;
+        }
+    }
+    grouping WLSummary {
+        leaf totalNodes {
+            type int32;
+        }
+        leaf totalSubnets {
+            type int32;
+        }
+        leaf totalSubInterfaces {
+            type int32;
+        }
+    }
+    grouping AclEntry{
+        leaf aclProfileName {
+            type string;
+        }
+        leaf skipACLoptimization {
+            type boolean;
+        }
+        leaf aclIpv4Filter {
+            type string;
+        }
+        leaf aclIpv6Filter {
+            type string;
+        }
+    }
+    
+    grouping SubInterfaceRef-entry {
+        leaf vlanID {
+            type uint16 {
+                range 1..4094;
+            }
+            description
+              "VXLAN inner dot1q tag vlan identifier pushed when sending VXLAN packets.";
+        }
+        leaf uuid {
+            type string;
+            config false;
+        }
+        container vlanMatch {
+            uses fsp-vlanMatch-entry;
+            config false;
+        }
+        leaf encapType {
+           type srl-fsp-common:EncapType;
+           config false;
+        }
+        leaf ifID {
+            type string;
+        }
+        leaf subIfName {
+            type string;
+            description
+              "The system assigned name of the subinterface. It is formed by taking the region name dot (.) fabric name dot (.) node name dot (.) interface name dot(.) vlan id. For example, Fabric1.Leaf1.ethernet-2/1.0";
+        }
+        uses SubInterface-ip-address-entry;
+    }
+    grouping fsp-vlanMatch-entry {
+        container untagged {
+            presence;
+        }
+        container single-tagged {
+            leaf vlanID {
+                type uint16 {
+                    range 1..4094;
+                }
+                description
+                "VXLAN inner dot1q tag vlan identifier pushed when sending VXLAN packets.";
+            }
+            container isAny {
+                presence;
+            }
+        }
+        container single-tagged-range {
+            uses fsp-lowVlanId-entry;
+        }
+    }
+    grouping fsp-lowVlanId-entry {
+        list lowVlanId {
+            min-elements 1;
+            max-elements 8;
+            key "rangeLowVlanId";
+            leaf rangeLowVlanId {
+                type uint16 {
+                    range 1..4094;
+                }
+                description
+                "The low-value VLAN identifier in a range for single-tagged
+                packets. The range is matched inclusively.";
+            }
+            leaf highVlanId {
+                type uint16 {
+                    range 1..4094;
+                }
+                description
+                "The high-value VLAN identifier in a range for single-tagged
+                packets. The range is matched inclusively.";
+                must '( . >= ../range-low-vlan-id)' {
+                error-message "high-vlan-id must not be less than low-vlan-id";
+                }
+                mandatory true;
+            }
+        }
+    }
+    grouping SubInterface-entry {
+        leaf vlanID {
+            type uint16 {
+                range 1..4094;
+            }
+            description
+              "VXLAN inner dot1q tag vlan identifier pushed when sending VXLAN packets.";
+        }
+        leaf uuid {
+            type string;
+            config false;
+        }
+        container vlanMatch {
+             uses fsp-vlanMatch-entry;
+        }
+        leaf encapType {
+           type srl-fsp-common:EncapType;
+        }
+        leaf nodeID {
+            type string;
+        }
+        leaf nodeName {
+            config false;
+            type string;
+        }
+        leaf systemName {
+            config false;
+            type string;
+        }
+        leaf subnetID {
+            config false;
+            type string;
+        }
+        leaf subnetName {
+            config false;
+            type string;
+        }
+        leaf regionName {
+            config false;
+            type string;
+        }
+        leaf intentName {
+            config false;
+            type string;
+        }
+        leaf lsIntentName {
+            config false;
+            type string;
+        }
+        leaf fabricName {
+            config false;
+            type string;
+        }
+        leaf ifName {
+            config false;
+            type string;
+        }
+        leaf ifID {
+            type string;
+        }
+        leaf subIfIndex {
+            config false;
+            type string;
+        }
+        leaf subIfName {
+            config false;
+            type string;
+            description
+              "The system assigned name of the subinterface. It is formed by taking the region name dot (.) fabric name dot (.) node name dot (.) interface name dot(.) vlan id. For example, Fabric1.Leaf1.ethernet-2/1.0";
+        }
+        leaf description {
+            type string;
+            description
+              "subinterface name alias or user input name for the subinterface";
+        }
+        container ingress {
+            uses AclEntry;
+        }
+        container egress {
+            uses AclEntry;
+        }
+        leaf classifierDscp {
+            type string;
+        }
+         leaf rewriteRulesDscp {
+            type string;
+        }
+        container matchLabel {
+            uses srl-fsp-label:fsp-label-per-object-entry;
+        }
+        list associatedMatchLabels {
+            key "keyname";
+            leaf keyname {
+                type string;
+            }
+            leaf name {
+                type string;
+            }
+            leaf value {
+                type string;
+            }
+        }
+        list labels {
+            key "keyname";
+            leaf keyname {
+                type string;
+            }
+            leaf name {
+                type string;
+            }
+            leaf value {
+                type string;
+            }
+        }
+        leaf bfdEnabled {
+            type boolean;
+        }
+        // leaf domainType {
+        // type srl-fsp-common:DomainType;
+        // }
+        leaf ipMtu {
+            type uint16{
+                range "1280..9486";
+            }
+        // units bytes;
+        }
+        container lagInfo {
+            config false;
+            leaf localName {
+                type string;
+            }
+            leaf globalID {
+                type uint32;
+            }
+            leaf esID {
+                type string;
+            }
+            leaf isMultiHome {
+                type boolean;
+            }
+            list memberPorts {
+                key "portName";
+                leaf portName {
+                    type string;
+                }
+            }
+        }
+        container mac-duplication {
+        leaf action {
+          type enumeration {
+            enum use-net-instance-action {
+                value 0;
+                }
+                enum stop-learning {
+                value 1;
+                }
+                enum blackhole {
+                value 2;
+                }
+                enum oper-down {
+                value 3;
+                }
+            }
+            default "use-net-instance-action";
+          }
+        }
+        leaf-list ccos {
+            config false;
+            type string;
+            description
+                "A list of associated Context Config Override IDs.";
+        }
+        leaf l3ProxyArpEnabled {
+            type boolean;
+        }
+        leaf ipv4HostRouteEnabled {
+            type boolean;
+        }
+        leaf ipv4LearnUnsolicitedEnabled {
+            type boolean;
+        }
+        leaf l3ProxyNDEnabled {
+            type boolean;
+        }
+        leaf ipv6HostRouteEnabled {
+            type boolean;
+        }
+        leaf ipv6LearnUnsolicitedEnabled {
+            type boolean;
+        }
+        uses SubInterface-ip-address-entry;
+        uses srl-fsp-common:ExternalID;
+    }
+
+    grouping SubInterface-ip-address-entry {
+        container ipv4 {
+            list address {
+                key "ipPrefix";
+                description
+                  "The list of  IPv4 addresses assigned to the subinterface.";
+                leaf ipPrefix {
+                    type srl_nokia-comm:ipv4-prefix-with-host-bits;
+                    description
+                      "The IPv4 address and prefix length in CIDR notation";
+                    must "not(starts-with(.,'0.') or starts-with(.,'127.') or starts-with(.,'169.254.') or re-match(.,'22[4-9]\\..*') or re-match(.,'2[3-5][0-9]\\..*'))" {
+                        error-message
+                          "Not a valid IPv4 unicast address prefix";
+                    }
+                // [adapted from IETF IP model RFC 7277]
+                }
+                leaf primary{
+                    type boolean;
+                    default false;
+                }
+            }
+        }
+        container ipv6 {
+            list address {
+                key "ipPrefix";
+                description
+                  "The list of IPv6 addresses assigned to the subinterface.";
+                leaf ipPrefix {
+                    type srl_nokia-comm:ipv6-prefix-with-host-bits;
+                    description
+                      "The IPv6 address and prefix-length in CIDR notation
+                       Only one IPv6 address is configurable per subinterface and it must  be a valid global unicast address.";
+                    // [adapted from IETF IP model RFC 7277]
+                    must "not(.='::/128' or .='::1/128' or starts-with(.,'ff') or starts-with(.,'fe80'))" {
+                        error-message
+                          "Not a global unicast IPv6 address prefix";
+                    }
+                }
+                leaf primary{
+                    type boolean;
+                    default false;
+                }
+            }
+        }
+    }
+
+    grouping Interface-entry {
+        leaf ifName {
+            type string;
+        }
+        leaf nodeID {
+            type string;
+        }
+        leaf neName {
+            type string;
+            config false;
+        }
+        leaf systemName {
+            type string;
+            config false;
+        }
+        leaf isGatenet {
+            type boolean;
+            config false;
+        }
+        leaf workloadIntentID {
+            type string;
+            config false;
+        }
+        leaf workloadIntentVersion {
+            type string;
+            config false;
+        }
+        leaf regionID {
+            type string;
+        }
+        leaf lsIntentID {
+            type string;
+        }
+        leaf fabricID {
+            type string;
+        }
+        list subInterfaces {
+            key "uuid";
+            uses SubInterface-entry; // mix of L2 or L3
+        }
+    }
+    grouping Node-entry {
+        leaf nodeID {
+            config false;
+            type string;
+        }
+        leaf nodeName {
+            config false;
+            type string;
+        }
+        leaf systemName {
+            config false;
+            type string;
+        }
+        leaf regionID {
+            config false;
+            type string;
+        }
+        leaf lsIntentID {
+            config false;
+            type string;
+        }
+        leaf fabricID {
+            config false;
+            type string;
+        }
+        leaf isGatenet {
+            config false;
+            type boolean;
+        }
+        leaf workloadName {
+            config false;
+            type string;
+        }
+        leaf isSubIfUpdated {
+            config false;
+            type boolean;
+        }
+        list subnets {
+            config false;
+            key "uuid";
+            uses SubnetRef-entry; // mix of L2 or L3
+        }
+        container protocols {
+            uses Protocols-entry;
+        }
+    }
+    grouping Protocols-entry {
+        container bgp {
+            uses BGP-entry;
+        }
+    }
+    grouping BGP-entry {
+        container bgpParams {
+            uses bgp-params;
+        }
+        uses BGPGrp-entry;
+        uses bgp-neighbor;
+    }
+    grouping bgp-params {
+        leaf localAS {
+            type srl_nokia-comm:as-number;
+        }
+        leaf peerAS {
+            type srl_nokia-comm:as-number;
+        }
+        leaf routerID {
+            type srl_nokia-comm:ip-address;
+        }
+        leaf importPolicy {
+            type srl_nokia-comm:name;
+        }
+        leaf exportPolicy {
+            type srl_nokia-comm:name;
+        }
+    }
+    grouping bgp-neighbor {
+        list neighbor {
+            key "peerAddress";
+            leaf peerAddress {
+                type string;
+            }
+            leaf bgpGrpName {
+                type string;
+            }
+            container subnet {
+                uses Subnet-ref;
+            }
+            leaf localAddress {
+                type string;
+            }
+            leaf localAS {
+                type srl_nokia-comm:as-number;
+            }
+            leaf prepend-local-as {
+                type boolean;
+                default true;
+                description
+                    "When set to true, the local AS value is prepended to the AS path of inbound routes from each EBGP peer belonging to the group";
+            }
+            leaf prepend-global-as {
+                type boolean;
+                default true;
+                description
+                    "If a session is EBGP (peer-as is not equal to the local-as) then the local-as is prepended as the final step, so that the local-as is the first element in the AS_PATH received by the peer";
+            }
+            leaf peerAS {
+                type srl_nokia-comm:as-number;
+            }
+            leaf ipv4Unicast {
+                type srl_nokia-comm:admin-state;
+            }
+            leaf ipv6Unicast {
+                type srl_nokia-comm:admin-state;
+            }
+            leaf importPolicy {
+                type srl_nokia-comm:name;
+            }
+            leaf exportPolicy {
+                type srl_nokia-comm:name;
+            }
+            leaf maximum-hops {
+                type uint8 {
+                    range "1..255";
+                }
+            }
+            leaf sessionState {
+                config false;                
+                type string;
+            }            
+        }
+    }
+    grouping BGPGrp-entry {
+        list group {
+            key "groupName";
+            leaf groupName {
+                type string;
+            }
+            leaf isDefault {
+                config false;
+                type boolean;
+            }
+            leaf localAS {
+                type srl_nokia-comm:as-number;
+            }
+            leaf prepend-local-as {
+                type boolean;
+                default true;
+                description
+                    "When set to true, the local AS value is prepended to the AS path of inbound routes from each EBGP peer belonging to the group";
+            }
+            leaf prepend-global-as {
+                type boolean;
+                default true;
+                description
+                    "If a session is EBGP (peer-as is not equal to the local-as) then the local-as is prepended as the final step, so that the local-as is the first element in the AS_PATH received by the peer.";
+            }
+            leaf peerAS {
+                type srl_nokia-comm:as-number;
+            }
+            leaf ipv4Unicast {
+                type srl_nokia-comm:admin-state;
+            }
+            leaf ipv6Unicast {
+                type srl_nokia-comm:admin-state;
+            }
+            leaf bfd {
+                type boolean;
+            }
+            leaf connect-retry {
+                type uint16 {
+                    range "1..65535";
+                }
+                default 120;
+            }
+            leaf minimum-advertisement-interval {
+                type uint16 {
+                    range "1..255";
+                }
+                default 5;
+            }
+            leaf importPolicy {
+                type srl_nokia-comm:name;
+            }
+            leaf exportPolicy {
+                type srl_nokia-comm:name;
+            }
+            leaf maximum-hops {
+                type uint8 {
+                    range "1..255";
+                }
+            }
+            
+        }
+    }
+    grouping SubnetRef-entry {
+        leaf uuid {
+            type string;
+            config false;
+        }
+        leaf name {
+            config false;
+            type string;
+        }
+        leaf type {
+            type srl-fsp-common:RoutingInstanceVrfType;
+        }
+        list subInterfaces {
+            config false;
+            key "subIfName";
+            uses SubInterfaceRef-entry; // mix of L2 or L3
+        }
+        uses Subnet-ip-address-entry;
+        container router {
+            config false;
+            uses Router-ref;
+        }
+    }
+    grouping Subnet-entry {
+        leaf workloadIntentID {
+            type string;
+            config false;
+        }
+        leaf workloadIntentVersion {
+            type string;
+            config false;
+        }
+        leaf uuid {
+            type string;
+            config false;
+        }
+        leaf name {
+            type string {
+                length "1..100";
+                pattern
+                  "[A-Za-z0-9 !@#$%^&()|+=`~.,'/_:;?-]*";
+            }
+        }
+        leaf intentName {
+            config false;
+            type string;
+        }
+        leaf description {
+            type string;
+        }
+        leaf ipMtu {
+            type uint16{
+                range "1280..9486";
+            }
+        }
+        leaf type {
+            type srl-fsp-common:RoutingInstanceVrfType;
+        }
+        leaf l3ProxyArpEnabled {
+            type boolean;
+        }
+        leaf l3ProxyNDEnabled {
+            type boolean;
+        }
+        leaf ipv6HostRouteEnabled {
+            type boolean;
+        }
+        leaf ipv4HostRouteEnabled {
+            type boolean;
+        }
+        leaf ipv4LearnUnsolicitedEnabled {
+            type boolean;
+        }
+        leaf bfdEnabled {
+            type boolean;
+        }
+        list labels {
+            key "keyname";
+            leaf keyname {
+                type string;
+            }
+            leaf name {
+                type string;
+            }
+            leaf value {
+                type string;
+            }
+        }
+        leaf ipv6LearnUnsolicitedEnabled {
+            type boolean;
+        }
+        leaf isSubnetExtended {
+            type boolean;
+            config false;
+        }
+        container ingress {
+            uses AclEntry;
+        }
+        container egress {
+            uses AclEntry;
+        }
+        leaf provisionType {
+            default "Auto";
+            type ProvisionType;
+        }
+        uses bgp-vpn-params;
+        uses bgp-evpn-params;
+        uses Subnet-ip-address-entry;
+        uses srl-fsp-common:ExternalID;
+        container router {
+            uses Router-ref;
+        }
+
+        container mac-duplication {
+        description "Configuration of the MAC duplication procedures.";
+        leaf mac-duplication-detection {
+            type boolean;
+            default false;
+            description
+            "Configurable state of the mac-duplication procedures.
+            Mac-duplication detects duplicate macs that move between different subinterfaces
+            or a subinterface and an evpn destination.";
+        }
+        leaf monitoring-window {
+            type uint32 {
+            range "1..15";
+            }
+            units "minutes";
+            default "3";
+            description 
+            "Monitoring window for detecting duplication on a given mac address.
+            A mac is declared as duplicate if it exceeds the num-moves within the monitoring-window.";
+        }
+        leaf num-moves {
+            type uint32 {
+            range "3..10";
+            }
+            default "5";
+            description 
+            "Number of moves a mac is allowed within the monitoring-window, before it is declared duplicate.";
+        }
+        leaf hold-down-time {
+            type uint32 {
+                range "2..60";
+            }
+            default "9";
+            description 
+            "Time to wait from the moment a mac is declared duplicate to the mac is flushed from the bridge table.
+            When the duplicate mac is flushed, the monitoring process for the mac is restarted.";
+        }
+        leaf action {
+            type enumeration {
+            enum "stop-learning"   { value 0; }
+            enum "blackhole"   { value 1; }
+            enum "oper-down"   { value 2; }
+            }
+            default "stop-learning";
+            description 
+            "Action to take on the subinterface (if action is use-net-instance-action) upon detecting at least one mac addresses as duplicate
+            on the subinterface. In particular:
+            - oper-down: if configured, upon detecting a duplicate mac on the subinterface, the subinterface
+                will be brought oper-down, with oper-down-reason mac-dup-detected. The duplicate macs on the interface will be kept
+                in CPM though, and shown in the duplicate-entries state. In this case, arriving frames on a different subinterface with 
+                the duplicate mac as source mac are dropped. Arriving frames on a different subinterface with a destination mac 
+                matching the duplicate mac are dropped.
+            - blackhole: upon detecting a duplicate mac on the subinterface, the mac will be blackholed. Any
+                frame received on this or any other subinterface with source mac matching a blackhole mac will be discarded. Any frame
+                received with destination mac matching the blackhole mac will be discarded, although still processed for source mac
+                learning.
+            - stop-learning: upon detecting a duplicate mac on the subinterface, existing macs are kept (and refreshed) but new macs
+                are no longer learned on this subinterface. The duplicate mac will stay learned on the subinterface. Frames arriving to
+                a different subinterface with a source mac matching the duplicate mac will be dropped. Frames arriving to a different
+                subinterface with a destination mac matching the duplicate mac will be forwarded normally.";
+        }
+      }
+        container l2ProxyArp {
+            presence "Configure L2 Proxy Arp";
+            leaf table-size {
+                type uint32 {
+                  range "1..8192";
+                }
+                default "250";
+                description
+                   "Maximum number of entries allowed in the proxy table of the network-instance";
+            }
+            container duplicateIPDetection {
+                presence "Configure Duplicate IP Detection";
+                leaf monitoring-window {
+                    type uint32 {
+                       range "1..15";
+                    }
+                    default "3";
+                    units "minutes";
+                    description
+                       "Monitoring window for detecting duplication on a given ip address in the proxy ARP/ND table
+                       An IP is declared duplicate if it exceeds the num-moves within the monitoring-window.";
+                } 
+                leaf num-moves {
+                    type uint32 {
+                      range "3..10";
+                    }
+                    default "5";
+                    description
+                       "Number of moves in the proxy ARP/ND table that an IP is allowed within the monitoring-window
+                        When the number of moves exceeds this value, the IP address is declared duplicate.";
+                }
+                leaf hold-down-time {
+                    type uint32 {
+                            range "0..60";
+                    }
+                    units "minutes";
+                    default "9";
+                    description
+                    "Time to wait from the moment an IP is declared duplicate to the time the IP is removed from the proxy ARP/ND table
+                      When the duplicate IP is removed, the monitoring process for the IP address is restarted. 
+                      Value: 0 is indefinite
+                      Accepted Range: 2..60
+                      Value: 1 is not allowed";
+                }
+            }
+        }
+    }
+
+    grouping Subnet-ip-address-entry {
+        container ipv4 {
+            list address {
+                key "anycastGwIpv4Prefix";
+                description
+                  "The list of IPv4 addresses assigned to the subinterface.";
+                leaf anycastGwIpv4Prefix {
+                    type srl_nokia-comm:ipv4-prefix-with-host-bits;
+                    description
+                      "The IPv4 address and prefix length in CIDR notation";
+                    must "not(starts-with(.,'0.') or starts-with(.,'127.') or starts-with(.,'169.254.') or re-match(.,'22[4-9]\\..*') or re-match(.,'2[3-5][0-9]\\..*'))" {
+                        error-message
+                          "Not a valid IPv4 unicast address prefix";
+                    }
+                // [adapted from IETF IP model RFC 7277]
+                }
+                leaf primary{
+                    type boolean;
+                    default false;
+                }
+            }
+        }
+        container ipv6 {
+            list address {
+                key "anycastGwIpv6Prefix";
+                description
+                  "The list of IPv6 addresses assigned to the subinterface.";
+                leaf anycastGwIpv6Prefix {
+                    type srl_nokia-comm:ipv6-prefix-with-host-bits;
+                    description
+                      "The IPv6 address and prefix length in CIDR notation";
+                    must "not(.='::/128' or .='::1/128' or starts-with(.,'ff') or starts-with(.,'fe80'))" {
+                        error-message
+                          "Not a valid IPv6 unicast address prefix";
+                    }
+                // [adapted from IETF IP model RFC 7277]
+                }
+                leaf primary{
+                    type boolean;
+                    default false;
+                }
+            }
+        }
+    }
+
+    grouping Fabric-entry {
+        leaf name {
+            type string;
+            config false;
+        }
+        leaf uuid {
+            type string;
+        }
+        leaf isGatenet {
+            type boolean;
+            config false;
+        }
+    }
+    grouping lsIntent-entry {
+        leaf uuid {
+            type string;
+        }
+        leaf name {
+            type string;
+            config false;
+        }
+        leaf version {
+            type string;
+            config false;
+        }
+        list fabrics {
+            key "uuid";
+            uses Fabric-entry;
+        }
+    }
+    grouping Region-entry {
+        leaf uuid {
+            type string;
+        }
+        leaf name {
+            type string;
+            config false;
+        }
+        list lsIntents {
+            key "uuid";
+            uses lsIntent-entry;
+        }
+    }
+
+    grouping WorkloadIntent-entry {
+        leaf uuid {
+            type string;
+            config false;
+        }
+        leaf name {
+            type string {
+                length "1..100";
+                pattern
+                  "[A-Za-z0-9 !@#$%^&()|+=`~.,'/_:;?-]*";
+            }
+        }
+        leaf templateName {
+            type string;
+        }
+        leaf queueID {
+            type string;
+        }
+        leaf intentType {
+            type srl-fsp-common:WorkloadIntentType;
+        }
+        leaf global {
+            type boolean;
+            default false;
+            config false;
+        }
+        leaf lsIntentFabricType {
+            type srl-fsp-common:FabricOptions;
+        }
+        leaf description {
+            type string;
+        }
+        leaf version {
+            type string;
+            config false;
+        }
+        leaf prevVersion {
+            type string;
+            config false;
+        }
+        leaf isCandidateMode {
+            type boolean;
+            config false;
+        }
+        leaf isGatenet {
+            type boolean;
+            config false;
+        }
+        leaf isModified {
+            type boolean;
+            config false;
+        }
+        leaf isCurrent {
+            type boolean;
+            config false;
+        }
+        leaf isProfileChangedDuringDeployed {
+            type boolean;
+            config false;
+        }
+        list regions {
+            key "uuid";
+            uses Region-entry;
+        }
+        leaf state {
+            type srl-fsp-common:WLIntentStateType;
+            config false;
+        }
+        leaf createdAt {
+            type string;
+            config false;
+        }
+        leaf updatedAt {
+            type string;
+            config false;
+        }
+        list events {
+            key "eventname";
+            leaf eventname {
+                type string;
+            }
+            leaf reason {
+                type string;
+            }
+        }
+        leaf shouldCreateCandidate {
+            type boolean;
+            config false;
+        }
+        leaf autoDeploy {
+            type boolean;
+            config false;
+        }
+        list staleReason {
+            key "name";
+            leaf name {
+                type string;
+            }
+            leaf reason {
+                type srl-fsp-common:StaleEnum;
+            }
+            leaf needIncludeConfig {
+                type boolean;
+            }
+        }
+        list labels {
+            key "name value";
+            uses srl-fsp-label:fsp-label-per-object-entry;
+        }
+        leaf userID {
+            type string;
+            description
+              "userID of the last user who acted on this entry";
+        }
+        leaf regionID {
+            type string;
+            config false;
+        }
+        container summary {
+            config false;
+            uses WLSummary;
+        }
+        uses srl-fsp-common:ExternalID;
+    }
+
+    grouping AnycastGateway-ip-address-entry {
+        container ipv4 {
+            list address {
+                key "ipPrefix";
+                description
+                  "The list of anycast gateway IPv4 addresses.";
+                leaf ipPrefix {
+                    type string;
+                    description
+                      "Anycast gateway IPv4 address";
+                }
+                leaf primary {
+                    type boolean;
+                }
+            }
+        }
+        container ipv6 {
+            list address {
+                key "ipPrefix";
+                description
+                  "The list of anycast gateway IPv6 addresses.";
+                leaf ipPrefix {
+                    type string;
+                    description
+                      "Anycast gateway IPv6 address";
+                }
+                leaf primary {
+                    type boolean;
+                }
+            }
+        }
+    }
+
+    grouping node-anycast-gateway-req-top {
+        container node-anycast-gateway-req {
+            uses AnycastGateway-ip-address-entry;
+        }
+    }
+
+    grouping Router-entry {
+        leaf workloadIntentID {
+            type string;
+            config false;
+        }
+        leaf workloadIntentVersion {
+            type string;
+            config false;
+        }
+        leaf uuid {
+            type string;
+            config false;
+        }
+        leaf name {
+            type string {
+                length "1..100";
+                pattern
+                  "[A-Za-z0-9 !@#$%^&()|+=`~.,'/_:;?-]*";
+            }
+        }
+        list labels {
+            key "keyname";
+            leaf keyname {
+                type string;
+            }
+            leaf name {
+                type string;
+            }
+            leaf value {
+                type string;
+            }
+        }
+        leaf isDefault {
+            config false;
+            default false;
+            type boolean;
+        }
+        leaf intentName {
+            config false;
+            type string;
+        }
+        leaf description {
+            type string;
+        }
+        leaf provisionType {
+            default "Auto";
+            type ProvisionType;
+        }
+        uses bgp-vpn-params;
+        uses bgp-evpn-params;
+        uses srl-fsp-common:ExternalID;
+        list subnets {
+            config false;
+            key "uuid";
+            leaf uuid {
+                type string;
+            }
+            leaf name {
+                type string;
+            }
+        }
+        leaf-list ccos {
+            config false;
+            type string;
+            description
+                "A list of associated Context Config Override IDs.";
+        }
+    }
+
+    grouping bgp-vpn-params {
+        leaf exportRouteTarget {
+            type srl_nokia-pol-types:bgp-ext-community-type;
+            description "Export Route Target (RT) for the bgp-vpn instance.";
+        }
+        leaf importRouteTarget {
+            type srl_nokia-pol-types:bgp-ext-community-type;
+            description "Import Route Target (RT) for the bgp-vpn instance.";
+        }
+    }
+
+    grouping bgp-evpn-params {
+        leaf vni {
+            type uint32 {
+                range 1..16777215;
+            }
+            description
+            "Unique VXLAN network identifier.";
+        }
+        leaf vniPoolName {
+            type string;
+        }
+        leaf evi {
+            type srl_nokia-comm:evi;
+            config false;
+            description "EVPN Instance identifier associated to the bgp-evpn instance.";
+        }
+        leaf eviPoolName {
+            type string;
+        }
+    }
+
+    grouping Router-ref {
+        leaf uuid {
+            type string;
+        }
+        leaf name {
+            config false;
+            type string;
+        }
+    }
+
+    grouping Subnet-ref {
+        leaf uuid {
+            type string;
+        }
+        leaf name {
+            config false;
+            type string;
+        }
+        leaf routerName {
+            config false;
+            type string;
+        }
+    }
+
+    grouping fsp-workload-intent-top {
+        container workload-intent {
+            uses WorkloadIntent-entry;
+        }
+        container workload-intent-subinterface {
+            uses SubInterface-entry;
+        }
+        container workload-intent-node {
+            uses Node-entry;
+        }
+        container workload-intent-subnet {
+            uses Subnet-entry;
+        }
+        container workload-intent-router {
+            uses Router-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-workload-intent-top;
+        uses node-anycast-gateway-req-top;
+    }
+}

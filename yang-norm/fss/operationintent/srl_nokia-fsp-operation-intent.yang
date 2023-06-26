@@ -1,0 +1,67 @@
+module srl_nokia-fsp-operation-intent {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-operation-intent";
+    prefix "srl_nokia-fsp-operation-intent";
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+    import srl_nokia-common {
+        prefix srl_nokia-comm;
+    }
+    import srl_nokia-fsp-profile-speed {
+        prefix srl-fsp-profile-speed;
+    }
+    description
+      "This module defines FSS operation intent Object";
+
+    revision "2022-03-18" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+
+    typedef PriorityModeType {
+        type enumeration {
+            enum API; // API data gets priority
+            enum LLDP; // LLDP subscription data gets priority
+        }
+    }
+    grouping OperationIntent{
+        leaf uuid {
+            config false;
+            type string;
+        }    
+        leaf fabricIntentId {
+            config false;
+            type string;
+            description "Fabric Intent UUID";
+        }
+        leaf fabricId {
+            config false;
+            type string;
+            description "Fabric UUID";
+        } 
+        leaf role {
+            mandatory true;
+            type PriorityModeType;
+        }
+        leaf regionId {
+            type string;
+        }   
+    }
+    grouping fsp-operation-intent-top {
+        container OperationIntent {
+            description "object used to update operation intent data";
+            uses OperationIntent;
+        }
+    }
+    augment "/srl-fsp:fsp" {
+        uses fsp-operation-intent-top;
+    }
+}

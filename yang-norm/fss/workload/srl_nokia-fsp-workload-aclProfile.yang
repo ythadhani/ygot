@@ -1,0 +1,308 @@
+module srl_nokia-fsp-workload-aclProfile {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-workload-aclProfile";
+    prefix "srl_nokia-fsp-workload-aclProfile";
+
+    import srl_nokia-common {
+        prefix srl_nokia-comm;
+    }
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+    import srl_nokia-acl {
+        prefix srl_nokia-acl;
+    }
+    import srl_nokia-packet-match-types-custom { prefix srl_nokia-pkt-match-types-custom; }
+
+    description
+      "This module defines FSP WorkLoad TemplateProfile";
+
+    revision "2020-08-11" {
+        description
+          "Initial revision";
+        reference
+          "TBD";
+    }
+
+    grouping workload-aclProfile-entry {
+        leaf name {
+            type srl_nokia-comm:name;
+        }
+        leaf profileType {
+            type string;
+        }
+        leaf workloadID {
+            type string;
+        }
+        leaf version {
+            type string;
+        }
+        leaf description {
+            type string;
+        }
+        leaf needUpdate {
+            type boolean;
+        }
+        container profile {
+            uses srl_nokia-acl:acl-top;
+        }
+        list mgRule {
+            key "name";
+            leaf name {
+                type string;
+            }
+            leaf profileType {
+                type string;
+            }
+            leaf description {
+                type string;
+            }
+            list v4mg{
+                key "priority";
+                leaf priority {
+                    type uint16;
+                }
+                leaf accept {
+                    type boolean;
+                }
+                leaf-list srcMG{
+                    type string;
+                }
+                leaf-list dstMG{
+                    type string;
+                }
+                leaf fragment {
+                    type boolean;
+                    description
+                        "Match an IPv4 fragment
+
+                        A packet matches the true condition if the IPv4 header indicates that the fragment-offset is zero and and the more-fragments bit is 1 or if the IPv4 header indicates that the fragment-offset is greater than 0. A packet matches the false condition if it is unfragmented.";
+                }
+                leaf first-fragment {
+                    type boolean;
+                    description
+                        "Match the first fragment of an IPv4 datagram
+
+                        A packet matches the true condition if the IPv4 header indicates that the fragment-offset is zero and and the more-fragments bit is 1. It is not valid to configure this leaf without configuring a match value for the fragment leaf.";
+                }
+                container icmp {
+                    description
+                        "A packet matches this condition if its ICMP type and code matches one of the specified combinations
+
+                        The rule should also have a condition that the IP protocol equals 1 (ICMP) in order for this to be interpreted correctly.";
+                    leaf type {
+                        description "Match a single ICMP type value.";
+                        type srl_nokia-pkt-match-types-custom:icmp-type;
+                    }
+                    leaf-list code {
+                        description
+                            "Match if the ICMP code value is any value in the list
+
+                            Requires ICMP type to be specified because codes are type dependent.";
+                        type uint8;
+                    }
+                }
+                leaf protocol {
+                    description
+                        "An IPv4 packet matches this condition if its IP protocol type field matches the specified value";
+                    type srl_nokia-pkt-match-types-custom:ip-protocol-type;
+                }
+                container destination-port {
+                    description
+                        "A packet matches this condition if its destination TCP or UDP port number matches the value or range that is specified
+
+                        The rule should also have a condition that the IP protocol equals 6 (TCP) or 17 (UDP) in order for this to be interpreted correctly.";
+                    leaf operator {
+                        description
+                            "Comparison operator
+
+                            eq = equal
+                            ge = greater than or equal to
+                            le = less than or equal to";
+                        type srl_nokia-pkt-match-types-custom:operator;
+                    }
+                    leaf value {
+                        description "A destination port number";
+                        type srl_nokia-pkt-match-types-custom:l4-port-type;
+                    }
+                    container range {
+                        description
+                            "Container used to specify a contiguous range of TCP/UDP port numbers";
+                        leaf start {
+                            type srl_nokia-pkt-match-types-custom:l4-port-type;
+                            description "The starting port number to include in the range";
+                        }
+                        leaf end {
+                            type srl_nokia-pkt-match-types-custom:l4-port-type;
+                            description "The ending port number to include in the range";
+                        }
+                    }
+                }
+                container source-port {
+                    description
+                        "A packet matches this condition if its source TCP or UDP port number matches the value or range that is specified
+
+                        The rule should also have a condition that the IP protocol equals 6 (TCP) or 17 (UDP) in order for this to be interpreted correctly.";
+                    leaf operator {
+                        description
+                            "Comparison operator
+
+                            eq = equal
+                            ge = greater than or equal to
+                            le = less than or equal to";
+                        type srl_nokia-pkt-match-types-custom:operator;
+                    }
+                    leaf value {
+                        description "A source port number";
+                        type srl_nokia-pkt-match-types-custom:l4-port-type;
+                    }
+                    container range {
+                        description
+                            "Container used to specify a contiguous range of TCP/UDP port numbers";
+                        leaf start {
+                            type srl_nokia-pkt-match-types-custom:l4-port-type;
+                            description "The starting port number to include in the range";
+                        }
+                        leaf end {
+                            type srl_nokia-pkt-match-types-custom:l4-port-type;
+                            description "The ending port number to include in the range";
+                        }
+                    }
+                }
+                leaf tcp-flags {
+                    type string {
+                        pattern '(\(|\)|&|\||!|ack|rst|syn)+';
+                    }
+                    description
+                        "A logical expression using the &, | and ! logical operators and the TCP flag names: rst, syn and ack.";
+                }
+            }
+
+            list v6mg{
+                key "priority";
+                leaf priority {
+                    type uint16;
+                }
+                leaf accept {
+                    type boolean;
+                }
+                leaf-list srcMG{
+                    type string;
+                }
+                leaf-list dstMG{
+                    type string;
+                }
+                container icmp6 {
+                    description
+                        "A packet matches this condition if its ICMPv6 type and code matches one of the specified combinations
+
+                        The rule should also have a condition that the next-header value equals 58 (ICMPv6) in order for this to be interpreted correctly.";
+                    leaf type {
+                        description "Match a single ICMPv6 type value";
+                        type srl_nokia-pkt-match-types-custom:icmp6-type;
+                    }
+                    leaf-list code {
+                        description
+                            "Match if the ICMPv6 code value is any value in the list
+
+                            Requires ICMPv6 type to be specified because codes are type dependent.";
+                        type uint8;
+                    }
+                }
+                leaf next-header {
+                    description
+                        "An IPv6 packet matches this condition if its first next-header field (in the IPv6 fixed header) contains the specified value";
+                    type srl_nokia-pkt-match-types-custom:ip-protocol-type;
+                }
+                container destination-port {
+                    description
+                        "A packet matches this condition if its destination TCP or UDP port number matches the value or range that is specified
+
+                        The rule should also have a condition that the IP protocol equals 6 (TCP) or 17 (UDP) in order for this to be interpreted correctly.";
+                    leaf operator {
+                        description
+                            "Comparison operator
+
+                            eq = equal
+                            ge = greater than or equal to
+                            le = less than or equal to";
+                        type srl_nokia-pkt-match-types-custom:operator;
+                    }
+                    leaf value {
+                        description "A destination port number";
+                        type srl_nokia-pkt-match-types-custom:l4-port-type;
+                    }
+                    container range {
+                        description
+                            "Container used to specify a contiguous range of TCP/UDP port numbers";
+                        leaf start {
+                            type srl_nokia-pkt-match-types-custom:l4-port-type;
+                            description "The starting port number to include in the range";
+                        }
+                        leaf end {
+                            type srl_nokia-pkt-match-types-custom:l4-port-type;
+                            description "The ending port number to include in the range";
+                        }
+                    }
+                }
+                container source-port {
+                    description
+                        "A packet matches this condition if its source TCP or UDP port number matches the value or range that is specified
+
+                        The rule should also have a condition that the IP protocol equals 6 (TCP) or 17 (UDP) in order for this to be interpreted correctly.";
+                    leaf operator {
+                        description
+                            "Comparison operator
+
+                            eq = equal
+                            ge = greater than or equal to
+                            le = less than or equal to";
+                        type srl_nokia-pkt-match-types-custom:operator;
+                    }
+                    leaf value {
+                        description "A source port number";
+                        type srl_nokia-pkt-match-types-custom:l4-port-type;
+                    }
+                    container range {
+                        description
+                            "Container used to specify a contiguous range of TCP/UDP port numbers";
+                        leaf start {
+                            type srl_nokia-pkt-match-types-custom:l4-port-type;
+                            description "The starting port number to include in the range";
+                        }
+                        leaf end {
+                            type srl_nokia-pkt-match-types-custom:l4-port-type;
+                            description "The ending port number to include in the range";
+                        }
+                    }
+                }
+                leaf tcp-flags {
+                    type string {
+                        pattern '(\(|\)|&|\||!|ack|rst|syn)+';
+                    }
+                    description
+                        "A logical expression using the &, | and ! logical operators and the TCP flag names: rst, syn and ack.";
+                }
+            }
+            uses srl-fsp-common:ExternalID;
+        }
+        uses srl-fsp-common:ExternalID;
+    }
+
+    grouping fsp-workload-aclProfile-top {
+        list workload-aclProfile {
+            key name;
+            uses workload-aclProfile-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-workload-aclProfile-top;
+    }
+}

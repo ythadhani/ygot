@@ -1,0 +1,482 @@
+module srl_nokia-fsp-common {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-common";
+    prefix srl_nokia-fsp-common;
+    import srl_nokia-extensions {
+        prefix srl_nokia-ext;
+    }
+    description
+      "This module defines FSP common struct";
+
+    revision 2020-01-02 {
+        description
+          "Initial revision";
+    }
+    typedef EncapType {
+        type enumeration {
+            enum SingleTaggedRange;
+            enum SingleTagged;
+            enum UnTagged;
+        }
+    }
+    typedef FabricOptions {
+        type enumeration {
+            enum Real;
+            enum DigitalSandbox;
+        }
+    }
+
+    // management profile enum
+    typedef ManagementProfileType {
+        type enumeration {
+            enum gNMI;
+            enum SNMP;
+        }
+    }
+    typedef SNMPVersion {
+        type enumeration {
+            //enum v1;
+            //enum v2c;
+            enum v3;
+        }
+    }
+    typedef SNMPPrivacyProtocol {
+        type enumeration {
+            enum DES;
+            enum AES-128-CFB;
+        }
+    }
+   typedef SNMPSecurityLevel {
+        type enumeration {
+            enum noAuthNoPriv;
+            enum authNoPriv;
+            enum authPriv;
+        }
+    }
+    typedef SNMPAuthenticationProtocol {
+        type enumeration {
+            enum SHA;
+            enum MD5;
+        }
+    }
+    typedef FSS-Secret {
+        type string {
+            srl_nokia-ext:generated-class-name "SecretKey";
+        }
+        description
+        "This type is indicative of a password that is used within
+        Fss";
+    }
+
+    typedef entryStateType {
+        type enumeration {
+            enum NEW;
+            enum ACCEPTED;
+            enum REJECTED;
+        }
+    }
+    typedef IntentType {
+        type enumeration {
+            enum LEAFSPINE;
+            enum BACKBONE;
+            enum MANUAL;
+        }
+    }
+    typedef ToolsCmdType {
+        type enumeration{
+            enum TOOLS_NOT_SET;
+            enum ChassisReboot;
+            enum Checkpoint;
+            enum DhcpClientStop;
+        }
+    }
+    typedef IntentStateType {
+        type enumeration {
+            enum Init;
+            enum Created;
+            enum Updated;
+            enum CableMapInProgress;
+            enum CableMapDone;
+            enum CableMapFailed;
+            enum WatchActionInProgress;
+            enum WatchActionDone;
+            enum ConfigGenInProgress;
+            enum ConfigGenDone;
+            enum ConfigGenFailed;
+            enum DeployerWaitingForNodes;
+            enum DeploymentInProgress;
+            enum DeploymentDone;
+            enum PartialDeploymentDone;
+            enum DeploymentFailed;
+            enum AbortDeploymentInProgress;
+            enum AbortDeploymentDone;
+            enum AbortDeploymentFailed;
+            enum DigitalSandboxDeploymentInProgress;
+            enum DigitalSandboxDeploymentDone;
+            enum DigitalSandboxDeploymentFailed;
+            enum RealFabricDeploymentInProgress;
+            enum RealFabricDeploymentDone;
+            enum RealFabricDeploymentFailed;
+            enum DeleteIntentInProgress;
+            enum DeleteIntentDone;
+            enum DeleteIntentFailed;
+            enum DiscardIntentInProgress;
+            enum EnqueueInProgress;
+            enum Enqueued;
+            enum DequeueInProgress;
+            enum Dequeued;
+            enum ToolsCmdInProgress;
+            enum ToolsCmdDone;
+            enum ToolsCmdFailed;
+        }
+    }
+    typedef ActionType {
+        type enumeration {
+            enum MergeConfig;
+            enum ToolsCmd;
+            enum DownloadIntentConfig;
+            enum RemoveConfig;
+        }
+    }
+    typedef InProgresStateType {
+        type enumeration {
+            enum NONE;
+            enum DeleteInProgress;
+            enum DiscardInProgress;
+            enum CleanUpInProgress;
+        }
+    }
+    typedef VersionSourceType {
+        type enumeration {
+            enum Fabric;
+            enum Workload;
+            enum Maintenance;
+            enum Backbone;
+        }
+    }
+    typedef WLIntentStateType {
+        type enumeration {
+            enum Init;
+            enum Created;
+            enum Updated;
+            enum ConfigGenInProgress;
+            enum ConfigGenDone;
+            enum ConfigGenFailed;
+            enum DeploymentInProgress;
+            enum DeploymentDone;
+            enum DeploymentFailed;
+            enum DeleteConfigEnqueueInProgress;
+            enum DeleteConfigEnqueued;
+            enum DeleteConfigEnqueueFailed;
+            enum DeployDeleteConfigInProgress;
+            enum DeployDeleteConfigFailed;
+            enum DeployDeleteConfigDone;
+            enum Enqueued;
+            enum EnqueueInProgress;
+            enum DeQueueInProgress;
+        }
+    }
+    typedef FabricStateType {
+        type enumeration {
+            enum CableMapInProgress;
+            enum CableMapDone;
+            enum CableMapFailed;
+            enum WatchActionInProgress;
+            enum WatchActionDone;
+            enum ConfigGenInProgress;
+            enum ConfigGenDone;
+            enum ConfigGenFailed;
+            enum DeploymentInProgress;
+            enum DeploymentDone;
+            enum PartialDeploymentDone;
+            enum DeploymentFailed;
+            enum DeleteIntentInProgress;
+            enum DeleteIntentDone;
+            enum DeleteIntentFailed;
+        }
+    }
+
+    typedef DSStateType {
+        type enumeration {
+            enum Init;
+            enum InProgress;
+            enum Done;
+            enum Failed;
+        }
+    }
+
+    typedef SpineType {
+        type enumeration {
+            enum FIXED;
+            enum CHASSIS;
+        }
+    }
+
+    typedef QoSTrustModeType {
+        type enumeration {
+            enum TRUSTED;
+            enum UNTRUSTED;
+        }
+    }
+
+    typedef ECNOpStateType {
+        type enumeration {
+            enum DISABLE;
+            enum ENABLE;
+        }
+    }
+
+    typedef DSCPQoSType {
+        type enumeration {
+            enum BEST_EFFORT;
+            enum LO_PRIORITY;
+            enum MI_PRIORITY;
+            enum HI_PRIORITY;
+        }
+    }
+
+    typedef TOSQoSType {
+        type enumeration {
+            enum BEST_EFFORT;
+            enum PRIORITY;
+        }
+    }
+
+    typedef OverlayServiceType {
+        type enumeration {
+            enum VXLAN;
+            enum SROUDP;
+            enum SR_MPLS;
+        }
+    }
+
+    typedef SpeedType {
+        type enumeration {
+            enum M10;
+            enum M100;
+            enum G1;
+            enum G10;
+            enum G25;
+            enum G40;
+            enum G50;
+            enum G100;
+            enum G200;
+            enum G400;
+            enum T1;
+        }
+    }
+
+    typedef FECType{
+        type enumeration {
+            enum disabled;
+            enum rs-528;
+            enum rs-544;
+            enum base-r;
+            enum rs-108;
+        }
+    }
+
+    typedef LinkModType {
+        type enumeration {
+            enum NRZ;
+            enum PAM_4;
+        }
+    }
+
+    typedef UnicastCPType {
+        type enumeration {
+            enum BGP;
+            enum OSPF;
+            enum ISIS;
+        }
+    }
+
+    typedef MulticastCPType {
+        type enumeration {
+            enum NONE;
+            enum PIM_SM;
+            enum PIM_SSM;
+            enum PIM_BIDIR;
+        }
+    }
+    typedef NodeType {
+        type enumeration {
+            enum NONE;
+            enum "7220 IXR-D2"; // using the same name as in catalogs
+            enum "7220 IXR-D1"; // using the same name as in catalogs
+            enum "7220 IXR-D3"; // using the same name as in catalogs
+            enum "7250 IXR-6"; // using the same name as in catalogs
+            enum "7250 IXR-10"; // using the same name as in catalogs
+            enum "7220 IXR-H2"; // using the same name as in catalogs
+            enum "7220 IXR-H3"; // using the same name as in catalogs
+            enum "7220 IXR-D2L"; // using the same name as in catalogs
+            enum "7220 IXR-D3L"; // using the same name as in catalogs
+            enum "210-WBX-32Q"; // using the same name as in catalogs
+            enum "7220 IXR-D5"; // using the same name as in catalogs
+        }
+    }
+    typedef WorkloadIntentType {
+        type enumeration {
+            enum Default;
+            enum EVPN;
+        }
+    }
+
+    typedef DomainType {
+        type enumeration {
+            enum L2;
+            enum L3;
+        }
+    }
+
+    typedef RoutingInstanceVrfType {
+        type enumeration {
+            enum Bridged;
+            enum Routed;
+            enum Loopback;
+        }
+    }
+    typedef VendorType {
+        type enumeration {
+           // enum Generic_Vendor; // inventory setting
+            enum Nokia;
+        }
+    }
+
+    typedef OperatingSystemType {
+        type enumeration {
+          //  enum Generic_OS; // inventory setting
+            enum SRLinux;
+            enum SROS210WBX;
+        }
+    }
+
+    typedef StaleEnum {
+        type enumeration {
+            enum CCOStale;
+            enum LabelUpdate;
+            enum ACLUpdate;
+            enum QosUpdate;
+            enum MHLagUpdate;
+        }
+    }
+
+    typedef HostName {
+        type string {
+            pattern
+                "(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])";
+        }
+    }
+
+    typedef DomainName {
+        type string {
+          pattern '((([a-zA-Z0-9_]([a-zA-Z0-9\-_]){0,61})?[a-zA-Z0-9]\.)*'
+                + '([a-zA-Z0-9_]([a-zA-Z0-9\-_]){0,61})?[a-zA-Z0-9]\.?)'
+                + '|\.';
+        }
+    }
+
+    typedef IPType {
+        type enumeration {
+            enum IpV4;
+            enum IpV6;
+            enum DualStack;
+            }
+    }
+
+    typedef ManagementAddrType {
+        type enumeration {
+            enum IpV4;
+            enum IpV6;
+            }
+    }
+
+    typedef IntentStaleType {
+        type enumeration {
+            enum NotStale;
+            enum GCOStale;
+            enum MirrorStale;
+            }
+    }
+
+    typedef IPPoolType {
+        type enumeration {
+            enum IslPool;
+            enum MgmtPool;
+            enum SystemPool;
+        }
+    }
+
+    typedef InterfaceType {
+        type enumeration {
+            enum ISL;
+        }
+    }
+
+    grouping IPPoolSpec {
+        leaf uuid {
+            description "uuid of ip pool";
+            type string;
+        }
+        leaf poolName {
+            type string;
+        }
+        leaf descr {
+            type string;
+        }
+        leaf poolType {
+            type IPPoolType;
+        }
+        leaf ipType {
+            type IPType;
+        }
+        leaf-list v4 {
+            type string;
+        }
+        leaf-list v6 {
+            type string;
+        }
+        list dual {
+            key v6Block;
+            leaf v6Block {
+                type string;
+            }
+            leaf v4Block {
+                type string;
+            }
+        }
+        list refCount {
+            config false;
+            key intentID;
+            leaf intentID {
+                type string;
+                description "Fabric Intent Uuid";
+            }
+            leaf inUse {
+                type uint32;
+                description "in use resource count";
+            }
+        }
+    }
+
+    grouping DeviceVendor { // should be the same as the shared-common devicevendor
+        leaf vendor {
+            type VendorType;
+        }
+        leaf operatingSystem {
+            type OperatingSystemType;
+        }
+        leaf softwareVersion {
+            type string;
+        }
+    }
+    grouping ExternalID {
+        leaf externalID {
+            type string {
+                length "0..255"; //support empty string
+            }
+            description
+                "external ID";
+        }
+    }
+}

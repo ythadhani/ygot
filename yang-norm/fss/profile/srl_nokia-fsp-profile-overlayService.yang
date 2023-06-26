@@ -1,0 +1,43 @@
+module srl_nokia-fsp-profile-overlayService {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-overlayService";
+    prefix srl_nokia-fsp-profile-overlayService;
+
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+
+    description "This module defines FSP overlayService profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    grouping OverlayServiceProfile-entry {
+
+        leaf type {
+            type srl-fsp-common:OverlayServiceType;
+        }
+        leaf firstL2Vni {
+            type uint32;
+        }
+        leaf lastL2Vni {
+            type uint32;
+        }
+        leaf firstManyToOneL2Vni {
+            type uint32;
+        }
+        leaf lastmanyToOneL2Vni {
+            type uint32;
+        }
+        leaf firstL3Vni {
+            type uint32;
+        }
+        leaf lastL3Vni {
+            type uint32;
+        }
+    }
+
+    container fsp-profile-OverlayService {
+        uses OverlayServiceProfile-entry;
+    }
+}

@@ -1,0 +1,42 @@
+module srl_nokia-fsp-profile-mgmtTrafficQoS {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-mgmtTrafficQoS";
+    prefix srl_nokia-fsp-profile-mgmtTrafficQoS;
+
+    import srl_nokia-fsp-common {prefix srl-fsp-common;}
+
+    description "This module defines FSP mgmtTrafficQoS profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+
+    
+    
+    grouping MgmtTrafficQoSProfile-entry {
+
+        leaf dscpAllMgmt {
+            type srl-fsp-common:DSCPQoSType;
+        }
+        leaf tosAllMgmt {
+            type srl-fsp-common:TOSQoSType;
+        }
+        leaf dscpGnmi {
+            type srl-fsp-common:DSCPQoSType;
+        }
+        leaf dscpImgDownload {
+            type srl-fsp-common:DSCPQoSType;
+        }
+        leaf dscpSFlow {
+            type srl-fsp-common:DSCPQoSType;
+        }
+        leaf dscpIPFix {
+            type srl-fsp-common:DSCPQoSType;
+        }
+    }
+
+    container fsp-profile-mgmtTrafficQoS {
+        uses MgmtTrafficQoSProfile-entry;
+    }
+}

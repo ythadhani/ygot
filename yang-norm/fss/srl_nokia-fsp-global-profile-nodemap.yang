@@ -1,0 +1,40 @@
+module srl_nokia-fsp-global-profile-nodemap {
+    yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-global-profile-nodemap";
+    prefix "srl_nokia-fsp-global-profile-nodemap";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+
+    grouping node-relation-entry {
+        leaf deployed {
+            type boolean;
+        }
+        leaf staleOnNode {
+            type boolean;
+        }
+        leaf notInCdConfig {
+            type boolean;
+        }
+        leaf toBeRemoved {
+            type boolean;
+        }
+        leaf profileName {
+            type string;
+        }
+    }
+
+    grouping fsp-global-profile-nodemap-top {
+        container global-profile-nodemap {
+            uses node-relation-entry;
+        }
+    }
+
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-global-profile-nodemap-top;
+    }
+}

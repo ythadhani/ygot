@@ -1,0 +1,499 @@
+module srl_nokia-fsp-maintenance {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-maintenance";
+
+    import srl_nokia-fsp-label {
+        prefix srl-fsp-label;
+    }
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+
+    import srl_nokia-fsp-intent {
+        prefix srl_nokia-fsp-intent;
+    }
+
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+    
+    prefix srl_nokia-fsp-maintenance;
+
+    description
+      "This module defines FSP maintenance manager data";
+
+    revision 2020-10-01 {
+        description
+          "Initial revision";
+    }
+
+    typedef SoftwareUpdateIntentState {
+        type enumeration {
+            enum INTENT_CREATED;
+            enum CONFIGGEN_INPROGRESS;
+            enum CONFIGGEN_DONE;
+            enum ACQUIRE_FABRIC_LOCK;
+            enum FABRIC_LOCK_FAILED;
+            enum DOWNLOAD_CONFIGS_DEQUEUE_INPROGRESS;
+            enum DOWNLOAD_CONFIGS_REQUEST_ENQUEUE_INPROGRESS;
+            enum DOWNLOAD_CONFIGS_REQUEST_ENQUEUED;
+            enum DOWNLOAD_CONFIGS_INPROGRESS;
+            enum WAIT_ON_TRAFFIC_DRAIN_INPROGRESS;
+            enum UPDATE_REQUEST_ENQUEUE_INPROGRESS;
+            enum UPDATE_REQUEST_ENQUEUED;
+            enum UPDATE_INPROGRESS;
+            enum POST_UPDATE_DOWNLOAD_CONFIGS_DEQUEUE_INPROGRESS;
+            enum POST_UPDATE_DOWNLOAD_CONFIGS_REQUEST_ENQUEUE_INPROGRESS;
+            enum POST_UPDATE_DOWNLOAD_CONFIGS_REQUEST_ENQUEUED;
+            enum POST_UPDATE_DOWNLOAD_CONFIGS_INPROGRESS;
+            enum WAIT_ON_BGP_CONVERGENCE_INPROGRESS;
+            enum DOWNLOAD_INTENT_CONFIG_DEQUEUE_INPROGRESS;
+            enum DOWNLOAD_INTENT_CONFIG_REQUEST_ENQUEUE_INPROGRESS;
+            enum DOWNLOAD_INTENT_CONFIG_REQUEST_ENQUEUED;
+            enum DOWNLOAD_INTENT_INPROGRESS;
+            enum CLEANUP_REQUEST_ENQUEUE_INPROGRESS;
+            enum CLEANUP_REQUEST_ENQUEUED;
+            enum CLEANUP_INPROGRESS;
+            enum SUCCESS;
+            enum PARTIAL_SUCCESS;
+            enum FAIL;
+        }
+    }
+
+    typedef NodeMaintenanceState {
+        type enumeration {
+            enum NOT_INITIATED;
+            enum WAITING;
+            enum IN_PROGRESS;
+            enum SUCCESS;
+            enum FAIL;
+        }
+    }
+
+    typedef ReplaceNodeIntentState {
+        type enumeration {
+            enum INTENT_CREATED;
+            enum CONFIGGEN_INPROGRESS;
+            enum CONFIGGEN_DONE;
+            enum ACQUIRE_FABRIC_LOCK;
+            enum FABRIC_LOCK_FAILED;
+            enum DOWNLOAD_CONFIGS_DEQUEUE_INPROGRESS;
+            enum DOWNLOAD_CONFIGS_REQUEST_ENQUEUE_INPROGRESS;
+            enum DOWNLOAD_CONFIGS_REQUEST_ENQUEUED;
+            enum DOWNLOAD_CONFIGS_INPROGRESS;
+            enum WAIT_ON_TRAFFIC_DRAIN_INPROGRESS;
+            enum DHCP_CLIENT_STOP_DEQUEUE_INPROGRESS;
+            enum DHCP_CLIENT_STOP_REQUEST_ENQUEUE_INPROGRESS;
+            enum DHCP_CLIENT_STOP_REQUEST_ENQUEUED;
+            enum DHCP_CLIENT_STOP_INPROGRESS;
+            enum POST_UPDATE_DOWNLOAD_CONFIGS_DEQUEUE_INPROGRESS;
+            enum POST_UPDATE_DOWNLOAD_CONFIGS_REQUEST_ENQUEUE_INPROGRESS;
+            enum POST_UPDATE_DOWNLOAD_CONFIGS_REQUEST_ENQUEUED;
+            enum POST_UPDATE_DOWNLOAD_CONFIGS_INPROGRESS;
+            enum WAIT_ON_BGP_CONVERGENCE_INPROGRESS;
+            enum ASSOCIATE_REQUEST_INITIATED;
+            enum WAITING_FOR_DIAL_HOME;
+            enum DOWNLOAD_INTENT_CONFIG_REQUEST_ENQUEUE_INPROGRESS;
+            enum DOWNLOAD_INTENT_CONFIG_REQUEST_ENQUEUED;
+            enum DOWNLOAD_INTENT_INPROGRESS;
+            enum CLEANUP_REQUEST_ENQUEUE_INPROGRESS;
+            enum CLEANUP_REQUEST_ENQUEUED;
+            enum CLEANUP_INPROGRESS;
+            enum SUCCESS;
+            enum PARTIAL_SUCCESS;
+            enum FAIL;
+        }
+    }
+
+     typedef ReplaceCardIntentState {
+        type enumeration {
+            enum INTENT_CREATED;
+        }
+    }
+   
+    typedef BackupIntentState {
+        type enumeration {
+            enum INTENT_CREATED;
+            enum SUCCESS;
+            enum PARTIAL_SUCCESS;
+            enum FAIL;
+        }
+    }
+
+    typedef MaintenanceGroupMemberType {
+        description "Maintenance Group member type";
+
+        type enumeration {
+            enum NODE;
+            enum CARD;
+        }
+    }
+
+    typedef SwitchConfigType {
+        description "Switch configuration type";
+
+        type enumeration {
+            enum TOR;
+            enum EOR;
+        }
+    }
+
+    typedef SwitchSubGroupType {
+        description "Switch sub group type";
+
+        type enumeration {
+            enum ODD;
+            enum EVEN;
+        }
+    }
+
+    typedef MaintenanceIntentType {
+        description "Type of Maintenance Intent";
+
+        type enumeration {
+            enum SOFTWARE_UPDATE;
+            enum REPLACE_NODE;
+            enum REPLACE_CARD;
+            enum BACKUP;
+        }
+    }
+
+    typedef RepetitionType {
+        description "Repetition type";
+
+        type enumeration {
+            enum REPEAT;
+            enum ONE_TIME;
+        }
+    }
+
+    typedef ScheduleType {
+        description "Execution time";
+
+        type enumeration {
+            enum IMMEDIATE;
+            enum SCHEDULE;
+        }
+    }
+
+    grouping maintenance-node-entry {
+        leaf nodeUuid {
+            type string;
+            description "UUID of node";
+        }
+        leaf state {
+            type NodeMaintenanceState;
+            description "State of node";
+        }
+    }
+
+    grouping maintenance-intent-state {
+        description "Maintenance state";
+
+        leaf softwareUpdateState {
+            type SoftwareUpdateIntentState;
+            description "State of software update intent";
+        }
+        leaf replaceNodeState {
+            type ReplaceNodeIntentState;
+            description "State of replace node intent";
+        }
+        leaf replaceCardState {
+            type ReplaceCardIntentState;
+            description "State of replace card intent";
+        }       
+        leaf backupState {
+            type BackupIntentState;
+            description "State of backup intent";
+        }
+        leaf entryTime {
+            type string;
+            description "Time at which FSM entered into the state";
+        }
+        leaf exitTime {
+            type string;
+            description "Time at which FSM exited the state";
+        }
+    }
+
+    grouping abstract-intent {
+        description "Definition of an abstract Intent";
+
+        leaf uuid {
+            type string;
+            description "UUID of Intent";
+        }
+        leaf name {
+            type string {
+                length "1..128";
+            }
+            description "Name of Intent";
+        }
+        leaf description {
+            type string;
+            description "Description";
+        }
+        leaf version {
+            type string;
+            description "Version of Intent";
+        }
+        leaf prevVersion {
+            type string;
+            config false;
+            description "Previous version of Intent";
+        }
+        leaf regionID {
+            type string;
+            description "UUID of Region";
+        }
+        leaf createdAt {
+            type string;
+            description "Time at which Intent was created";
+        }
+        leaf updatedAt {
+            type string;
+            description "Time at which Intent was updated";
+        }
+        list labels {
+            key "name value";
+            uses srl-fsp-label:fsp-label-per-object-entry;
+            description "Optional list of associated labels";
+        }       
+    }
+    
+    grouping maintenance-group-member {
+        description "Maintenance Group member";
+
+        leaf fabricIntentId {
+            type string;
+            description "Fabric Intent UUID";
+        }
+         leaf fabricId {
+            type string;
+            description "Fabric UUID";
+        }   
+        leaf memberId {
+            type string;
+            description "UUID of member (Node/Card)";
+        }
+        leaf name {
+            type string;
+            description "Name of member";
+        }
+        leaf role {
+            type string;
+            description "Node role";
+        }
+        leaf fabricName {
+            type string;
+            description "Fabric name";
+        }
+        leaf fabricIntentName {
+            type string;
+            description "Fabric Intent name";
+        }
+        leaf nodeState {
+            type string;
+            description "Device state";
+        }
+        leaf macAddress {
+            type string;
+            description "MAC Address";
+        }
+        leaf mgmtAddress {
+            type string;
+            description "Management address";
+        }
+        leaf curState {
+            type NodeMaintenanceState;
+            description "Current maintenance state of the member";
+        }
+        leaf softwareVersion {
+            type string;
+            description "Software version of the member";
+        }
+        leaf deviceSoftwareVersion {
+            type string;
+            description "Device software version of the member";
+        }
+        leaf oldSerialNumber {
+            type string;
+            description "Old serial number of the member";
+        }
+        leaf serialNumber {
+            type string;
+            description "Serial number of the member";
+        }
+        leaf chassisType {
+            type string;
+            description "Chassis type of the member";
+        }
+        leaf-list failureCause {
+            description "Failure cause";
+            type string;
+        }
+    }
+
+    grouping maintenance-group-entry {
+        description "Maintenance Group";
+
+        leaf uuid {
+            type string;
+            description "UUID of Maintenance Group";
+        }
+        leaf name {
+            type string;
+            description "Name of Maintenance Group";
+        }
+         leaf description {
+            type string;
+            description "Description";
+        }       
+        leaf regionID {
+            type string;
+            description "UUID of Region";
+        }
+        leaf regionName {
+            type string;
+            description "Region name";
+        }
+        leaf maintenanceIntentId {
+            type string;
+            description "UUID of Maintenance Intent";
+        }
+        leaf maintenanceMemberType {
+            type MaintenanceGroupMemberType;
+            description "Type of maintenance group member";
+        }
+        list members {
+            key "memberId";
+            uses maintenance-group-member;
+            description "List of Maintenance Group members";
+        }
+    }
+
+    grouping software-update-params-entry {
+        container deviceVendor {
+            uses srl-fsp-common:DeviceVendor;
+        }
+        leaf targetImageID {
+            type string;
+        }
+
+        leaf preBootTimer {
+            type int32;
+            mandatory true;
+            description "Pre Boot Timer";
+        }
+
+        leaf postBootTimer {
+            type int32;
+            mandatory true;
+            description "Post Boot Timer";
+        }
+    }
+
+    grouping node-identity-params {
+        leaf fabricIntentId {
+            type string;
+            description "Fabric Intent UUID";
+        }
+         leaf fabricId {
+            type string;
+            description "Fabric UUID";
+        }       
+        leaf nodeId {
+            type string;
+            description "UUID of Node";
+        }
+        leaf nodeName {
+            type string;
+            config false;
+            description "Name of Node";
+        }
+        leaf serialNumber {
+            type string;
+            description "New Serial number";
+        }
+    }
+
+    grouping replace-node-params-entry {
+        list nodes {
+            uses node-identity-params;
+            key "nodeId";
+        }
+
+        leaf preBootTimer {
+            type int32;
+            mandatory true;
+            description "Pre Boot Timer";
+        }
+
+        leaf postBootTimer {
+            type int32;
+            mandatory true;
+            description "Post Boot Timer";
+        }
+    }
+
+    grouping maintenance-intent-entry {
+        description "Maintenance Intent";
+
+        uses abstract-intent;
+
+        leaf type {
+            type MaintenanceIntentType;
+            description "Type of Maintenance Intent";
+        }
+        leaf repetition {
+            type RepetitionType;
+            description "Repetition type";
+        }
+        leaf schedule {
+            type ScheduleType;
+            description "Schedule";
+        }
+        leaf-list maintenanceGroups {
+            type string;
+            description "UUIDs of associated Maintenance Groups. Currently, only one Maintenance Group is supported.";
+        }
+        container curState {
+            uses maintenance-intent-state;
+            description "Current state of Maintenance Intent";
+        }
+        list prevStates {
+            uses maintenance-intent-state;
+            config false;
+            description "Ordered list of previous states of Maintenance Intent";
+        }
+        leaf-list failureCause {
+            type string;
+            description "Failure cause";
+        }
+        container softwareUpdateParams {
+            uses software-update-params-entry;
+            description "Software update request parameters";
+        }
+        container replaceNodeParams {
+            uses replace-node-params-entry;
+            description "Replace node request parameters";
+        }
+    }
+
+    grouping fsp-maintenance-intent-top {
+        container maintenanceIntent {
+            uses maintenance-intent-entry;
+        }
+        container maintenanceGroup {
+            uses maintenance-group-entry;
+        }
+        container maintenanceNode {
+            uses maintenance-node-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-maintenance-intent-top;
+    }
+}

@@ -1,0 +1,26 @@
+module srl_nokia-fsp-profile-globalCfg {
+    yang-version 1;
+    namespace "urn:srl_nokia/fsp-profile-globalCfg";
+    prefix srl_nokia-fsp-profile-globalCfg;
+    import srl_nokia-common {
+        prefix srl_nokia-comm;
+    }
+    description "This module defines FSP globalCfg profile struct";
+
+    revision 2020-01-02 {
+        description
+                "Initial revision";
+    }
+    grouping GlobalCfg-entry {
+        leaf enableFTP {
+            type boolean;
+        }
+        leaf-list ntp {
+        type srl_nokia-comm:ip-address ;
+      }
+    }
+
+    container fsp-profile-globalcfg {
+        uses GlobalCfg-entry;
+    }
+}

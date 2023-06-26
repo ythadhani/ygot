@@ -1,0 +1,56 @@
+module srl_nokia-fsp-intent-summary {
+     yang-version "1";
+
+    // namespace
+    namespace "urn:srl_nokia/fsp-intent-summary";
+    prefix "srl_nokia-fsp-intent-summary";
+
+    import srl_nokia-fsp {
+        prefix srl-fsp;
+    }
+    import srl_nokia-fsp-common {
+        prefix srl-fsp-common;
+    }
+
+    description "This module defines FSP intent-summary struct. Tracks the intent min and max version and also any version discard/delete/cleanup actions";
+
+    revision "2020-01-02" {
+        description
+                "Initial revision";
+        reference "TBD";
+    }
+
+    grouping intent-summary-entry {
+        leaf intentID {
+            type string;
+            config false;
+        }
+        leaf minVersion {
+            type string;
+            config false;
+        }
+        leaf maxVersion {
+            type string;
+            config false;
+        }        
+        leaf inProgressState { // used for tracking delete in progress, discard in progress, and clean up in progress actions
+            type srl-fsp-common:InProgresStateType;
+            config false;
+        }
+        leaf-list associatedFabricIntents {  // used to store fabric intents on the version of the bachbone on which delete was triggered
+            type string;
+        }
+        leaf timestamp {
+            type string;
+        }
+    }
+    grouping fsp-intent-summary-top {
+        container intent-summary {
+            uses intent-summary-entry;
+        }
+    }
+
+    augment "/srl-fsp:fsp" {
+        uses fsp-intent-summary-top;
+    }
+}
