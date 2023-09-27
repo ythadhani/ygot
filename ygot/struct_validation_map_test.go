@@ -2757,16 +2757,6 @@ func TestUniqueSlices(t *testing.T) {
 		inB:        reflect.ValueOf([]int{4, 5, 6}),
 		wantUnique: true,
 	}, {
-		name:             "error: mismatched types",
-		inA:              reflect.ValueOf([]string{"american-dream"}),
-		inB:              reflect.ValueOf([]int{42}),
-		wantErrSubstring: "a and b do not contain the same type",
-	}, {
-		name:             "error: not slices",
-		inA:              reflect.ValueOf("beer-geek-breakfast"),
-		inB:              reflect.ValueOf([]string{"beer-mile"}),
-		wantErrSubstring: "a and b must both be slices",
-	}, {
 		name:       "not unique, strings",
 		inA:        reflect.ValueOf([]string{"beobrew-ipa", "berliner-weisse"}),
 		inB:        reflect.ValueOf([]string{"beobrew-ipa", "big-worse"}),
@@ -2807,6 +2797,47 @@ func TestUniqueSlices(t *testing.T) {
 
 			if want := tt.wantUnique; got != want {
 				t.Fatalf("%s: uniqueSlices(%v, %v): did not get expected unique status, got: %v, want: %v", tt.name, tt.inA, tt.inB, got, want)
+			}
+		})
+	}
+}
+
+func TestValidateSlices(t *testing.T) {
+	type stringPtrStruct struct {
+		Foo *string
+	}
+
+	type sliceStruct struct {
+		Bar []string
+	}
+
+	tests := []struct {
+		name             string
+		inA              reflect.Value
+		inB              reflect.Value
+		wantValid        bool
+		wantErrSubstring string
+	}{{
+		name:             "error: mismatched types",
+		inA:              reflect.ValueOf([]string{"american-dream"}),
+		inB:              reflect.ValueOf([]int{42}),
+		wantErrSubstring: "a and b do not contain the same type",
+	}, {
+		name:             "error: not slices",
+		inA:              reflect.ValueOf("beer-geek-breakfast"),
+		inB:              reflect.ValueOf([]string{"beer-mile"}),
+		wantErrSubstring: "a and b must both be slices",
+	}}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := validateSlices(tt.inA, tt.inB)
+			if diff := errdiff.Substring(err, tt.wantErrSubstring); diff != "" {
+				t.Fatalf("%s: validateSlices(%v, %v): did not get expected error, %s", tt.name, tt.inA, tt.inB, diff)
+			}
+
+			if want := tt.wantValid; got != want {
+				t.Fatalf("%s: validateSlices(%v, %v): did not get expected status, got: %v, want: %v", tt.name, tt.inA, tt.inB, got, want)
 			}
 		})
 	}
